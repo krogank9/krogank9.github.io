@@ -1,0 +1,1382 @@
+<!DOCTYPE html PUBLIC"-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<style>
+			canvas, #spritesheetDiv, .controls {
+				-webkit-touch-callout: none;
+				-webkit-user-select: none;
+				-khtml-user-select: none;
+				-moz-user-select: none;
+				-ms-user-select: none;
+				user-select: none;
+				outline: none;
+				-webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
+				padding:0px;
+			}
+			#playbutton {
+				display:none;
+			}
+			#playbutton + label
+			{
+			   background-image: url('data:image/png;base64,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');
+			   height: 64px;
+			   width: 64px;
+			   display:inline-block;
+			   padding: 0 0 0 0px;
+			}
+
+			#playbutton:checked + label
+			{
+				background-image: url('data:image/png;base64,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');
+				height: 64px;
+				width: 64px;
+				display:inline-block;
+				padding: 0 0 0 0px;
+			}
+			
+			.controls
+			{
+				border: 1px solid #ccc;
+			}
+			.alphacanvas
+			{
+				border-left: 1px solid #ccc;
+				border-right: 1px solid #ccc;
+			}
+			.alphadiv
+			{
+				background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AcdCzQH49hrxQAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABCSURBVFjD7dbBCQAwDELRpCu5/wZxJjtEDqXwvQsPvNgzk1pE0qZepx4HAAAAAAAAANBJVn/ANhMAAAAAAAAAfwMu99IKnoYRK6EAAAAASUVORK5CYII=');
+				background-repeat: repeat;
+			}
+			.opaquediv
+			{
+				background: white;
+			}
+			
+			.tab
+			{
+				text-align: center;
+				background: white;
+				border-top: solid 1px #fff;
+				border-bottom: solid 1px #ccc;
+				margin-bottom: 10px;
+			}
+			.tab.active
+			{
+				background: transparent;
+				border-left: solid 1px #ccc;
+				border-right: solid 1px #ccc;
+				border-top: solid 1px #ccc;
+				border-bottom: none;
+			}
+			
+			.tab a
+			{
+				text-decoration: none;
+				color: black;
+				font-size: 120%;
+			}
+			.tab.active a
+			{
+				text-decoration: underline;
+			}
+		</style>
+	</head>
+	<div>
+		<div style="display: inline-block;">
+			<span id="selectedSpriteName">Drag and drop sprite sheets & sprites into the blue box to begin packing</span>
+			<br>
+			<div id="spritesheetDiv" style="display: inline-block; overflow: scroll; width: 500px; height: 400px; border: solid 1px darkblue;">
+				<div id="loadingdiv" style="border: dotted 1px black; display: none;"><div id="loadingbardiv" style="background-color: grey; width:50%; height: 100%;">LOADING...</div></div>
+				<canvas id="spritesheet"></canvas>
+			</div>
+			<br>
+			<input type="text" id="textureFileName" placeholder="input texture filename">
+			<span id="infodiv"></span>
+			<br><br>
+			<input type="button" onclick="saveSheet()" value="Save Sprite Sheet">
+			<input type="button" onclick="generate_plist()" value="Save plist">
+			<input type="button" onclick="generate_anim_plist()" value="Save anim plist">
+			<br>
+			<br>
+			<input type="checkbox" id="prependNameToAnim">
+			Prepend texture name to animations on export
+			<br>
+			(e.g. for player.png, player_walk, player_run)
+			<br>
+			<br>What order are the imported sprite sheets in?
+			<form>
+				<input type="radio" id="spriteOrderRow" name="spriteOrder" checked> Rows, left to right, like the letters in a book
+				<br>
+				<input type="radio" id="spriteOrderColumns" name="spriteOrder"> Columns, top to bottom
+			</form>
+		</div>
+		
+		<!-- div width 500 + 2 for the borders -->
+		<div style="display: inline-block; vertical-align: top; border-bottom: 1px solid #ccc; width: 502px;" class="alphadiv">
+			<table style="width: 100%; text-align: center; margin-bottom: -1px; padding:0px; cell-padding: 0px; border-collapse: collapse; border-spacing: 0;">
+				<tr>
+					<td class="tab left active" onclick="showTab(event, 'animations')"><a href="#">Animations</a></td>
+					<td class="tab right" onclick="showTab(event, 'anchorpts')"><a href="#">Anchor points</a></td>
+				</tr>
+			</table>
+			<div id="animations" class="tabcontent" style="display: block; height: 400px;">
+				<canvas id="spriteanimation" width=500 height=400 class="alphacanvas"></canvas>
+				<div style="text-align: center; padding: 7px; border-top: 1px solid #ccc" id="animControls" class="opaquediv controls">
+					Click a sprite to add it to the current animation
+					<select id="animselector">
+						<option value="" disabled selected hidden>No animations</option>
+					</select>
+					<br>
+					<!-- play left button -->
+					<input type="image" id="leftAnim" style="outline-width: 0" src="data:image/png;base64,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">
+					<input type="checkbox" id="playbutton"/><label for="playbutton"></label>
+					<!-- play right button -->
+					<input type="image" id="rightAnim" style="outline-width: 0" src="data:image/png;base64,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">
+					<br>
+					frame <span id="frameNumber">0/0</span>
+					
+					<input type="button" id="delAnimFrame" value="Delete frame">
+					<br><br>
+					Frame duration: <input type="range" id="frameDurationSlider" min="25" max="1000" step="25" value="100"><span id="frameDurationSpan">100</span>ms
+					<input type="button" id="setAllFrames" value="Set all frames">
+					<hr>
+					<form>
+						<input type="text" id="animnamer" placeholder="new animation name">
+						<input type="submit" id="addAnim" value="Add animation">
+						<input type="button" id="delAnim" value="Delete animation">
+					</form>
+				</div>
+			</div>
+			<div id="anchorpts" class="tabcontent" style="display: none; height: 400px;">
+				<canvas id="anchorcanvas" width=500 height=400 class="alphacanvas"></canvas>
+				<div style="text-align: center; padding: 7px; border-top: 1px solid #ccc" id="anchorControls" class="opaquediv controls">
+					Click a sprite to edit its anchor points
+					<input type="button" id="editAnchorOfNext" value="Go to next sprite">
+					<br>
+					<br>
+					<input type="range" id="anchoredit_xaxis" min="0" max="1" step="0.02"> X axis
+					<br>
+					<input type="range" id="anchoredit_yaxis" min="0" max="1" step="0.02"> Y axis
+					<br>
+					<span id="anchorPosDisplay"></span>
+					<hr>
+					<input type="button" id="copyAnchorToAllX" value="copy X to all">
+					<input type="button" id="copyAnchorToAllY" value="copy Y to all">
+					<input type="checkbox" id="setCopyToLocal"> local to current sprite sheet
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		/**
+		 * XMLWriter - XML generator for Javascript, based on .NET's XMLTextWriter.
+		 * Copyright (c) 2008 Ariel Flesler - aflesler(at)gmail(dot)com | http://flesler.blogspot.com
+		 * Licensed under BSD (http://www.opensource.org/licenses/bsd-license.php)
+		 * Date: 3/12/2008
+		 * @version 1.0.0
+		 * @author Ariel Flesler
+		 * http://flesler.blogspot.com/2008/03/xmlwriter-for-javascript.html
+		 */
+		function XMLWriter(a,b){if(a)this.encoding=a;if(b)this.version=b};(function(){XMLWriter.prototype={encoding:'ISO-8859-1',version:'1.0',formatting:'indented',indentChar:'\t',indentation:1,newLine:'\n',writeStartDocument:function(a){this.close();this.stack=[];this.standalone=a},writeEndDocument:function(){this.active=this.root;this.stack=[]},writeDocType:function(a){this.doctype=a},writeStartElement:function(c,d){if(d)c=d+':'+c;var a=this,b=a.active,e={n:c,a:{},c:[]};if(b){b.c.push(e);this.stack.push(b)}else a.root=e;a.active=e},writeEndElement:function(){this.active=this.stack.pop()||this.root},writeAttributeString:function(a,b){if(this.active)this.active.a[a]=b},writeString:function(a){if(this.active)this.active.c.push(a)},writeElementString:function(a,b,c){this.writeStartElement(a,c);this.writeString(b);this.writeEndElement()},writeCDATA:function(a){this.writeString('<![CDATA['+a+']]>')},writeComment:function(a){this.writeString('<!-- '+a+' -->')},flush:function(){var a=this,b='',c='',d=a.indentation,e=a.formatting.toLowerCase()=='indented',f='<?xml version="'+a.version+'" encoding="'+a.encoding+'"';if(a.stack&&a.stack[0])a.writeEndDocument();if(a.standalone!==undefined)f+=' standalone="'+!!a.standalone+'"';f+=' ?>';f=[f];if(a.doctype&&a.root)f.push('<!DOCTYPE '+a.root.n+' '+a.doctype+'>');if(e){while(d--)b+=a.indentChar}if(a.root)k(a.root,c,b,f);return f.join(e?a.newLine:'')},close:function(){var a=this;if(a.root)j(a.root);a.active=a.root=a.stack=null},getDocument:window.ActiveXObject?function(){var a=new ActiveXObject('Microsoft.XMLDOM');a.async=!1;a.loadXML(this.flush());return a}:function(){return(new DOMParser()).parseFromString(this.flush(),'text/xml')}};function j(a){var l=a.c.length;while(l--){if(typeof a.c[l]=='object')j(a.c[l])}a.n=a.a=a.c=null};function k(a,b,c,d){var e=b+'<'+a.n,f=a.c.length,g,h,i=0;for(g in a.a)e+=' '+g+'="'+a.a[g]+'"';e+=f?'>':' />';d.push(e);if(f){do{h=a.c[i++];if(typeof h=='string'){if(f==1)return d.push(d.pop()+h+'</'+a.n+'>');else d.push(b+c+h)}else if(typeof h=='object')k(h,b+c,c,d)}while(i<f);d.push(b+'</'+a.n+'>')}}})();
+	</script>
+	<script>/*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */var saveAs=saveAs||function(e){"use strict";if(typeof e==="undefined"||typeof navigator!=="undefined"&&/MSIE [1-9]\./.test(navigator.userAgent)){return}var t=e.document,n=function(){return e.URL||e.webkitURL||e},r=t.createElementNS("http://www.w3.org/1999/xhtml","a"),o="download"in r,i=function(e){var t=new MouseEvent("click");e.dispatchEvent(t)},a=/constructor/i.test(e.HTMLElement),f=/CriOS\/[\d]+/.test(navigator.userAgent),u=function(t){(e.setImmediate||e.setTimeout)(function(){throw t},0)},d="application/octet-stream",s=1e3*40,c=function(e){var t=function(){if(typeof e==="string"){n().revokeObjectURL(e)}else{e.remove()}};setTimeout(t,s)},l=function(e,t,n){t=[].concat(t);var r=t.length;while(r--){var o=e["on"+t[r]];if(typeof o==="function"){try{o.call(e,n||e)}catch(i){u(i)}}}},p=function(e){if(/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(e.type)){return new Blob([String.fromCharCode(65279),e],{type:e.type})}return e},v=function(t,u,s){if(!s){t=p(t)}var v=this,w=t.type,m=w===d,y,h=function(){l(v,"writestart progress write writeend".split(" "))},S=function(){if((f||m&&a)&&e.FileReader){var r=new FileReader;r.onloadend=function(){var t=f?r.result:r.result.replace(/^data:[^;]*;/,"data:attachment/file;");var n=e.open(t,"_blank");if(!n)e.location.href=t;t=undefined;v.readyState=v.DONE;h()};r.readAsDataURL(t);v.readyState=v.INIT;return}if(!y){y=n().createObjectURL(t)}if(m){e.location.href=y}else{var o=e.open(y,"_blank");if(!o){e.location.href=y}}v.readyState=v.DONE;h();c(y)};v.readyState=v.INIT;if(o){y=n().createObjectURL(t);setTimeout(function(){r.href=y;r.download=u;i(r);h();c(y);v.readyState=v.DONE});return}S()},w=v.prototype,m=function(e,t,n){return new v(e,t||e.name||"download",n)};if(typeof navigator!=="undefined"&&navigator.msSaveOrOpenBlob){return function(e,t,n){t=t||e.name||"download";if(!n){e=p(e)}return navigator.msSaveOrOpenBlob(e,t)}}w.abort=function(){};w.readyState=w.INIT=0;w.WRITING=1;w.DONE=2;w.error=w.onwritestart=w.onprogress=w.onwrite=w.onabort=w.onerror=w.onwriteend=null;return m}(typeof self!=="undefined"&&self||typeof window!=="undefined"&&window||this.content);if(typeof module!=="undefined"&&module.exports){module.exports.saveAs=saveAs}else if(typeof define!=="undefined"&&define!==null&&define.amd!==null){define([],function(){return saveAs})}</script>
+	<script>
+		var spritesheetDiv=document.getElementById("spritesheetDiv");
+		var animationsDiv=document.getElementById("animations");
+		var anchorPtsDiv=document.getElementById("anchorpts");
+		var canvas=document.getElementById("spritesheet");
+		var ctx = canvas.getContext("2d");
+		
+		var sprites = new Array();
+		
+		/*
+		 * Tab functions, for the animation and the anchor pt editor tabs
+		 */
+		var curTab = "anchorpts";
+		function showTab(event, divname)
+		{
+			curTab = divname;
+			// Declare all variables
+			var i, tabcontent, tabs;
+
+			// Get all elements with class="tabcontent" and hide them
+			tabcontent = document.getElementsByClassName("tabcontent");
+			for (i = 0; i < tabcontent.length; i++) {
+				tabcontent[i].style.display = "none";
+			}
+
+			// Get all elements with class="tablinks" and remove the class "active"
+			tabs = document.getElementsByClassName("tab");
+			for (i = 0; i < tabs.length; i++) {
+				tabs[i].className = tabs[i].className.replace(" active", "");
+			}
+
+			// Show the current tab, and add an "active" class to the link that opened the tab
+			document.getElementById(divname).style.display = "block";
+			event.currentTarget.className += " active";
+		}
+		
+		// Map canvas clicks to interact with animation&anchor editor tabs
+		canvas.onclick = function (evt)
+		{
+			var mousex = (evt.pageX - this.offsetLeft) + spritesheetDiv.scrollLeft;
+			var mousey = (evt.pageY - this.offsetTop) + spritesheetDiv.scrollTop;
+			var rect = getClipRectInCanvas(mousex, mousey);
+			if(rect == null) return;
+			
+			if(anchorPtsDiv.style.display == "block")
+			{
+				// start editing the rect
+				setAnchorEditorRect(rect);
+				return;
+			}
+			else if(animationsDiv.style.display == "block")
+			{
+				//make sure there is a current animation, if so
+				// add the rect as a frame
+				var anim = animationsList[curAnim];
+				if(anim == null || anim === 'undefined') return; // no current animation
+
+				anim.sprites.push(rect.sprite);
+				anim.clipRects.push(rect);
+				anim.frameDurations.push(parseInt(frameDurationSlider.value));
+				incrementCurFrame(Number.MAX_VALUE * -1); // set cur frame to under 0 so it loops back to end frame
+			}
+		}
+		
+		/*
+		 * -------------------------------------------------------------
+		 *                 Utility functions section:
+		 *
+		 * inside this section are functions reused throughout the program
+		 * for stuff like defining rectangles, sprites, and modifying pixels
+		 * -------------------------------------------------------------
+		 */
+		 
+		// return offset of rect's anchor point from top left in pixels
+		function getAnchorOffset(rect)
+		{
+			var anchorX = rect.anchorPoint.x;
+			// flip the y, because (0,0) is bottom left in anchor pt coords for cocos2dx
+			//  in html5 canvas coords (0,0) is top left
+			var anchorY = 1.0 - rect.anchorPoint.y;
+			
+			var offsetX = anchorX*rect.width;
+			var offsetY = anchorY*rect.height;
+			return { x: offsetX, y: offsetY }
+		}
+		
+		//get the next sprite in the sprite array, given a sprite
+		function getNextSprite(sprite)
+		{
+			for(var i=0; i<sprites.length; i++)
+			{
+				if(sprites[i] == sprite)
+				{
+					// loop back around with modulus if hit end of array
+					return sprites[ (i+1) % sprites.length];
+				}
+			}
+		}
+		
+		function getFileNameWithoutExtension(file)
+		{
+			var filename = String(file);
+			return filename.substr(0, filename.lastIndexOf('.')) || filename;
+		}
+		
+		function getFileExtension(file)
+		{
+			var filename = String(file);
+			var dotPos = filename.lastIndexOf('.');
+			if(dotPos == -1) return ""; // no file ext
+			return filename.substr(dotPos+1, filename.length-1);
+		}
+		 
+		// function forEachRect()
+		// loops through the sprites[] Array and each sprites clipRects[] array
+		//  and executes the given function for each one
+		function forEachRect(func) {
+			var loop = true;
+			for(var i=0; i<sprites.length && loop; i++) {
+				var clipRects = sprites[i].clipRects;
+				for(var j=0; j<clipRects.length && loop; j++) {
+					if( func(sprites[i], clipRects[j]) == false )
+						loop = false;
+				}
+			}
+		}
+
+		function newRect(x,y,width,height) {
+			var rect = {
+				x: x, y: y,
+				cx: x, cy: y,
+				width: width, height: height,
+				area: width*height
+			};
+			return rect;
+		}
+		function rectContainsPoint(x,y,rect) {
+			if(x >= rect.x && y >= rect.y
+			&& x < rect.x+rect.width
+			&& y < rect.y+rect.height) {
+				return true;
+			}
+			return false;
+		}
+		
+		// Check if there is an existing clipRect at point x,y in a sprite
+		function getClipRectInSprite(x,y,sprite) {
+			for(i=0; i<sprite.clipRects.length; i++)
+			{
+				if( rectContainsPoint(x,y,sprite.clipRects[i]) )
+				{
+					return sprite.clipRects[i];
+				}
+			}
+			// return null if there is no matching clip rect
+			return null;
+		}
+		
+		// Check if there is an existing clipRect at point x,y on canvas
+		function getClipRectInCanvas(cx,cy) {
+			for(var s=0; s<sprites.length; s++)
+			{
+				var sprite = sprites[s];
+				for(i=0; i<sprite.clipRects.length; i++)
+				{
+					var clipRect = sprite.clipRects[i];
+					if(cx > clipRect.cx && cy > clipRect.cy
+					&& cx < clipRect.cx+clipRect.width
+					&& cy < clipRect.cy+clipRect.height)
+					{
+						clipRect.sprite = sprite;
+						return clipRect;
+					}
+				}
+			}
+			// return null if there is no matching clip rect
+			return null;
+		}
+		
+		function newSprite() {
+			var sprite = {
+				img: new Image(), name: null,
+				clipRects: new Array()
+			};
+			return sprite;
+		}
+		
+		// hit(): checks if a pixel on canvas is occupied
+		function hit(x,y,tempCtx) {
+			// if alpha value is completely clear, pixel not occupied
+			if(tempCtx.getImageData(x, y, 1, 1).data[3] == 0) return false;
+			
+			return true;
+		}
+		
+		/*
+		 * -------------------------------------------------------------
+		 *            Anchor point editor functions:
+		 *
+		 *
+		 * -------------------------------------------------------------
+		 */
+		var editTarget = null;
+		
+		var anchorcanvas = document.getElementById("anchorcanvas");
+		var anchor_ctx = anchorcanvas.getContext("2d");
+		var anchor_x = document.getElementById("anchoredit_xaxis");
+		var anchor_y = document.getElementById("anchoredit_yaxis");
+		var anchorPosDisplay = document.getElementById("anchorPosDisplay");
+		
+		var copyToAllButtonX = document.getElementById("copyAnchorToAllX");
+		var copyToAllButtonY = document.getElementById("copyAnchorToAllY");
+		var setCopyToLocal = document.getElementById("setCopyToLocal");
+		var nextButton = document.getElementById("editAnchorOfNext");
+		
+		nextButton.onclick = function() {
+			if(editTarget == null || editTarget === 'undefined') return;
+
+			var nextSpriteFound = false;
+			var lastRect = null;
+			var lastSprite = null;
+			forEachRect(function(sprite, rect) {
+				// if we found a rect after editTarget
+				if(lastRect == editTarget) nextSpriteFound = true;
+				lastRect = rect;
+				lastSprite = sprite;
+				
+				//abort the loop
+				if(nextSpriteFound) return false;
+			});
+			
+			var newTarget;
+			if(nextSpriteFound)
+			{
+				newTarget = lastRect;
+				newTarget.sprite = lastSprite;
+			}
+			else
+			{
+				newTarget = sprites[0].clipRects[0];
+				newTarget.sprite = sprites[0];
+			}
+			
+			setAnchorEditorRect(newTarget);
+			redrawAnchorCanvas();
+		}
+		
+		copyToAllButtonX.onclick = function() {
+			if(editTarget == null || editTarget === 'undefined') return;
+			forEachRect(function(sprite, rect) {
+				if(setCopyToLocal.checked == true && sprite != editTarget.sprite) return;
+				rect.anchorPoint.x = editTarget.anchorPoint.x;
+			});
+		}
+		copyToAllButtonY.onclick = function() {
+			if(editTarget == null || editTarget === 'undefined') return;
+			forEachRect(function(sprite, rect) {
+				if(setCopyToLocal.checked == true && sprite != editTarget.sprite) return;
+				
+				rect.anchorPoint.y = editTarget.anchorPoint.y;
+			});
+		}
+		
+		function updateAnchorPosDisplay() {
+			if(editTarget == null || editTarget === 'undefined') return;
+			anchorPosDisplay.innerHTML = 'X, Y: ('+editTarget.anchorPoint.x+', '+editTarget.anchorPoint.y+')';
+		}
+		
+		anchor_x.oninput = function(evt) {
+			if(editTarget == null || editTarget === 'undefined') return;
+			editTarget.anchorPoint.x = evt.target.value;
+			updateAnchorPosDisplay();
+			redrawAnchorCanvas();
+		}
+		anchor_y.oninput = function(evt) {
+			if(editTarget == null || editTarget === 'undefined') return;
+			editTarget.anchorPoint.y = evt.target.value;
+			updateAnchorPosDisplay();
+			redrawAnchorCanvas();
+		}
+		
+		function setAnchorEditorRect(rect)
+		{
+			editTarget = rect;
+			anchor_x.value = rect.anchorPoint.x;
+			anchor_y.value = rect.anchorPoint.y;
+			updateAnchorPosDisplay();
+			redrawAnchorCanvas();
+			anchor_x.focus();
+		}
+		
+		function redrawAnchorCanvas()
+		{
+			anchor_ctx.clearRect(0,0,anchorcanvas.width,anchorcanvas.height);
+			if(editTarget === 'undefined' || editTarget == null) return;
+			
+			var drawPos = { x: anchorcanvas.width/2 - editTarget.width/2,
+							y: anchorcanvas.height/2 - editTarget.height/2 }
+			anchor_ctx.drawImage(editTarget.sprite.img,
+				editTarget.x, editTarget.y,
+				editTarget.width, editTarget.height,
+				drawPos.x, drawPos.y,
+				editTarget.width, editTarget.height);
+				
+			var anchorPos = getAnchorOffset(editTarget);
+			drawPos.x += anchorPos.x;
+			drawPos.y += anchorPos.y;
+			
+			anchor_ctx.fillStyle = "red";
+			anchor_ctx.fillRect(drawPos.x,0, 1,anchorcanvas.height);
+			anchor_ctx.fillRect(0,drawPos.y, anchorcanvas.width,1);
+		}
+		
+		/*
+		 * ----------------------------------------------------------------------
+		 *                    Animation editor functions:
+		 *
+		 * this section contains functions to modify and create animations.
+		 * The animations created can be exported to plist format for cocos2d-x.
+		 * ----------------------------------------------------------------------
+		 */
+		 
+		var animcanvas=document.getElementById("spriteanimation");
+		var anim_ctx = animcanvas.getContext("2d");
+		
+		var animSelector = document.getElementById("animselector");
+		var animNamer = document.getElementById("animnamer");
+		var addAnimButton = document.getElementById("addAnim");
+		var delAnimButton = document.getElementById("delAnim");
+		
+		var playButton = document.getElementById("playbutton");
+		
+		var delFrameButton = document.getElementById("delAnimFrame");
+		var playLeft = document.getElementById("leftAnim");
+		var playRight = document.getElementById("rightAnim");
+		var frameNumSpan = document.getElementById("frameNumber");
+		
+		var frameDurationSlider = document.getElementById("frameDurationSlider");
+		var frameDurationSpan = document.getElementById("frameDurationSpan");
+		var setAllFramesButton = document.getElementById("setAllFrames");
+		
+		setAllFramesButton.onclick = function(evt) {
+			var anim = animationsList[curAnim]
+			if(anim !== 'undefined' && anim != null
+			&& anim.frameDurations.length > 0)
+			{
+				for(var i=0; i<anim.frameDurations.length; i++)
+				{
+					anim.frameDurations[i] = frameDurationSlider.value;
+				}
+			}
+		}
+		
+		frameDurationSlider.oninput = function (evt) {
+			frameDurationSpan.innerHTML = evt.target.value;
+			var anim = animationsList[curAnim]
+			if(anim !== 'undefined' && anim != null 
+			&& anim.frameDurations.length > 0)
+			{
+				anim.frameDurations[anim.curFrame] = parseInt(evt.target.value);
+			}
+		}
+		
+		var animationsList = new Array();
+		var curAnim = 0;
+		
+		function incrementCurFrame(val)
+		{
+			var anim = animationsList[curAnim];
+			if(anim == null || anim === 'undefined')
+			{
+				frameNumSpan.innerHTML = "0/0";
+				return;
+			}
+			
+			anim.curFrame += val;
+			
+			var numFrames = anim.clipRects.length;
+			if(anim.curFrame > numFrames-1) anim.curFrame = 0;
+			else if( anim.curFrame < 0 ) anim.curFrame = numFrames - 1;
+			
+			if(numFrames == 0)
+				frameNumSpan.innerHTML = "0/0";
+			else
+				frameNumSpan.innerHTML = (anim.curFrame+1) + "/" + anim.sprites.length;
+			
+			if(anim.frameDurations.length > 0) 
+			{
+				frameDurationSlider.value = anim.frameDurations[anim.curFrame];
+				frameDurationSpan.innerHTML = frameDurationSlider.value;
+			}
+			else
+			{
+				frameDurationSlider.value = 100;
+				frameDurationSpan.innerHTML = 100;
+			}
+		}
+		
+		// delete the current frame and refresh
+		delFrameButton.onclick = function(evt) {
+			var anim = animationsList[curAnim]
+			if(anim !== 'undefined' && anim != null
+			&& anim.sprites.length > 0)
+			{
+				//splice the current frame out of all arrays
+				anim.frameDurations.splice(anim.curFrame, 1);
+				anim.sprites.splice(anim.curFrame, 1);
+				anim.clipRects.splice(anim.curFrame, 1);
+				incrementCurFrame(-1);
+			}
+		}
+		
+		playLeft.onclick = function(evt) { incrementCurFrame(-1) }
+		playRight.onclick = function(evt) { incrementCurFrame(1) }
+		
+		var selectedSpriteNameDiv = document.getElementById("selectedSpriteName");
+		canvas.onmousemove = function (evt)
+		{
+			var mousex = (evt.pageX - this.offsetLeft) + spritesheetDiv.scrollLeft;
+			var mousey = (evt.pageY - this.offsetTop) + spritesheetDiv.scrollTop;
+			
+			redrawCanvas();
+			var rect = getClipRectInCanvas(mousex, mousey);
+			if(rect == null) {
+				this.style.cursor = "auto";
+				return;
+			}
+			
+			this.style.cursor = "pointer";
+			ctx.fillStyle = "rgb(255,200,100)";
+			ctx.globalAlpha = 0.4;
+			ctx.fillRect(rect.cx, rect.cy, rect.width, rect.height);
+			ctx.globalAlpha = 1.0;
+			
+			selectedSpriteNameDiv.innerHTML = rect.name;
+		}
+		canvas.onmouseout = function (evt) { redrawCanvas(); }
+		
+		var lastFrameUpdate = 0;
+		function drawAnimCanvas()
+		{
+			anim_ctx.clearRect(0,0,animcanvas.width,animcanvas.height);
+			if(animationsList[curAnim] == null || animationsList[curAnim] === 'undefined')
+				return; // abort if there is no current working animation
+			
+			var anim = animationsList[curAnim];
+			
+			if(anim.clipRects.length <= 0) return;
+			
+			var d = new Date();
+			var now = d.getTime();
+			if(playbutton.checked && (now - lastFrameUpdate) > anim.frameDurations[anim.curFrame] )
+			{
+				incrementCurFrame(1);
+				lastFrameUpdate = now;
+			}
+			
+			var rect = anim.clipRects[anim.curFrame];
+			var sprite = anim.sprites[anim.curFrame];
+			var firstRect = anim.clipRects[0];
+			
+			// position the sprite on the canvas based on the anchor pos
+			// 0,0 center the sprite, but if it is for example 1,0
+			//  draw the sprite a little bit to the right.
+			// this is so large sprites will still fit on the canvas
+			var anchorDrawPos = {
+				x: Math.round(animcanvas.width/4),
+				y: Math.round(animcanvas.height/4)
+			}
+			anchorDrawPos.x += animcanvas.width/2 * firstRect.anchorPoint.x;
+			anchorDrawPos.y += animcanvas.height/2 * (1-firstRect.anchorPoint.y);
+			
+			//draw anchor grid
+			anim_ctx.fillStyle = "red";
+			anim_ctx.fillRect(anchorDrawPos.x, 0, 1, animcanvas.height);
+			anim_ctx.fillRect(0, anchorDrawPos.y, animcanvas.width, 1);
+			
+			var anchorOffset = getAnchorOffset(rect);
+			var drawPos = { 
+				x: anchorDrawPos.x - anchorOffset.x, 
+				y: anchorDrawPos.y - anchorOffset.y
+			}
+			anim_ctx.drawImage(sprite.img,
+				rect.x, rect.y,
+				rect.width, rect.height,
+				drawPos.x, drawPos.y,
+				rect.width, rect.height);
+		}
+		var ONE_FRAME_TIME = 1000 / 20; // 20 fps
+		setInterval( drawAnimCanvas, ONE_FRAME_TIME );
+
+		
+		function getAnim(name)
+		{
+			for(var i=0; i<animationsList.length; i++) {
+				if(animationsList[i].name == name)
+				{
+					return i;
+				}
+			}
+			return -1;
+		}
+		
+		function newAnimation(name)
+		{
+			var animation = {
+				name: name,
+				curFrame: 0, frameDurations: new Array(),
+				clipRects: new Array(),
+				sprites: new Array()
+			}
+			return animation;
+		}
+		function getAnimSelectorText()
+		{
+			var index = animSelector.selectedIndex;
+			if(animSelector.options[index] === 'undefined'
+			|| animSelector.options[index] == null)
+			{
+				return "";
+			}
+			else
+				return animSelector.options[index].innerHTML;
+		}
+		addAnimButton.onclick = function(evt) {
+			if(animNamer.value && getAnim(animNamer.value) == -1)
+			{
+				// create the new animation and add it to the selector
+				var option = document.createElement("option");
+				option.innerHTML = animNamer.value;
+				animSelector.add(option);
+				var anim = newAnimation(animNamer.value);
+				animationsList.push(anim);
+				curAnim = getAnim(animSelector.value);
+				animNamer.value = "";
+				//switch the selection to the new animation
+				curAnim = animationsList.length - 1;
+				animSelector.selectedIndex = animSelector.length - 1;
+				// update
+				incrementCurFrame(0);
+			}
+		}
+		delAnimButton.onclick = function(evt) {
+			if(animSelector.value)
+			{
+				// Remove from anmationsList
+				for(var i=0; i<animationsList.length; i++) {
+					if(animationsList[i].name == getAnimSelectorText())
+					{
+						animationsList.splice(i,1);
+						break;
+					}
+				}
+				var index = animSelector.selectedIndex;
+				// Remove from animation selector dropdown
+				animSelector.remove(index);
+				if(animationsList.length == 0) animSelector.selectedIndex = 0; // 0 is "No animation" placeholder
+				// Change the displayed animation to the next selected index
+				curAnim = getAnim(getAnimSelectorText());
+				incrementCurFrame(0);
+			}
+		}
+		animSelector.onchange = function(evt) {
+			curAnim = getAnim(getAnimSelectorText()); 
+			incrementCurFrame(0);
+		}
+		
+		/*
+		 * -------------------------------------------------------------
+		 *            Sprite generation function section:
+		 *
+		 * this section contains functions to process and generate
+		 * the multiple sub-sprites per sprite in the case of sprite sheets,
+		 * or just clip the sprite, throwing away extra transparency around the edges
+		 * -------------------------------------------------------------
+		 */
+		
+		// create a new clipRect for a subsprite, given a pixel to start at.
+		// this function will define the smallest possible rectangle around a subsprite.
+		function createClipRect(startX,startY,tempCtx) {
+			var rect = newRect(startX,startY,1,1); // create 1px by 1px rect
+
+			// expand clipRect's sides until they border a sprite without touching it:	
+			var rectFinished = false;
+			while(rectFinished == false)
+			{
+				rectFinished = true;
+				//loop through all pixels on top&bottom of rect
+				for(var x=rect.x; x < rect.x+rect.width; x++)
+				{
+					// rect top side:
+					// test for both above and below the top side,
+					// if both are touching a pixel, the rect still needs expanding.
+					if( hit(x,rect.y-1,tempCtx) )
+					{
+						//expand rect upward by 1
+						rect.y--;
+						rect.height++;
+						rectFinished = false;
+						break;
+					}
+					// rect bottom side:
+					if( hit(x,rect.y+rect.height,tempCtx) )
+					{
+						//expand rect downward by 1
+						rect.height++;
+						rectFinished = false;
+						break;
+					}
+				}
+				//loop through all pixels on left&right of rect
+				for(var y=rect.y; y < rect.y+rect.height; y++)
+				{
+					// rect left side
+					if( hit(rect.x-1,y,tempCtx) )
+					{
+						//expand rect to the left by 1
+						rect.x--;
+						rect.width++;
+						rectFinished = false;
+						break;
+					}
+					// rect right side
+					if( hit(rect.x+rect.width,y,tempCtx) )
+					{
+						//expand rect to the right by 1
+						rect.width++;
+						rectFinished = false;
+						break;
+					}
+				}
+			}
+			
+			rect.area = rect.width*rect.height;
+			rect.anchorPoint = {x: 0.5, y: 0}; // anchor point default value bottom middle
+			return rect;
+		}
+		
+		//generate sprite names for the sub-sprite rects, based on sprite name
+		function generateRectNames(sprite) {
+			var spriteName = getFileNameWithoutExtension(sprite.name);
+			var spriteExt = getFileExtension(sprite.name);
+			var clipRects = sprite.clipRects;
+			if(clipRects.length == 1)
+				sprite.clipRects[0].name = sprite.name;
+			else {
+				for(var j=0; j<clipRects.length; j++)
+				{
+					clipRects[j].name = spriteName + j + "." + spriteExt;
+				}
+			}
+		}
+		
+		// function reOrderRects()
+		//
+		// This function re-processes a sprites
+		//  sub rects, and make sure they are in an order that makes sense.
+		//  Originally, rects are ordered from top left to bottom right,
+		//  but sometimes, this isn't quite what we want.
+		//
+		// Diagram of sprites:
+		// a b c d
+		//   ^ Sprite B is clearly after sprite A, but in the sprite processing,
+		//    sprite B will be ordered first if its y value is just 1 pixel above A's
+		// This function corrects those discrepancies with a 50 pixel margin of error:
+		function reOrderRectsByRow(sprite)
+		{
+			var rects = sprite.clipRects;
+			
+			for(var i=0; i<rects.length; i++)
+			{
+				for(var j=i+1; j<rects.length; j++)
+				{
+					var firstRect = rects[i];
+					var secondRect = rects[j];
+					var yDistance = Math.floor(secondRect.y - firstRect.y);
+					// firstRect is ordered lower down in the array than secondRect.
+					// If firstRect is actually further to the right, and is only ordered 
+					//  lower due to a slightly lower y value, fix that.
+					if(firstRect.x > secondRect.x && yDistance < firstRect.height/2)
+					{
+						var temp = rects[i];
+						rects[i] = rects[j];
+						rects[j] = temp;
+					}
+				}
+			}
+		}
+		function reOrderRectsByColumn(sprite)
+		{
+			var rects = sprite.clipRects;
+			
+			for(var i=0; i<rects.length; i++)
+			{
+				for(var j=i+1; j<rects.length; j++)
+				{
+					var firstRect = rects[i];
+					var secondRect = rects[j];
+					var xDistance = Math.abs(secondRect.x - firstRect.x);
+					// firstRect is ordered lower down in the array than secondRect.
+					// If firstRect is actually further in the y direction, and is only ordered 
+					//  lower due to a slightly lower x value, fix that.
+					if(firstRect.y > secondRect.y && xDistance < firstRect.width/2)
+					{
+						var temp = rects[i];
+						rects[i] = rects[j];
+						rects[j] = temp;
+					}
+				}
+			}
+		}
+		
+		// function processSprite()
+		//
+		// Given a sprite, this function will iterate through its x&y
+		//  pixels top left to bottom right, and find every sub-sprite
+		//  within it, placing them in the sprite's clipRects[] Array
+		function processSpriteByRow(sprite) {
+			var tempCanvas = document.createElement("canvas");
+			tempCanvas.width = sprite.img.width;
+			tempCanvas.height = sprite.img.height;
+			tempCanvas.getContext("2d").drawImage(sprite.img,0,0);
+			tempCtx = tempCanvas.getContext("2d");
+			//loop through y of sprite img
+			for(var y=0; y<tempCanvas.height; y+=10)
+			{
+				//loop through x
+				for(var x=0; x<tempCanvas.width; x+=10)
+				{
+					//if x is a hit, check for pre-existing cliprect
+					if( hit(x,y,tempCtx) )
+					{
+						//if clipRect exists, skip past it
+						var clipRect = getClipRectInSprite(x,y,sprite);
+						if( clipRect != null )
+						{
+							x = clipRect.x + clipRect.width;
+						}
+						else
+						{
+							var clipRect = createClipRect(x,y,tempCtx);
+							// protection for glitches in the sprite sheets
+							if(clipRect.width > 7 && clipRect.height > 7) sprite.clipRects.push( clipRect );
+						}
+					}
+				}
+			}
+			reOrderRectsByRow(sprite);
+			generateRectNames(sprite);
+		}
+		
+		function processSpriteByColumn(sprite) {
+			var tempCanvas = document.createElement("canvas");
+			tempCanvas.width = sprite.img.width;
+			tempCanvas.height = sprite.img.height;
+			tempCanvas.getContext("2d").drawImage(sprite.img,0,0);
+			tempCtx = tempCanvas.getContext("2d");
+			//loop through y of sprite img
+			for(var x=0; x<tempCanvas.width; x+=10)
+			{
+				//loop through x
+				for(var y=0; y<tempCanvas.height; y+=10)
+				{
+					//if x is a hit, check for pre-existing cliprect
+					if( hit(x,y,tempCtx) )
+					{
+						//if clipRect exists, skip past it
+						var clipRect = getClipRectInSprite(x,y,sprite);
+						if( clipRect != null )
+						{
+							y = clipRect.y + clipRect.height;
+						}
+						else
+						{
+							var clipRect = createClipRect(x,y,tempCtx);
+							// protection for glitches in the sprite sheets
+							if(clipRect.width > 7 && clipRect.height > 7) sprite.clipRects.push( clipRect );
+						}
+					}
+				}
+			}
+			reOrderRectsByColumn(sprite);
+			generateRectNames(sprite);
+		}
+		
+		// Re order sprites by their average image size.
+		// This will save image space when packing,
+		//  but still preserve any sprite sheets which have animations next to each other.
+		function reOrderSprites()
+		{
+			// First, find the average clipRect size of each sprite
+			for(var i=0; i<sprites.length; i++)
+			{
+				var clipRects = sprites[i].clipRects;
+				var avg = clipRects[0].height;
+				for(var j=1; j<clipRects.length; j++)
+				{
+					avg = ( avg + clipRects[j].height )/2;
+				}
+				sprites[i].avgHeight = avg;
+			}
+			// Next, swap sort the sprites by their averages.
+			for(var i=0; i<sprites.length; i++)
+			{
+				for(var j=i+1; j<sprites.length; j++)
+				{
+					if(sprites[i].avgHeight < sprites[j].avgHeight)
+					{
+						var temp = sprites[i];
+						sprites[i] = sprites[j];
+						sprites[j] = temp;
+					}
+				}
+			}
+		}
+		
+		// Canvas file drag events:
+		//  These functions enable sprite loading to canvas on drag&drop
+		spritesheetDiv.addEventListener('dragover', function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+			e.dataTransfer.dropEffect = 'copy';
+		});
+		
+		var loadingPercentage, loadingIncrement;
+		spritesheetDiv.addEventListener('drop', function(evt) {
+			evt.stopPropagation();
+			evt.preventDefault();
+			var fileReaders = new Array();
+			var files = evt.dataTransfer.files; // Array of all files
+			for (var i=0, file; file=files[i]; i++) {
+				if (file.type.match(/image.*/)) {
+					// Display loading icon
+					//canvas.width = 0;
+					//canvas.height = 0;
+					
+					var reader = new FileReader();
+					reader.file = file;
+					reader.onload = function(evt2) { // finished reading file data.
+						var sprite = newSprite();
+						sprite.name = this.file.name;
+						sprite.img.src = evt2.target.result;
+						if(document.getElementById("spriteOrderRow").checked == true) {
+							processSpriteByRow(sprite);
+						}else {
+							processSpriteByColumn(sprite);
+						}
+						if(sprite.clipRects.length > 0) sprites.push(sprite); // no empty sprites
+						
+						if(document.getElementById("textureFileName").value.length == 0) // auto generate a texture name for user
+							document.getElementById("textureFileName").value = sprite.name;
+						
+						loadingPercentage += loadingIncrement;
+						document.getElementById("loadingbardiv").style.width = Math.floor(loadingPercentage)+"%";
+						document.getElementById("loadingbardiv").innerHTML = Math.floor(loadingPercentage)+"%";
+						if(loadingPercentage >= 100)
+						{
+							reOrderSprites();
+							optimizeSheet();
+							redrawCanvas();
+							canvas.style.display = "inline";
+							document.getElementById("loadingdiv").style.display = "none";
+							document.getElementById("loadingdiv").style.width = "0px";
+							document.getElementById("loadingdiv").style.height = "0px";
+						}
+					}
+					fileReaders.push(reader);
+					 // start reading the file data.
+				}
+			}
+			
+			//no images, nothing to do
+			if(fileReaders.length == 0) return;
+			
+			
+			// hide canvas and show loading bar
+			canvas.style.display = "none"
+			var loadingdiv = document.getElementById("loadingdiv");
+			var loadingbardiv = document.getElementById("loadingbardiv");
+			loadingPercentage = 0;
+			loadingIncrement = Math.ceil(100 / fileReaders.length);
+			loadingdiv.style.display = "inline-block";
+			loadingdiv.style.width = "200px";
+			loadingdiv.style.height = "25px";
+			loadingbardiv.innerHTML = "LOADING...";
+			loadingbardiv.style.width = "1%";
+			//initiate all the readers
+			for(var i=0; i<fileReaders.length; i++)
+			{
+				setTimeout( function(arg) { arg.readAsDataURL(arg.file); }, i*20, fileReaders[i]);
+			}
+		});
+		
+		
+		/*
+		 * -------------------------------------------------------------
+		 *                 Sprite sheet functions:
+		 *
+		 * functions to pack the sprite sheets onto the canvas and draw them
+		 * -------------------------------------------------------------
+		 */
+		 
+		// a few global vars to use
+		var MAX_IMAGE_SIZE = 2048;
+		var OUTPUT_WIDTH = MAX_IMAGE_SIZE;
+		var OUTPUT_HEIGHT = MAX_IMAGE_SIZE;
+		
+		// tightly packs sprite rects into another rectangle of MAX_WIDTH
+		function packRects(MAX_WIDTH) {
+			var xPos = 0;
+			var yPos = 0;
+			var rowHeight = 0;
+			var rowWidth = 0;
+			forEachRect(function(sprite, rect) {
+				//no more room in row
+				if(xPos + rect.width >= MAX_WIDTH)
+				{
+					yPos += rowHeight;
+					// make sure yPos is even; cocos2d will display sprite blurred if it isn't placed at an even pos
+					if(yPos%2) yPos++;
+					rowHeight = 0;
+					xPos = 0;
+				}
+				// once again, cocos2d will display sprite blurred if displayed at an odd pos
+				if(xPos % 2) xPos++;
+				rect.cx = xPos;
+				rect.cy = yPos;
+				if(xPos + rect.width > rowWidth) rowWidth = xPos + rect.width;
+				if(rect.height > rowHeight) rowHeight = rect.height;
+				xPos += rect.width;
+			});
+			OUTPUT_WIDTH = rowWidth;
+			OUTPUT_HEIGHT = yPos + rowHeight;
+		}
+
+		// Runs packRects() a few times to determine the most efficient
+		//  order of rects that wastes the least space.
+		function optimizeSheet() {
+			var record_width = MAX_IMAGE_SIZE;
+			var leastWastedPx = Number.MAX_VALUE;
+			
+			var totalClipRectArea = 0;
+			forEachRect(function(sprite,rect){ totalClipRectArea += rect.width*rect.height; });
+			
+			for(var width = MAX_IMAGE_SIZE; width > 100; width -= 100)
+			{
+				packRects(width);
+				var wastedPx = (OUTPUT_WIDTH*OUTPUT_HEIGHT) - totalClipRectArea;
+				if(wastedPx < leastWastedPx && OUTPUT_HEIGHT <= OUTPUT_WIDTH)
+				{
+					leastWastedPx = wastedPx;
+					record_width = width;
+				}
+			}
+			packRects(record_width);
+			canvas.width = OUTPUT_WIDTH;
+			canvas.height = OUTPUT_HEIGHT;
+			
+			var infoDiv = document.getElementById("infodiv");
+			infodiv.innerHTML = " " + canvas.width + " X " + canvas.height + " PNG";
+		}
+		
+		// Save's the current spritesheet to a temporary canvas,
+		//  then opens the temporary canvases' image in a new window
+		function saveSheet() {
+			var fileName = document.getElementById("textureFileName").value;
+			if(fileName.length == 0)
+			{
+				alert("Error!\nInput the filename to save the sprite sheet!");
+				return;
+			}
+			var tempCanvas = document.createElement("canvas");
+			tempCanvas.width = canvas.width;
+			tempCanvas.height = canvas.height;
+			var tempCtx = tempCanvas.getContext("2d");
+			forEachRect(function(sprite, rect) {
+				tempCtx.drawImage(sprite.img,
+				rect.x, rect.y,
+				rect.width, rect.height,
+				rect.cx, rect.cy,
+				rect.width, rect.height);
+			});
+			var blob = tempCanvas.toBlob(function(blob){saveAs(blob, fileName);});
+		}
+		
+		function redrawCanvas() {
+			ctx.clearRect(0,0,canvas.width,canvas.height);
+			ctx.font = "10px Arial";
+			
+			forEachRect(function(sprite, rect) {
+				ctx.drawImage(sprite.img,
+				rect.x, rect.y,
+				rect.width, rect.height,
+				rect.cx, rect.cy,
+				rect.width, rect.height);
+			});
+		}
+		
+		/*
+		 * -------------------------------------------------------------
+		 *              Plist & Anim_Plist functions section:
+		 *
+		 * this section has code for writing the .plist and _anim.plist files.
+		 * -------------------------------------------------------------
+		 */
+		 
+		/*
+		 * First: Regular .plist file section
+		 */
+		
+		// NORMAL PLSIT FUNCS FROM HERE ON:
+		function writeMetadata(v)
+		{
+			v.writeElementString('key','format');
+			v.writeElementString('integer','3');
+			
+			var file = document.getElementById("textureFileName").value;
+			v.writeElementString('key','realTextureFileName');
+			v.writeElementString('string', file);
+			v.writeElementString('key','textureFileName');
+			v.writeElementString('string',file);
+			
+			v.writeElementString('key','size');
+			v.writeElementString('string','{'+canvas.width+','+canvas.height+'}');
+		}
+		
+		function writeFrames(v)
+		{
+			forEachRect(function(sprite,rect) {
+				// need to make sure width and height are even numbers;
+				//  cocos2dx displays sprites wrong if they aren't....
+				var width = rect.width + 1;
+				var height = rect.height + 1;
+				width -= width%2;
+				height -= height%2;
+				
+				v.writeElementString('key',rect.name);
+				v.writeStartElement('dict');
+
+				v.writeElementString('key','aliases');
+				v.writeStartElement('array'); v.writeEndElement();
+				
+				v.writeElementString('key','spriteOffset');
+				v.writeElementString('string','{0,0}');
+				
+				v.writeElementString('key','spriteSourceSize');
+				v.writeElementString('string','{'+width+','+height+'}');
+				
+				v.writeElementString('key','spriteSize');
+				v.writeElementString('string','{'+width+','+height+'}');
+				
+				v.writeElementString('key','textureRect');
+				var texturePos = '{'+rect.cx+','+rect.cy+'}';
+				var textureSize = '{'+width+','+height+'}';
+				v.writeElementString('string', '{'+texturePos+','+textureSize+'}');
+				
+				v.writeElementString('key','textureRotated');
+				v.writeStartElement('false'); v.writeEndElement();
+				
+				v.writeElementString('key','anchor');
+				v.writeElementString('string','{'+rect.anchorPoint.x+','+rect.anchorPoint.y+'}');
+				
+				v.writeEndElement();
+			});
+		}
+		
+		function generate_plist()
+		{	
+			var fileName = document.getElementById("textureFileName").value;
+			if( fileName.length == 0 )
+			{
+				alert("Error!\nInput the texture name you will use to generate a plist.");
+				return;
+			}
+			
+			var v = new  XMLWriter( "UTF-8", "1.0");
+			v.writeStartDocument();
+			v.writeDocType('PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"');
+			v.writeElementString('plist');
+			v.writeAttributeString('version','1.0');
+			v.writeStartElement('dict');
+			
+			v.writeElementString('key','frames');
+			v.writeStartElement('dict');
+				writeFrames(v);
+			v.writeEndElement();
+			
+			v.writeElementString('key','metadata');
+			v.writeStartElement('dict');
+				writeMetadata(v);
+			v.writeEndElement();
+			
+			v.writeEndDocument(); // close all unclosed tags and end file
+			
+			
+			var blob = new Blob([v.flush()], {type: "text/plain;charset=utf-8"});
+			saveAs(blob, getFileNameWithoutExtension(fileName) + ".plist");
+		}
+		
+		/* -------------------------------------------------------------
+		 *
+		 * Next up: animation file, _anim.plist section
+		 *  contains functions similar to the first section's functions,
+		 *  but for the animations array
+		 *
+		 * -------------------------------------------------------------
+		 */
+		 
+		function writeAnimations(v)
+		{
+			var prependTextureName = document.getElementById("prependNameToAnim").checked == true;
+			for(var i=0; i<animationsList.length; i++)
+			{
+				var anim = animationsList[i];
+				var animationName = anim.name;
+				if(prependTextureName) animationName = getFileNameWithoutExtension(document.getElementById("textureFileName").value) + "_" + animationName;
+				v.writeElementString('key',animationName);
+				v.writeStartElement('dict');
+				
+				// animation properties
+				v.writeElementString('key','delayPerUnit');
+				v.writeElementString('real','0.001');
+				v.writeElementString('key','restoreOriginalFrame');
+				v.writeStartElement('false'); v.writeEndElement();
+				v.writeElementString('key','loops');
+				v.writeElementString('integer','1');
+				
+				v.writeElementString('key','frames');
+				v.writeStartElement('array');
+				for(var j=0; j<anim.clipRects.length; j++)
+				{
+					v.writeStartElement('dict');
+					
+					v.writeElementString('key','spriteframe');
+					v.writeElementString('string',anim.clipRects[j].name);
+					v.writeElementString('key','delayUnits');
+					v.writeElementString('integer',String(anim.frameDurations[j]));
+					
+					if(j==0 || j == anim.clipRects.length-1)
+					{
+						var key = j==0 ? 'firstframe' : 'lastframe';
+						v.writeElementString('key','notification');
+						v.writeStartElement('dict');
+							v.writeElementString('key',key);
+							v.writeStartElement('true'); v.writeEndElement();
+						v.writeEndElement();
+					}
+						
+					
+					v.writeEndElement();
+				}
+				v.writeEndElement(); // end array
+				v.writeEndElement(); // end dict
+			}
+		}
+		
+		function generate_anim_plist()
+		{	
+			var fileName = document.getElementById("textureFileName").value;
+			if( fileName.length == 0 )
+			{
+				alert("Error!\nInput the texture name you will use to generate a animation plist.");
+				return;
+			}
+			fileName = getFileNameWithoutExtension(fileName);
+			
+			var v = new  XMLWriter( "UTF-8", "1.0");
+			v.writeStartDocument();
+			v.writeDocType('PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"');
+			v.writeElementString('plist');
+			v.writeAttributeString('version','1.0');
+			v.writeStartElement('dict');
+			
+			v.writeElementString('key','animations');
+			v.writeStartElement('dict');
+				writeAnimations(v);
+			v.writeEndElement();
+			
+			v.writeElementString('key','properties');
+			v.writeStartElement('dict');
+				v.writeElementString('key','spritesheets');
+				v.writeStartElement('array');
+					v.writeElementString('string',fileName + ".plist");
+				v.writeEndElement();
+				v.writeElementString('key','format');
+				v.writeElementString('integer','2');
+			v.writeEndElement();
+			
+			v.writeEndDocument();
+			
+			
+			var blob = new Blob([v.flush()], {type: "text/plain;charset=utf-8"});
+			saveAs(blob, getFileNameWithoutExtension(fileName) + "_anim.plist");
+		}
+	</script>
+</html>
