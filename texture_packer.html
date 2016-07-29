@@ -931,8 +931,17 @@
 						else
 						{
 							var clipRect = createClipRect(x,y,tempCtx);
+							clipRect.sprite = sprite;
 							// protection for glitches in the sprite sheets
-							if(clipRect.width > 7 && clipRect.height > 7) sprite.clipRects.push( clipRect );
+							if(clipRect.width > 7 && clipRect.height > 7) continue;
+							// protection for overlapping rects
+							// this can happen when generating because of tolerance factor when defining sprite borders
+							// see createClipRect() for details
+							if(getClipRectInSprite(	Math.floor(clipRect.x+clipRect.width/2),
+							Math.floor(clipRect.y+clipRect.height/2),sprite) != null) {
+								continue;
+							}
+							sprite.clipRects.push( clipRect )
 						}
 					}
 				}
