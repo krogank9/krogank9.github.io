@@ -140,7 +140,7 @@
 					
 					<input type="button" id="delAnimFrame" value="Delete frame">
 					<br><br>
-					Frame duration: <input type="range" id="frameDurationSlider" min="25" max="1000" step="25" value="100"><span id="frameDurationSpan">100</span>ms
+					Frame duration: <input type="range" id="frameDurationSlider" min="10" max="1000" step="25" value="100"><span id="frameDurationSpan">100</span>ms
 					<input type="button" id="setAllFrames" value="Set all frames">
 					<hr>
 					<form>
@@ -186,6 +186,7 @@
 	<script>/*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */var saveAs=saveAs||function(e){"use strict";if(typeof e==="undefined"||typeof navigator!=="undefined"&&/MSIE [1-9]\./.test(navigator.userAgent)){return}var t=e.document,n=function(){return e.URL||e.webkitURL||e},r=t.createElementNS("http://www.w3.org/1999/xhtml","a"),o="download"in r,i=function(e){var t=new MouseEvent("click");e.dispatchEvent(t)},a=/constructor/i.test(e.HTMLElement),f=/CriOS\/[\d]+/.test(navigator.userAgent),u=function(t){(e.setImmediate||e.setTimeout)(function(){throw t},0)},d="application/octet-stream",s=1e3*40,c=function(e){var t=function(){if(typeof e==="string"){n().revokeObjectURL(e)}else{e.remove()}};setTimeout(t,s)},l=function(e,t,n){t=[].concat(t);var r=t.length;while(r--){var o=e["on"+t[r]];if(typeof o==="function"){try{o.call(e,n||e)}catch(i){u(i)}}}},p=function(e){if(/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(e.type)){return new Blob([String.fromCharCode(65279),e],{type:e.type})}return e},v=function(t,u,s){if(!s){t=p(t)}var v=this,w=t.type,m=w===d,y,h=function(){l(v,"writestart progress write writeend".split(" "))},S=function(){if((f||m&&a)&&e.FileReader){var r=new FileReader;r.onloadend=function(){var t=f?r.result:r.result.replace(/^data:[^;]*;/,"data:attachment/file;");var n=e.open(t,"_blank");if(!n)e.location.href=t;t=undefined;v.readyState=v.DONE;h()};r.readAsDataURL(t);v.readyState=v.INIT;return}if(!y){y=n().createObjectURL(t)}if(m){e.location.href=y}else{var o=e.open(y,"_blank");if(!o){e.location.href=y}}v.readyState=v.DONE;h();c(y)};v.readyState=v.INIT;if(o){y=n().createObjectURL(t);setTimeout(function(){r.href=y;r.download=u;i(r);h();c(y);v.readyState=v.DONE});return}S()},w=v.prototype,m=function(e,t,n){return new v(e,t||e.name||"download",n)};if(typeof navigator!=="undefined"&&navigator.msSaveOrOpenBlob){return function(e,t,n){t=t||e.name||"download";if(!n){e=p(e)}return navigator.msSaveOrOpenBlob(e,t)}}w.abort=function(){};w.readyState=w.INIT=0;w.WRITING=1;w.DONE=2;w.error=w.onwritestart=w.onprogress=w.onwrite=w.onabort=w.onerror=w.onwriteend=null;return m}(typeof self!=="undefined"&&self||typeof window!=="undefined"&&window||this.content);if(typeof module!=="undefined"&&module.exports){module.exports.saveAs=saveAs}else if(typeof define!=="undefined"&&define!==null&&define.amd!==null){define([],function(){return saveAs})}</script>
 	<script>
 		var spritesheetDiv=document.getElementById("spritesheetDiv");
+		var selectedSpriteNameDiv = document.getElementById("selectedSpriteName");
 		var animationsDiv=document.getElementById("animations");
 		var anchorPtsDiv=document.getElementById("anchorpts");
 		var canvas=document.getElementById("spritesheet");
@@ -246,7 +247,14 @@
 				anim.frameDurations.push(parseInt(frameDurationSlider.value));
 				incrementCurFrame(Number.MAX_VALUE * -1); // set cur frame to under 0 so it loops back to end frame
 			}
+			highlightSelectedSprite();
 		}
+		var canvas_mouse = { x:0, y: 0 }
+		canvas.onmousemove = function (evt) {
+			canvas_mouse.x = (evt.x - this.offsetLeft) + spritesheetDiv.scrollLeft;
+			canvas_mouse.y = (evt.y - this.offsetTop) + spritesheetDiv.scrollTop;
+			highlightSelectedSprite();
+		};
 		
 		/*
 		 * -------------------------------------------------------------
@@ -267,7 +275,7 @@
 			
 			var offsetX = anchorX*rect.width;
 			var offsetY = anchorY*rect.height;
-			return { x: offsetX, y: offsetY }
+			return { x: offsetX, y: offsetY };
 		}
 		
 		//get the next sprite in the sprite array, given a sprite
@@ -373,7 +381,7 @@
 		
 		// hit(): checks if a pixel on canvas is occupied
 		function hit(x,y,tempCtx) {
-			// if alpha value is completely clear, pixel not occupied
+			// if alpha value is 0, pixel is clear/empty
 			if(tempCtx.getImageData(x, y, 1, 1).data[3] == 0) return false;
 			
 			return true;
@@ -386,7 +394,7 @@
 		 *
 		 * -------------------------------------------------------------
 		 */
-		var editTarget = null;
+		var anchorEditTarget = null;
 		
 		var anchorcanvas = document.getElementById("anchorcanvas");
 		var anchor_ctx = anchorcanvas.getContext("2d");
@@ -400,14 +408,14 @@
 		var nextButton = document.getElementById("editAnchorOfNext");
 		
 		nextButton.onclick = function() {
-			if(editTarget == null || editTarget === 'undefined') return;
+			if(anchorEditTarget == null || anchorEditTarget === 'undefined') return;
 
 			var nextSpriteFound = false;
 			var lastRect = null;
 			var lastSprite = null;
 			forEachRect(function(sprite, rect) {
-				// if we found a rect after editTarget
-				if(lastRect == editTarget) nextSpriteFound = true;
+				// if we found a rect after anchorEditTarget
+				if(lastRect == anchorEditTarget) nextSpriteFound = true;
 				lastRect = rect;
 				lastSprite = sprite;
 				
@@ -432,63 +440,64 @@
 		}
 		
 		copyToAllButtonX.onclick = function() {
-			if(editTarget == null || editTarget === 'undefined') return;
+			if(anchorEditTarget == null || anchorEditTarget === 'undefined') return;
 			forEachRect(function(sprite, rect) {
-				if(setCopyToLocal.checked == true && sprite != editTarget.sprite) return;
-				rect.anchorPoint.x = editTarget.anchorPoint.x;
+				if(setCopyToLocal.checked == true && sprite != anchorEditTarget.sprite) return;
+				rect.anchorPoint.x = anchorEditTarget.anchorPoint.x;
 			});
 		}
 		copyToAllButtonY.onclick = function() {
-			if(editTarget == null || editTarget === 'undefined') return;
+			if(anchorEditTarget == null || anchorEditTarget === 'undefined') return;
 			forEachRect(function(sprite, rect) {
-				if(setCopyToLocal.checked == true && sprite != editTarget.sprite) return;
+				if(setCopyToLocal.checked == true && sprite != anchorEditTarget.sprite) return;
 				
-				rect.anchorPoint.y = editTarget.anchorPoint.y;
+				rect.anchorPoint.y = anchorEditTarget.anchorPoint.y;
 			});
 		}
 		
 		function updateAnchorPosDisplay() {
-			if(editTarget == null || editTarget === 'undefined') return;
-			anchorPosDisplay.innerHTML = 'X, Y: ('+editTarget.anchorPoint.x+', '+editTarget.anchorPoint.y+')';
+			if(anchorEditTarget == null || anchorEditTarget === 'undefined') return;
+			anchorPosDisplay.innerHTML = 'X, Y: ('+anchorEditTarget.anchorPoint.x+', '+anchorEditTarget.anchorPoint.y+')';
 		}
 		
 		anchor_x.oninput = function(evt) {
-			if(editTarget == null || editTarget === 'undefined') return;
-			editTarget.anchorPoint.x = evt.target.value;
+			if(anchorEditTarget == null || anchorEditTarget === 'undefined') return;
+			anchorEditTarget.anchorPoint.x = evt.target.value;
 			updateAnchorPosDisplay();
 			redrawAnchorCanvas();
 		}
 		anchor_y.oninput = function(evt) {
-			if(editTarget == null || editTarget === 'undefined') return;
-			editTarget.anchorPoint.y = evt.target.value;
+			if(anchorEditTarget == null || anchorEditTarget === 'undefined') return;
+			anchorEditTarget.anchorPoint.y = evt.target.value;
 			updateAnchorPosDisplay();
 			redrawAnchorCanvas();
 		}
 		
 		function setAnchorEditorRect(rect)
 		{
-			editTarget = rect;
-			anchor_x.value = rect.anchorPoint.x;
-			anchor_y.value = rect.anchorPoint.y;
-			updateAnchorPosDisplay();
+			anchorEditTarget = rect;
+			if(rect != null && rect !== 'undefined') {
+				anchor_x.value = rect.anchorPoint.x;
+				anchor_y.value = rect.anchorPoint.y;
+				updateAnchorPosDisplay();
+			}
 			redrawAnchorCanvas();
-			anchor_x.focus();
 		}
 		
 		function redrawAnchorCanvas()
 		{
 			anchor_ctx.clearRect(0,0,anchorcanvas.width,anchorcanvas.height);
-			if(editTarget === 'undefined' || editTarget == null) return;
+			if(anchorEditTarget === 'undefined' || anchorEditTarget == null) return;
 			
-			var drawPos = { x: anchorcanvas.width/2 - editTarget.width/2,
-							y: anchorcanvas.height/2 - editTarget.height/2 }
-			anchor_ctx.drawImage(editTarget.sprite.img,
-				editTarget.x, editTarget.y,
-				editTarget.width, editTarget.height,
+			var drawPos = { x: anchorcanvas.width/2 - anchorEditTarget.width/2,
+							y: anchorcanvas.height/2 - anchorEditTarget.height/2 };
+			anchor_ctx.drawImage(anchorEditTarget.sprite.img,
+				anchorEditTarget.x, anchorEditTarget.y,
+				anchorEditTarget.width, anchorEditTarget.height,
 				drawPos.x, drawPos.y,
-				editTarget.width, editTarget.height);
+				anchorEditTarget.width, anchorEditTarget.height);
 				
-			var anchorPos = getAnchorOffset(editTarget);
+			var anchorPos = getAnchorOffset(anchorEditTarget);
 			drawPos.x += anchorPos.x;
 			drawPos.y += anchorPos.y;
 			
@@ -570,16 +579,10 @@
 			else
 				frameNumSpan.innerHTML = (anim.curFrame+1) + "/" + anim.sprites.length;
 			
-			if(anim.frameDurations.length > 0) 
-			{
+			if(anim.frameDurations.length > 0) {
 				frameDurationSlider.value = anim.frameDurations[anim.curFrame];
-				frameDurationSpan.innerHTML = frameDurationSlider.value;
 			}
-			else
-			{
-				frameDurationSlider.value = 100;
-				frameDurationSpan.innerHTML = 100;
-			}
+			frameDurationSpan.innerHTML = frameDurationSlider.value;
 		}
 		
 		// delete the current frame and refresh
@@ -599,20 +602,16 @@
 		playLeft.onclick = function(evt) { incrementCurFrame(-1) }
 		playRight.onclick = function(evt) { incrementCurFrame(1) }
 		
-		var selectedSpriteNameDiv = document.getElementById("selectedSpriteName");
-		canvas.onmousemove = function (evt)
+		function highlightSelectedSprite()
 		{
-			var mousex = (evt.pageX - this.offsetLeft) + spritesheetDiv.scrollLeft;
-			var mousey = (evt.pageY - this.offsetTop) + spritesheetDiv.scrollTop;
-			
 			redrawCanvas();
-			var rect = getClipRectInCanvas(mousex, mousey);
+			var rect = getClipRectInCanvas(canvas_mouse.x, canvas_mouse.y);
 			if(rect == null) {
-				this.style.cursor = "auto";
+				canvas.style.cursor = "auto";
 				return;
 			}
 			
-			this.style.cursor = "pointer";
+			canvas.style.cursor = "pointer";
 			ctx.fillStyle = "rgb(255,200,100)";
 			ctx.globalAlpha = 0.4;
 			ctx.fillRect(rect.cx, rect.cy, rect.width, rect.height);
@@ -620,7 +619,8 @@
 			
 			selectedSpriteNameDiv.innerHTML = rect.name;
 		}
-		canvas.onmouseout = function (evt) { redrawCanvas(); }
+		spritesheetDiv.onscroll = function(evt) { highlightSelectedSprite(); };
+		canvas.onmouseout = function (evt) { redrawCanvas(); };
 		
 		var lastFrameUpdate = 0;
 		function drawAnimCanvas()
@@ -652,7 +652,7 @@
 			var anchorDrawPos = {
 				x: Math.round(animcanvas.width/4),
 				y: Math.round(animcanvas.height/4)
-			}
+			};
 			anchorDrawPos.x += animcanvas.width/2 * firstRect.anchorPoint.x;
 			anchorDrawPos.y += animcanvas.height/2 * (1-firstRect.anchorPoint.y);
 			
@@ -665,7 +665,7 @@
 			var drawPos = { 
 				x: anchorDrawPos.x - anchorOffset.x, 
 				y: anchorDrawPos.y - anchorOffset.y
-			}
+			};
 			anim_ctx.drawImage(sprite.img,
 				rect.x, rect.y,
 				rect.width, rect.height,
@@ -694,7 +694,7 @@
 				curFrame: 0, frameDurations: new Array(),
 				clipRects: new Array(),
 				sprites: new Array()
-			}
+			};
 			return animation;
 		}
 		function getAnimSelectorText()
@@ -768,48 +768,54 @@
 
 			// expand clipRect's sides until they border a sprite without touching it:	
 			var rectFinished = false;
-			while(rectFinished == false)
-			{
+			while(rectFinished == false) {
+				// hit count and maxHits..
+				// these variables add tolerance for images with sprites that are very close together.
+				// if 2 sprites are side by side, touching they will be registered as 1 sprite together
+				// but minHits sets a number of pixels that need to be in a row for it to be considered a continuous sprite.
+				//  so if 1 sprite is obviously meant to be 2 sprites if not for a couple pixels, this solves that:
+				var hitCount;
+				var minHits = 4;
+				
 				rectFinished = true;
-				//loop through all pixels on top&bottom of rect
-				for(var x=rect.x; x < rect.x+rect.width; x++)
-				{
-					// rect top side:
-					// test for both above and below the top side,
-					// if both are touching a pixel, the rect still needs expanding.
-					if( hit(x,rect.y-1,tempCtx) )
-					{
+				var x,y;
+				// Loop through all pixels bordering the rect:
+				//  if a side is touching pixels, expand the rect in that direction
+				
+				//top of rect
+				for(x=rect.x, hitCount = 0; x < rect.x+rect.width; x++) {
+					// check if a pixel is hit and atleast a few pixels are hit so far before expanding the rect
+					// but the rect has to be a few pixels wide before it can rack up more than a few hits ;)
+					if( hit(x,rect.y-1,tempCtx) && (++hitCount >= minHits || hitCount >= rect.width) ) {
 						//expand rect upward by 1
 						rect.y--;
 						rect.height++;
 						rectFinished = false;
 						break;
 					}
-					// rect bottom side:
-					if( hit(x,rect.y+rect.height,tempCtx) )
-					{
+				}
+				//bottom of rect
+				for(x=rect.x, hitCount=0; x < rect.x+rect.width; x++) {
+					if( hit(x,rect.y+rect.height,tempCtx) && (++hitCount >= minHits || hitCount >= rect.width) ) {
 						//expand rect downward by 1
 						rect.height++;
 						rectFinished = false;
 						break;
 					}
 				}
-				//loop through all pixels on left&right of rect
-				for(var y=rect.y; y < rect.y+rect.height; y++)
-				{
-					// rect left side
-					if( hit(rect.x-1,y,tempCtx) )
-					{
+				//left of rect
+				for(y=rect.y, hitCount=0; y < rect.y+rect.height; y++) {
+					if( hit(rect.x-1,y,tempCtx) && (++hitCount >= minHits || hitCount >= rect.height) ) {
 						//expand rect to the left by 1
 						rect.x--;
 						rect.width++;
 						rectFinished = false;
 						break;
 					}
-					// rect right side
-					if( hit(rect.x+rect.width,y,tempCtx) )
-					{
-						//expand rect to the right by 1
+				}
+				//right of rect
+				for(y=rect.y, hitCount=0; y < rect.y+rect.height; y++) {
+					if( hit(rect.x+rect.width,y,tempCtx) && (++hitCount >= minHits || hitCount >= rect.height) ) {
 						rect.width++;
 						rectFinished = false;
 						break;
@@ -1085,6 +1091,59 @@
 		 * functions to pack the sprite sheets onto the canvas and draw them
 		 * -------------------------------------------------------------
 		 */
+		
+		//delete the sprite frame the mouse is over when delete is pressed 
+		window.onkeyup = function (evt) {
+			var DELETE_KEY = 46;
+			if(evt.keyCode == DELETE_KEY) {
+				if(window.confirm("Delete this sprite?") == false) return;
+				var rect = getClipRectInCanvas(canvas_mouse.x, canvas_mouse.y);
+				var sprite = rect.sprite;
+				if(rect == null) return;
+				var indexNumber = -1;
+				//remove the rect from sprite
+				for(var i=0; i<sprite.clipRects.length; i++)
+				{
+					if(sprite.clipRects[i] == rect)
+					{
+						indexNumber = i;
+						sprite.clipRects.splice(i,1);
+						break;
+					}
+				}
+				//remove rect from the anchor editor if it is being edited
+				if(anchorEditTarget == rect) setAnchorEditorRect(null);
+				//remove rect from any animations it's in
+				for(var i=0; i<animationsList.length; i++)
+				{
+					var anim = animationsList[i];
+					for(var j=0; j<anim.clipRects.length; j++)
+					{
+						if(anim.clipRects[j] == rect)
+						{
+							anim.clipRects.splice(j,1);
+							anim.sprites.splice(j,1);
+							anim.frameDurations.splice(j,1);
+							incrementCurFrame(0);
+						}
+					}
+				}
+				//remove the entire sprite if there are no more rects left inside it
+				if(sprite.clipRects.length == 0)
+				{
+					for(var i=0; i<sprites.length; i++)
+					{
+						if(sprites[i] == sprite)
+						{
+							sprites.splice(i,1);
+						}
+					}
+				}
+			}
+			//redraw the sprite sheet
+			optimizeSheet();
+			redrawCanvas();
+		}
 		 
 		// a few global vars to use
 		var MAX_IMAGE_SIZE = 2048;
