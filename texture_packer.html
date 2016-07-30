@@ -672,7 +672,7 @@
 				drawPos.x, drawPos.y,
 				rect.width, rect.height);
 		}
-		var ONE_FRAME_TIME = 1000 / 20; // 20 fps
+		var ONE_FRAME_TIME = 1000 / 60; // 20 fps
 		setInterval( drawAnimCanvas, ONE_FRAME_TIME );
 
 		
@@ -1382,6 +1382,7 @@
 				
 				// animation properties
 				v.writeElementString('key','delayPerUnit');
+				// Cocos2d-x minimum frame time seems to be 10ms
 				v.writeElementString('real','0.01');
 				v.writeElementString('key','restoreOriginalFrame');
 				v.writeStartElement('false'); v.writeEndElement();
@@ -1397,7 +1398,8 @@
 					v.writeElementString('key','spriteframe');
 					v.writeElementString('string',anim.clipRects[j].name);
 					v.writeElementString('key','delayUnits');
-					v.writeElementString('integer',String(anim.frameDurations[j]));
+					// Cocos2d-x minimum frame time seems to be 10ms.
+					v.writeElementString('integer',String(Math.floor(anim.frameDurations[j]/10)));
 					
 					if(j==0 || j == anim.clipRects.length-1)
 					{
