@@ -1040,26 +1040,25 @@
 			var files = evt.dataTransfer.files; // Array of all files
 			for (var i=0, file; file=files[i]; i++) {
 				if (file.type.match(/image.*/)) {
-					// Display loading icon
-					//canvas.width = 0;
-					//canvas.height = 0;
-					
 					var reader = new FileReader();
 					reader.file = file;
 					reader.onload = function(evt2) { // finished reading file data.
-						var sprite = newSprite();
-						sprite.name = this.file.name;
-						sprite.img.src = evt2.target.result;
-						if(document.getElementById("spriteOrderRow").checked == true) {
-							processSpriteByRow(sprite);
-						}else {
-							processSpriteByColumn(sprite);
-						}
-						if(sprite.clipRects.length > 0) sprites.push(sprite); // no empty sprites
-						
-						if(document.getElementById("textureFileName").value.length == 0) // auto generate a texture name for user
-							document.getElementById("textureFileName").value = sprite.name;
-						
+						var spriteExists = false;
+						for(var i=0; sprites[i] && !( spriteExists = (sprites[i].name == this.file.name) ); i++);
+						if(spriteExists == false) {
+							var sprite = newSprite();
+							sprite.name = this.file.name;
+							sprite.img.src = evt2.target.result;
+							if(document.getElementById("spriteOrderRow").checked == true) {
+								processSpriteByRow(sprite);
+							}else {
+								processSpriteByColumn(sprite);
+							}
+							if(sprite.clipRects.length > 0) sprites.push(sprite); // no empty sprites
+							
+							if(document.getElementById("textureFileName").value.length == 0) // auto generate a texture name for user
+								document.getElementById("textureFileName").value = sprite.name;
+						} else alert("Image " + this.file.name + " already exists");
 						loadingPercentage += loadingIncrement;
 						document.getElementById("loadingbardiv").style.width = Math.floor(loadingPercentage)+"%";
 						document.getElementById("loadingbardiv").innerHTML = Math.floor(loadingPercentage)+"%";
