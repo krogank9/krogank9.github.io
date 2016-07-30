@@ -541,7 +541,7 @@
 			{
 				for(var i=0; i<anim.frameDurations.length; i++)
 				{
-					anim.frameDurations[i] = frameDurationSlider.value;
+					anim.frameDurations[i] = parseInt(frameDurationSlider.value);
 				}
 			}
 		}
@@ -622,7 +622,7 @@
 		spritesheetDiv.onscroll = function(evt) { highlightSelectedSprite(); };
 		canvas.onmouseout = function (evt) { redrawCanvas(); };
 		
-		var lastFrameUpdate = 0;
+		var lastFrameUpdate = (new Date()).getTime();
 		function drawAnimCanvas()
 		{
 			anim_ctx.clearRect(0,0,animcanvas.width,animcanvas.height);
@@ -633,12 +633,15 @@
 			
 			if(anim.clipRects.length <= 0) return;
 			
-			var d = new Date();
-			var now = d.getTime();
-			if(playbutton.checked && (now - lastFrameUpdate) > anim.frameDurations[anim.curFrame] )
+			if(playbutton.checked)
 			{
-				incrementCurFrame(1);
-				lastFrameUpdate = now;
+				var now = (new Date()).getTime();
+				//check how many frames have passed since last draw:
+				while( now - lastFrameUpdate >= anim.frameDurations[anim.curFrame] )
+				{
+					lastFrameUpdate += anim.frameDurations[anim.curFrame];
+					incrementCurFrame(1);
+				}
 			}
 			
 			var rect = anim.clipRects[anim.curFrame];
