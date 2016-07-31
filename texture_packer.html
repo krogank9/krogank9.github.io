@@ -125,7 +125,7 @@
 
 <div>
 	<div style="display: inline-block;">
-		<span id="selectedSpriteName">Drag and drop sprite sheets & sprites into the blue box to begin packing</span>
+		<span id="selectedSpriteInfo">Drag and drop sprite sheets & sprites into the blue box to begin packing</span>
 		<br>
 		<div id="spritesheetDiv" style="display: inline-block; overflow: scroll; width: 500px; height: 400px; border: solid 1px darkblue;">
 			<div id="loadingdiv" style="border: dotted 1px black; display: none;"><div id="loadingbardiv" style="background-color: grey; width:50%; height: 100%;">LOADING...</div></div>
@@ -182,7 +182,7 @@
 				Frame duration: <input type="range" id="frameDurationSlider" min="10" max="1000" step="10" value="100"><span id="frameDurationSpan">100</span>ms
 				<input type="button" id="setAllFrames" value="Set all frames">
 				<hr>
-				<form action="javascript:void(0);">
+				<form action="javascript:void(0);" type="text" pattern="[0-9]{9}">
 					<input type="text" id="animnamer" placeholder="new animation name">
 					<input type="submit" id="addAnim" value="Add animation">
 					<input type="button" id="delAnim" value="Delete animation">
@@ -227,7 +227,7 @@
 <script>/*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */var saveAs=saveAs||function(e){"use strict";if(typeof e==="undefined"||typeof navigator!=="undefined"&&/MSIE [1-9]\./.test(navigator.userAgent)){return}var t=e.document,n=function(){return e.URL||e.webkitURL||e},r=t.createElementNS("http://www.w3.org/1999/xhtml","a"),o="download"in r,i=function(e){var t=new MouseEvent("click");e.dispatchEvent(t)},a=/constructor/i.test(e.HTMLElement),f=/CriOS\/[\d]+/.test(navigator.userAgent),u=function(t){(e.setImmediate||e.setTimeout)(function(){throw t},0)},d="application/octet-stream",s=1e3*40,c=function(e){var t=function(){if(typeof e==="string"){n().revokeObjectURL(e)}else{e.remove()}};setTimeout(t,s)},l=function(e,t,n){t=[].concat(t);var r=t.length;while(r--){var o=e["on"+t[r]];if(typeof o==="function"){try{o.call(e,n||e)}catch(i){u(i)}}}},p=function(e){if(/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(e.type)){return new Blob([String.fromCharCode(65279),e],{type:e.type})}return e},v=function(t,u,s){if(!s){t=p(t)}var v=this,w=t.type,m=w===d,y,h=function(){l(v,"writestart progress write writeend".split(" "))},S=function(){if((f||m&&a)&&e.FileReader){var r=new FileReader;r.onloadend=function(){var t=f?r.result:r.result.replace(/^data:[^;]*;/,"data:attachment/file;");var n=e.open(t,"_blank");if(!n)e.location.href=t;t=undefined;v.readyState=v.DONE;h()};r.readAsDataURL(t);v.readyState=v.INIT;return}if(!y){y=n().createObjectURL(t)}if(m){e.location.href=y}else{var o=e.open(y,"_blank");if(!o){e.location.href=y}}v.readyState=v.DONE;h();c(y)};v.readyState=v.INIT;if(o){y=n().createObjectURL(t);setTimeout(function(){r.href=y;r.download=u;i(r);h();c(y);v.readyState=v.DONE});return}S()},w=v.prototype,m=function(e,t,n){return new v(e,t||e.name||"download",n)};if(typeof navigator!=="undefined"&&navigator.msSaveOrOpenBlob){return function(e,t,n){t=t||e.name||"download";if(!n){e=p(e)}return navigator.msSaveOrOpenBlob(e,t)}}w.abort=function(){};w.readyState=w.INIT=0;w.WRITING=1;w.DONE=2;w.error=w.onwritestart=w.onprogress=w.onwrite=w.onabort=w.onerror=w.onwriteend=null;return m}(typeof self!=="undefined"&&self||typeof window!=="undefined"&&window||this.content);if(typeof module!=="undefined"&&module.exports){module.exports.saveAs=saveAs}else if(typeof define!=="undefined"&&define!==null&&define.amd!==null){define([],function(){return saveAs})}</script>
 <script>
 	var spritesheetDiv=document.getElementById("spritesheetDiv");
-	var selectedSpriteNameDiv = document.getElementById("selectedSpriteName");
+	var selectedSpriteInfoDiv = document.getElementById("selectedSpriteInfo");
 	var animationsDiv=document.getElementById("animations");
 	var anchorPtsDiv=document.getElementById("anchorpts");
 	var canvas=document.getElementById("spritesheet");
@@ -290,7 +290,7 @@
 		}
 		highlightSelectedSprite();
 	}
-	var canvas_mouse = { x:0, y: 0 }
+	var canvas_mouse = { x:-1, y: -1 }
 	canvas.onmousemove = function (evt) {
 		canvas_mouse.x = (evt.x - this.offsetLeft) + spritesheetDiv.scrollLeft;
 		canvas_mouse.y = (evt.y - this.offsetTop) + spritesheetDiv.scrollTop;
@@ -658,10 +658,15 @@
 		ctx.fillRect(rect.cx, rect.cy, rect.width, rect.height);
 		ctx.globalAlpha = 1.0;
 		
-		selectedSpriteNameDiv.innerHTML = rect.name;
+		selectedSpriteInfoDiv.innerHTML = "Press D to delete <b>" + rect.name + "</b>";
 	}
 	spritesheetDiv.onscroll = function(evt) { highlightSelectedSprite(); };
-	canvas.onmouseout = function (evt) { redrawCanvas(); };
+	canvas.onmouseout = function (evt) {
+		redrawCanvas();
+		canvas_mouse.x = -1;
+		canvas_mouse.y = -1;
+		selectedSpriteInfoDiv.innerHTML = "";
+	};
 	
 	var lastFrameUpdate = (new Date()).getTime();
 	function drawAnimCanvas()
@@ -811,60 +816,64 @@
 		var rect = newRect(startX,startY,1,1); // create 1px by 1px rect
 
 		// expand clipRect's sides until they border a sprite without touching it:	
-		var rectFinished = false;
-		while(rectFinished == false) {
-			// hit count and maxHits..
-			// these variables add tolerance for images with sprites that are very close together.
-			// if 2 sprites are side by side, touching they will be registered as 1 sprite together
-			// but minHits sets a number of pixels that need to be in a row for it to be considered a continuous sprite.
-			//  so if 1 sprite is obviously meant to be 2 sprites if not for a couple pixels, this solves that:
-			var hitCount;
-			var minHits = 4;
-			
-			rectFinished = true;
+		while(true) {
 			var x,y;
+			var rectGrew = false;
 			// Loop through all pixels bordering the rect:
 			//  if a side is touching pixels, expand the rect in that direction
 			
 			//top of rect
-			for(x=rect.x, hitCount = 0; x < rect.x+rect.width; x++) {
-				// check if a pixel is hit and atleast a few pixels are hit so far before expanding the rect
-				// but the rect has to be a few pixels wide before it can rack up more than a few hits ;)
-				if( hit(x,rect.y-1,tempCtx) && (++hitCount >= minHits || hitCount >= rect.width) ) {
-					//expand rect upward by 1
-					rect.y--;
-					rect.height++;
-					rectFinished = false;
-					break;
+			for(x=rect.x; x < rect.x+rect.width; x++) {
+				//shoot a tracer out top of rect
+				for(y=rect.y-1; hit(x,y,tempCtx); y--)
+				{
+					//make sure the pixel hit has neighbors.
+					//this is for tolerance of sprites that are too very close together
+					//if it has no neighbors, end the trace here to be safe
+					if(!hit(x,y+1,tempCtx) && !hit(x-1,y+1,tempCtx) && !hit(x+1,y+1,tempCtx))
+					{
+						break;
+					}
+					rect.y--, rect.height++, rectGrew = true;
 				}
 			}
 			//bottom of rect
-			for(x=rect.x, hitCount=0; x < rect.x+rect.width; x++) {
-				if( hit(x,rect.y+rect.height,tempCtx) && (++hitCount >= minHits || hitCount >= rect.width) ) {
-					//expand rect downward by 1
-					rect.height++;
-					rectFinished = false;
-					break;
+			for(x=rect.x; x < rect.x+rect.width; x++) {
+				for(y=rect.y+rect.height; hit(x,y,tempCtx); y++)
+				{
+					if(!hit(x,y-1,tempCtx) && !hit(x+1,y-1,tempCtx) && !hit(x-1,y-1,tempCtx))
+					{
+						break;
+					}
+					rect.height++, rectGrew = true;
 				}
 			}
 			//left of rect
-			for(y=rect.y, hitCount=0; y < rect.y+rect.height; y++) {
-				if( hit(rect.x-1,y,tempCtx) && (++hitCount >= minHits || hitCount >= rect.height) ) {
-					//expand rect to the left by 1
-					rect.x--;
-					rect.width++;
-					rectFinished = false;
-					break;
+			for(y=rect.y; y < rect.y+rect.height; y++) {
+				for(x=rect.x-1; hit(x,y,tempCtx); x--)
+				{
+					if(!hit(x+1,y,tempCtx) && !hit(x+1,y-1,tempCtx) && !hit(x+1,y+1,tempCtx))
+					{
+						break;
+					}
+					rect.x--, rect.width++, rectGrew = true;
 				}
 			}
 			//right of rect
-			for(y=rect.y, hitCount=0; y < rect.y+rect.height; y++) {
-				if( hit(rect.x+rect.width,y,tempCtx) && (++hitCount >= minHits || hitCount >= rect.height) ) {
-					rect.width++;
-					rectFinished = false;
-					break;
+			for(y=rect.y; y < rect.y+rect.height; y++) {
+				for(x=rect.x+rect.width; hit(x,y,tempCtx); x++)
+				{
+					
+					if(!hit(x-1,y,tempCtx) && !hit(x-1,y+1,tempCtx) && !hit(x-1,y-1,tempCtx))
+					{
+						break;
+					}
+					rect.width++, rectGrew = true;
 				}
 			}
+			
+			if(!rectGrew)
+				break;
 		}
 		
 		rect.area = rect.width*rect.height;
@@ -1155,8 +1164,8 @@
 	
 	//delete the sprite frame the mouse is over when delete is pressed 
 	window.onkeyup = function (evt) {
-		var DELETE_KEY = 46;
-		if(evt.keyCode == DELETE_KEY) {
+		var D_KEY = 68;
+		if(evt.keyCode == D_KEY && canvas_mouse.x >= 0 && canvas_mouse.y >= 0) {
 			if(window.confirm("Delete this sprite?") == false) return;
 			var rect = getClipRectInCanvas(canvas_mouse.x, canvas_mouse.y);
 			var sprite = rect.sprite;
@@ -1210,6 +1219,7 @@
 	var MAX_IMAGE_SIZE = 2048;
 	var OUTPUT_WIDTH = MAX_IMAGE_SIZE;
 	var OUTPUT_HEIGHT = MAX_IMAGE_SIZE;
+	var PADDING = 2; // 2 px padding.. added so sprites can be re-imported after exporting
 	
 	// tightly packs sprite rects into another rectangle of MAX_WIDTH
 	function packRects(MAX_WIDTH) {
@@ -1221,19 +1231,20 @@
 			//no more room in row
 			if(xPos + rect.width >= MAX_WIDTH)
 			{
-				yPos += rowHeight;
+				yPos += rowHeight + PADDING;
 				// make sure yPos is even; cocos2d will display sprite blurred if it isn't placed at an even pos
-				if(yPos%2) yPos++;
+				// subtract instead of add because we have 2px padding
+				if(yPos % 2) yPos--;
 				rowHeight = 0;
 				xPos = 0;
 			}
 			// once again, cocos2d will display sprite blurred if displayed at an odd pos
-			if(xPos % 2) xPos++;
+			if(xPos % 2) xPos--;
 			rect.cx = xPos;
 			rect.cy = yPos;
 			if(xPos + rect.width > rowWidth) rowWidth = xPos + rect.width;
 			if(rect.height > rowHeight) rowHeight = rect.height;
-			xPos += rect.width;
+			xPos += rect.width + PADDING;
 		});
 		OUTPUT_WIDTH = rowWidth;
 		OUTPUT_HEIGHT = yPos + rowHeight;
