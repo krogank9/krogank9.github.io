@@ -875,6 +875,7 @@
 				break;
 		}
 		
+		if(rect.width%2 != 0) rect.width++;
 		rect.area = rect.width*rect.height;
 		rect.anchorPoint = {x: 0.5, y: 0}; // anchor point default value bottom middle
 		return rect;
@@ -1218,7 +1219,7 @@
 	var MAX_IMAGE_SIZE = 2048;
 	var OUTPUT_WIDTH = MAX_IMAGE_SIZE;
 	var OUTPUT_HEIGHT = MAX_IMAGE_SIZE;
-	var PADDING = 2; // 2 px padding.. added so sprites can be re-imported after exporting
+	var PADDING = 1; // 2 px padding.. added so sprites can be re-imported after exporting
 	
 	// tightly packs sprite rects into another rectangle of MAX_WIDTH
 	function packRects(MAX_WIDTH) {
@@ -1232,13 +1233,12 @@
 			{
 				yPos += rowHeight + PADDING;
 				// make sure yPos is even; cocos2d will display sprite blurred if it isn't placed at an even pos
-				// subtract instead of add because we have 2px padding
-				if(yPos % 2) yPos--;
+				if(yPos % 2) yPos++;
 				rowHeight = 0;
 				xPos = 0;
 			}
 			// once again, cocos2d will display sprite blurred if displayed at an odd pos
-			if(xPos % 2) xPos--;
+			if(xPos % 2) xPos++;
 			rect.cx = xPos;
 			rect.cy = yPos;
 			if(xPos + rect.width > rowWidth) rowWidth = xPos + rect.width;
@@ -1247,6 +1247,9 @@
 		});
 		OUTPUT_WIDTH = rowWidth;
 		OUTPUT_HEIGHT = yPos + rowHeight;
+		//cocos displays odd numbers weird sometimes... better safe than sorry
+		if(OUTPUT_WIDTH % 2) OUTPUT_WIDTH++;
+		if(OUTPUT_HEIGHT % 2) OUTPUT_HEIGHT++;
 	}
 
 	// Runs packRects() a few times to determine the most efficient
