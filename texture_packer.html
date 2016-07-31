@@ -586,6 +586,66 @@
 		}
 	}
 	
+	var locked = false;
+	var lastClick = 0;
+	var consecutiveClicks = 1;
+	var prevValue = 0;
+	frameDurationSlider.onclick = function (evt) {
+		var now = (new Date()).getTime();
+		if(now - lastClick < 500) {
+			consecutiveClicks++;
+		}
+		else
+		{
+			consecutiveClicks = 1;
+		}
+		lastClick = now;
+		
+		console.log(consecutiveClicks);
+		
+		if(consecutiveClicks == 2) {
+			console.log("test");
+			setTimeout(function() {
+				if(consecutiveClicks == 2) {
+					consecutiveClicks = 0;
+					if(locked == false) {
+						locked = true;
+						frameDurationSlider.style.outline = "red dotted thick";
+						prevValue = frameDurationSlider.value;
+						frameDurationSlider.value = "locked";
+						frameDurationSlider.readOnly = true;
+					}
+					else if(locked == true) {
+						locked = false;
+						frameDurationSlider.style.outline = "none";
+						frameDurationSlider.value = prevValue;
+						frameDurationSlider.readOnly = false;
+					}
+				}
+			}, 400);
+		}
+		else if(consecutiveClicks == 3 && !locked) {
+			setTimeout(function() {
+				if(consecutiveClicks == 3) {
+					consecutiveClicks = 0;
+					if(!locked) {
+						frameDurationSlider.type = "number";
+					}
+				}
+			}, 400);
+		}
+		else if(consecutiveClicks == 4 && !locked) {
+			setTimeout(function() {
+				if(consecutiveClicks == 4) {
+					consecutiveClicks = 0;
+					if(!locked) {
+						frameDurationSlider.type = "range";
+					}
+				}
+			}, 400);
+		}
+	}
+	
 	frameDurationSlider.oninput = function (evt) {
 		frameDurationSpan.innerHTML = evt.target.value;
 		var anim = animationsList[curAnim]
