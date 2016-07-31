@@ -176,7 +176,9 @@
 				
 				<input type="button" id="delAnimFrame" value="Delete frame">
 				<br><br>
-				Frame duration: <input type="range" id="frameDurationSlider" min="10" max="1000" step="10" value="100"><span id="frameDurationSpan">100</span>ms
+				Frame duration:
+				<input type="text" style="padding: 0px;" id="frameDurationInput" onkeypress="return event.charCode >= 48 && event.charCode <= 57" size="1" maxlength="5" min="10" max="1000" step="10" value="100">
+				ms
 				<input type="button" id="setAllFrames" value="Set all frames">
 				<hr>
 				<form action="javascript:void(0);" type="text" pattern="[0-9]{9}">
@@ -284,7 +286,7 @@
 
 			anim.sprites.push(rect.sprite);
 			anim.clipRects.push(rect);
-			anim.frameDurations.push(parseInt(frameDurationSlider.value));
+			anim.frameDurations.push(parseInt(frameDurationInput.value));
 			incrementCurFrame(Number.MAX_VALUE * -1); // set cur frame to under 0 so it loops back to end frame
 		}
 		highlightSelectedSprite();
@@ -570,8 +572,7 @@
 	var playRight = document.getElementById("rightAnim");
 	var frameNumSpan = document.getElementById("frameNumber");
 	
-	var frameDurationSlider = document.getElementById("frameDurationSlider");
-	var frameDurationSpan = document.getElementById("frameDurationSpan");
+	var frameDurationInput = document.getElementById("frameDurationInput");
 	var setAllFramesButton = document.getElementById("setAllFrames");
 	
 	setAllFramesButton.onclick = function(evt) {
@@ -581,80 +582,20 @@
 		{
 			for(var i=0; i<anim.frameDurations.length; i++)
 			{
-				anim.frameDurations[i] = parseInt(frameDurationSlider.value);
+				anim.frameDurations[i] = parseInt(frameDurationInput.value || "10");
 			}
 		}
 	}
 	
-	var locked = false;
-	var lastClick = 0;
-	var consecutiveClicks = 1;
-	var prevValue = 0;
-	frameDurationSlider.onclick = function (evt) {
-		var now = (new Date()).getTime();
-		if(now - lastClick < 500) {
-			consecutiveClicks++;
-		}
-		else
-		{
-			consecutiveClicks = 1;
-		}
-		lastClick = now;
-		
-		console.log(consecutiveClicks);
-		
-		if(consecutiveClicks == 2) {
-			console.log("test");
-			setTimeout(function() {
-				if(consecutiveClicks == 2) {
-					consecutiveClicks = 0;
-					if(locked == false) {
-						locked = true;
-						frameDurationSlider.style.outline = "red dotted thick";
-						prevValue = frameDurationSlider.value;
-						frameDurationSlider.value = "locked";
-						frameDurationSlider.readOnly = true;
-					}
-					else if(locked == true) {
-						locked = false;
-						frameDurationSlider.style.outline = "none";
-						frameDurationSlider.value = prevValue;
-						frameDurationSlider.readOnly = false;
-					}
-				}
-			}, 400);
-		}
-		else if(consecutiveClicks == 3 && !locked) {
-			setTimeout(function() {
-				if(consecutiveClicks == 3) {
-					consecutiveClicks = 0;
-					if(!locked) {
-						frameDurationSlider.type = "number";
-					}
-				}
-			}, 400);
-		}
-		else if(consecutiveClicks == 4 && !locked) {
-			setTimeout(function() {
-				if(consecutiveClicks == 4) {
-					consecutiveClicks = 0;
-					if(!locked) {
-						frameDurationSlider.type = "range";
-					}
-				}
-			}, 400);
-		}
-	}
-	
-	frameDurationSlider.oninput = function (evt) {
-		frameDurationSpan.innerHTML = evt.target.value;
+	frameDurationInput.oninput = function (evt) {
 		var anim = animationsList[curAnim]
 		if(anim !== 'undefined' && anim != null 
 		&& anim.frameDurations.length > 0)
 		{
-			anim.frameDurations[anim.curFrame] = parseInt(evt.target.value);
+			anim.frameDurations[anim.curFrame] = parseInt(evt.target.value || "10");
 		}
 	}
+	frameDurationInput.onchange = function(evt) { if(this.value.length == 0 || parseInt(this.value) <= 0) this.value = "100"; }
 	
 	var animationsList = new Array();
 	var curAnim = 0;
@@ -680,9 +621,8 @@
 			frameNumSpan.innerHTML = (anim.curFrame+1) + "/" + anim.sprites.length;
 		
 		if(anim.frameDurations.length > 0) {
-			frameDurationSlider.value = anim.frameDurations[anim.curFrame];
+			frameDurationInput.value = anim.frameDurations[anim.curFrame];
 		}
-		frameDurationSpan.innerHTML = frameDurationSlider.value;
 	}
 	
 	// delete the current frame and refresh
