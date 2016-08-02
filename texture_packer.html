@@ -5,6 +5,7 @@
 <head>
 	
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
 <style>
 	html {
 		font-family: Arial;
@@ -12,7 +13,7 @@
 	}
 	select {
 		color: #FAFBFC;
-		background-color: #292b2c;
+		background: #292b2c;
 	}
 	input[type="text"] { padding: 5px 11px; border: 1px solid #CDDAE0; }
 	input[type="button"], input[type="submit"] {
@@ -41,7 +42,7 @@
 		top:1px;
 	}
 
-	* {
+	*:not([type="text"]) {
 		-webkit-touch-callout: none;
 		-webkit-user-select: none;
 		-khtml-user-select: none;
@@ -118,7 +119,7 @@
 
 </head>
 
-<body>
+<body onunload="">
 
 <div>
 	<div style="display: inline-block;">
@@ -163,8 +164,11 @@
 			<div style="text-align: center; padding: 7px; border-top: 1px solid #ccc" id="animControls" class="opaquediv controls">
 				Click a sprite to add it to the current animation
 				<select id="animselector">
-					<option value="" disabled selected hidden>No animations</option>
+					<option value="" disabled selected hidden>No animation</option>
 				</select>
+				<br>
+				# loops
+				<input type="text" id="animLoopInput" placeholder="-1=∞" size="1" style="padding: 3px;" value="-1" onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || (event.charCode == 45 && this.selectionStart == 0)"> 
 				<br>
 				<!-- play left button -->
 				<input type="image" id="leftAnim" style="outline-width: 0" src="data:image/png;base64,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">
@@ -177,7 +181,7 @@
 				<input type="button" id="delAnimFrame" value="Delete frame">
 				<br><br>
 				Frame duration:
-				<input type="text" style="padding: 0px;" id="frameDurationInput" onkeypress="return event.charCode >= 48 && event.charCode <= 57" size="1" maxlength="5" min="10" max="1000" step="10" value="100">
+				<input type="text" style="padding: 3px;" id="frameDurationInput" onkeypress="return event.charCode >= 48 && event.charCode <= 57" size="1" maxlength="5" min="10" max="1000" step="10" value="100">
 				ms
 				<input type="button" id="setAllFrames" value="Set all frames">
 				<hr>
@@ -573,6 +577,7 @@
 	var frameNumSpan = document.getElementById("frameNumber");
 	
 	var frameDurationInput = document.getElementById("frameDurationInput");
+	var animLoopInput = document.getElementById("animLoopInput");
 	var setAllFramesButton = document.getElementById("setAllFrames");
 	
 	setAllFramesButton.onclick = function(evt) {
@@ -595,7 +600,15 @@
 			anim.frameDurations[anim.curFrame] = parseInt(evt.target.value || "10");
 		}
 	}
+	animLoopInput.oninput = function (evt) {
+		var anim = animationsList[curAnim]
+		if(anim !== 'undefined' && anim != null)
+		{
+			anim.numLoops = parseInt(evt.target.value || "-1");
+		}
+	}
 	frameDurationInput.onchange = function(evt) { if(this.value.length == 0 || parseInt(this.value) <= 0) this.value = "100"; }
+	animLoopInput.onchange = function(evt) { if(this.value.length == 0 || parseInt(this.value) < -1) this.value = "-1"; }
 	
 	var animationsList = new Array();
 	var curAnim = 0;
@@ -639,8 +652,8 @@
 		}
 	}
 	
-	playLeft.onclick = function(evt) { incrementCurFrame(-1) }
-	playRight.onclick = function(evt) { incrementCurFrame(1) }
+	playLeft.onclick = function(evt) { incrementCurFrame(-1); lastFrameUpdate = (new Date()).getTime(); }
+	playRight.onclick = function(evt) { incrementCurFrame(1); lastFrameUpdate = (new Date()).getTime(); }
 	
 	function highlightSelectedSprite()
 	{
@@ -677,16 +690,12 @@
 		var anim = animationsList[curAnim];
 		
 		if(anim.clipRects.length <= 0) return;
-		
-		if(playbutton.checked)
-		{
-			var now = (new Date()).getTime();
-			//check how many frames have passed since last draw:
-			while( now - lastFrameUpdate >= anim.frameDurations[anim.curFrame] )
-			{
-				lastFrameUpdate += anim.frameDurations[anim.curFrame];
-				incrementCurFrame(1);
-			}
+
+		var now = (new Date()).getTime();
+		//check how many frames have passed since last draw:
+		while(playbutton.checked && now - lastFrameUpdate >= anim.frameDurations[anim.curFrame]) {
+			lastFrameUpdate += anim.frameDurations[anim.curFrame];
+			incrementCurFrame(1);
 		}
 		
 		var rect = anim.clipRects[anim.curFrame];
@@ -740,6 +749,7 @@
 		var animation = {
 			name: name,
 			curFrame: 0, frameDurations: new Array(),
+			numLoops: -1,
 			clipRects: new Array(),
 			sprites: new Array()
 		};
@@ -771,6 +781,7 @@
 			curAnim = animationsList.length - 1;
 			animSelector.selectedIndex = animSelector.length - 1;
 			// update
+			animLoopInput.value = anim.numLoops;
 			incrementCurFrame(0);
 		}
 	}
@@ -795,7 +806,8 @@
 		}
 	}
 	animSelector.onchange = function(evt) {
-		curAnim = getAnim(getAnimSelectorText()); 
+		curAnim = getAnim(getAnimSelectorText());
+		animLoopInput.value = animationsList[curAnim].numLoops;
 		incrementCurFrame(0);
 	}
 	
@@ -875,7 +887,6 @@
 				break;
 		}
 		
-		if(rect.width%2 != 0) rect.width++;
 		rect.area = rect.width*rect.height;
 		rect.anchorPoint = {x: 0.5, y: 0}; // anchor point default value bottom middle
 		return rect;
@@ -1219,7 +1230,10 @@
 	var MAX_IMAGE_SIZE = 2048;
 	var OUTPUT_WIDTH = MAX_IMAGE_SIZE;
 	var OUTPUT_HEIGHT = MAX_IMAGE_SIZE;
-	var PADDING = 1; // 2 px padding.. added so sprites can be re-imported after exporting
+	// padding must be minimum 1 px, for 2 reasons:
+	// 1. to reimport the sprite sheet if you want to edit it again, the sprites can't be all touching, they must have some spacing
+	// 2. Coco2d-x displays images with non-even dimensions as blurred, so when exporting I increment any odd dimensions by 1
+	var PADDING = 1;
 	
 	// tightly packs sprite rects into another rectangle of MAX_WIDTH
 	function packRects(MAX_WIDTH) {
@@ -1232,13 +1246,9 @@
 			if(xPos + rect.width >= MAX_WIDTH)
 			{
 				yPos += rowHeight + PADDING;
-				// make sure yPos is even; cocos2d will display sprite blurred if it isn't placed at an even pos
-				if(yPos % 2) yPos++;
 				rowHeight = 0;
 				xPos = 0;
 			}
-			// once again, cocos2d will display sprite blurred if displayed at an odd pos
-			if(xPos % 2) xPos++;
 			rect.cx = xPos;
 			rect.cy = yPos;
 			if(xPos + rect.width > rowWidth) rowWidth = xPos + rect.width;
@@ -1247,7 +1257,7 @@
 		});
 		OUTPUT_WIDTH = rowWidth;
 		OUTPUT_HEIGHT = yPos + rowHeight;
-		//cocos displays odd numbers weird sometimes... better safe than sorry
+		//cocos displays non-even numbers weird sometimes... better safe than sorry
 		if(OUTPUT_WIDTH % 2) OUTPUT_WIDTH++;
 		if(OUTPUT_HEIGHT % 2) OUTPUT_HEIGHT++;
 	}
@@ -1348,10 +1358,11 @@
 		forEachRect(function(sprite,rect) {
 			// need to make sure width and height are even numbers;
 			//  cocos2dx displays sprites wrong if they aren't....
-			var width = rect.width + 1;
-			var height = rect.height + 1;
-			width -= width%2;
-			height -= height%2;
+			//  i think this is because the anchor point at (0.5, 0) is halfway across
+			//  on non-even dimensioned sprites, and it lands in the middle of a pixel, rather than in between 2
+			//  when the anchor point is set to 0,0 it won't happen
+			var width = rect.width + rect.width%2;
+			var height = rect.height + rect.height%2;
 			
 			v.writeElementString('key',rect.name);
 			v.writeStartElement('dict');
@@ -1438,12 +1449,11 @@
 			
 			// animation properties
 			v.writeElementString('key','delayPerUnit');
-			// Cocos2d-x minimum frame time seems to be 10ms
-			v.writeElementString('real','0.01');
+			v.writeElementString('real','0.001'); // 1ms
 			v.writeElementString('key','restoreOriginalFrame');
 			v.writeStartElement('false'); v.writeEndElement();
 			v.writeElementString('key','loops');
-			v.writeElementString('integer','1');
+			v.writeElementString('integer',String(anim.numLoops));
 			
 			v.writeElementString('key','frames');
 			v.writeStartElement('array');
@@ -1454,8 +1464,7 @@
 				v.writeElementString('key','spriteframe');
 				v.writeElementString('string',anim.clipRects[j].name);
 				v.writeElementString('key','delayUnits');
-				// Cocos2d-x minimum frame time seems to be 10ms.
-				v.writeElementString('integer',String(Math.floor(anim.frameDurations[j]/10)));
+				v.writeElementString('integer',String(anim.frameDurations[j]));
 				
 				if(j==0 || j == anim.clipRects.length-1)
 				{
