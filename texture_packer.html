@@ -193,7 +193,7 @@
 			</div>
 		</div>
 		<div id="anchorpts" class="tabcontent" style="display: none; height: 400px;">
-			<canvas id="anchorcanvas" width=500 height=400 class="alphacanvas"></canvas>
+			<canvas id="anchorcanvas" width=500 height=400 class="alphacanvas" style="cursor: move;"></canvas>
 			<div style="text-align: center; padding: 7px; border-top: 1px solid #ccc" id="anchorControls" class="opaquediv controls">
 				Click a sprite to edit its anchor points
 				<br>
@@ -201,9 +201,9 @@
 				<input type="button" id="editAnchorOfNext" value="Go to next sprite">
 				<br>
 				<br>
-				<input type="range" id="anchoredit_xaxis" min="0" max="1" step="0.02"> X axis
+				<input type="range" id="anchoredit_xaxis" min="0" max="1" step="0.01"> X axis
 				<br>
-				<input type="range" id="anchoredit_yaxis" min="0" max="1" step="0.02"> Y axis
+				<input type="range" id="anchoredit_yaxis" min="0" max="1" step="0.01"> Y axis
 				<br>
 				<span id="anchorPosDisplay"></span>
 				<hr>
@@ -453,6 +453,25 @@
 	var setCopyToLocal = document.getElementById("setCopyToLocal");
 	var nextButton = document.getElementById("editAnchorOfNext");
 	
+	var anchorMouseDown = false;
+	var anchorCanvasPan = { x: 0, y: 0 };
+	var lastMousePos = { x: 0, y: 0 };
+	anchorcanvas.onmouseup = function(evt) { anchorMouseDown = false; };
+	anchorcanvas.onmouseout = function(evt) { anchorMouseDown = false; };
+	anchorcanvas.onmousedown = function(evt) { anchorMouseDown = true; };
+	var anchorCanvasPan = { x: 0, y: 0 };
+	anchorcanvas.onmousemove = function(evt) {
+		var mx = evt.pageX - this.offsetLeft;
+		var my = evt.pageY - this.offsetTop;
+		if(anchorMouseDown) {
+			anchorCanvasPan.x += mx - lastMousePos.x;
+			anchorCanvasPan.y += my - lastMousePos.y;
+			redrawAnchorCanvas();
+		}
+		lastMousePos.x = mx;
+		lastMousePos.y = my;
+	};
+	
 	nextButton.onclick = function() {
 		if(anchorEditTarget == null || anchorEditTarget === 'undefined') return;
 
@@ -535,21 +554,26 @@
 		anchor_ctx.clearRect(0,0,anchorcanvas.width,anchorcanvas.height);
 		if(anchorEditTarget === 'undefined' || anchorEditTarget == null) return;
 		
-		var drawPos = { x: anchorcanvas.width/2 - anchorEditTarget.width/2,
-						y: anchorcanvas.height/2 - anchorEditTarget.height/2 };
+		var anchorPos = {
+			x: Math.floor(anchorcanvas.width/2 + anchorCanvasPan.x),
+			y: Math.floor(anchorcanvas.height/2 + anchorCanvasPan.y)
+		};
+		
+		var offset = getAnchorOffset(anchorEditTarget);
+		var spritePos = {
+			x: Math.floor(anchorPos.x - offset.x),
+			y: Math.floor(anchorPos.y - offset.y)
+		};
+
 		anchor_ctx.drawImage(anchorEditTarget.sprite.img,
 			anchorEditTarget.x, anchorEditTarget.y,
 			anchorEditTarget.width, anchorEditTarget.height,
-			drawPos.x, drawPos.y,
+			spritePos.x, spritePos.y,
 			anchorEditTarget.width, anchorEditTarget.height);
-			
-		var anchorPos = getAnchorOffset(anchorEditTarget);
-		drawPos.x += anchorPos.x;
-		drawPos.y += anchorPos.y;
 		
 		anchor_ctx.fillStyle = "red";
-		anchor_ctx.fillRect(drawPos.x,0, 1,anchorcanvas.height);
-		anchor_ctx.fillRect(0,drawPos.y, anchorcanvas.width,1);
+		anchor_ctx.fillRect(Math.floor(anchorPos.x),0, 1,anchorcanvas.height);
+		anchor_ctx.fillRect(0,Math.floor(anchorPos.y), anchorcanvas.width,1);
 	}
 	
 	/*
@@ -1230,9 +1254,7 @@
 	var MAX_IMAGE_SIZE = 2048;
 	var OUTPUT_WIDTH = MAX_IMAGE_SIZE;
 	var OUTPUT_HEIGHT = MAX_IMAGE_SIZE;
-	// padding must be minimum 1 px, for 2 reasons:
-	// 1. to reimport the sprite sheet if you want to edit it again, the sprites can't be all touching, they must have some spacing
-	// 2. Coco2d-x displays images with non-even dimensions as blurred, so when exporting I increment any odd dimensions by 1
+	// 1px padding to reimport the sprite sheet if you want to edit it again, the sprites can't be all touching, they must have some spacing
 	var PADDING = 1;
 	
 	// tightly packs sprite rects into another rectangle of MAX_WIDTH
@@ -1356,13 +1378,19 @@
 	function writeFrames(v)
 	{
 		forEachRect(function(sprite,rect) {
-			// need to make sure width and height are even numbers;
-			//  cocos2dx displays sprites wrong if they aren't....
-			//  i think this is because the anchor point at (0.5, 0) is halfway across
-			//  on non-even dimensioned sprites, and it lands in the middle of a pixel, rather than in between 2
-			//  when the anchor point is set to 0,0 it won't happen
-			var width = rect.width + rect.width%2;
-			var height = rect.height + rect.height%2;
+			// When setting anchor points, visual blur appears if set between two pixels
+			// Non integer pixel coordinates will be no good for setting the anchor point
+			var anchorX = rect.anchorPoint.x;
+			var anchorY = rect.anchorPoint.y;
+			//find which pixel the anchor lands on
+			var realAX = Math.floor(anchorX * rect.width);
+			var realAY = Math.floor(anchorY * rect.height);
+			// make sure the pixel is even...
+			realAX += realAX%2;
+			realAY += realAY%2;
+			// new anchor point:
+			anchorX = realAX/rect.width;
+			anchorY = realAY/rect.height;
 			
 			v.writeElementString('key',rect.name);
 			v.writeStartElement('dict');
@@ -1374,21 +1402,21 @@
 			v.writeElementString('string','{0,0}');
 			
 			v.writeElementString('key','spriteSourceSize');
-			v.writeElementString('string','{'+width+','+height+'}');
+			v.writeElementString('string','{'+rect.width+','+rect.height+'}');
 			
 			v.writeElementString('key','spriteSize');
-			v.writeElementString('string','{'+width+','+height+'}');
+			v.writeElementString('string','{'+rect.width+','+rect.height+'}');
 			
 			v.writeElementString('key','textureRect');
 			var texturePos = '{'+rect.cx+','+rect.cy+'}';
-			var textureSize = '{'+width+','+height+'}';
+			var textureSize = '{'+rect.width+','+rect.height+'}';
 			v.writeElementString('string', '{'+texturePos+','+textureSize+'}');
 			
 			v.writeElementString('key','textureRotated');
 			v.writeStartElement('false'); v.writeEndElement();
 			
 			v.writeElementString('key','anchor');
-			v.writeElementString('string','{'+rect.anchorPoint.x+','+rect.anchorPoint.y+'}');
+			v.writeElementString('string','{'+anchorX+','+anchorY+'}');
 			
 			v.writeEndElement();
 		});
