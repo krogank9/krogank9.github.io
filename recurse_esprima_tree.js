@@ -170,7 +170,7 @@ function recurse_tree(rootNode) {
 	loading--;
 	if(loading == 0) {
 		removeEventListeners();
-		//removeDotsFromFunctions();
+		removeDotsFromFunctions();
 		removeDuplicateFunctions();
 		console.log(new Array("parsed functions:", functions));
 		sourceTextArea.value = "Finished parsing. Type below to test autocompletion.";
