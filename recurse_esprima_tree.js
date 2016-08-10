@@ -189,12 +189,12 @@ function recurse_node(node, assignmentChain, curFunction) {
 			break;
 		// variable declaration, var x = ; could be equal to a function, save the vars name
 		case "VariableDeclaration":
-			assignmentChain.push({name:node.declarations[0].id.name,func:curFunction});
+			assignmentChain.push(node.declarations[0].id.name);
 			break;
 		// assignment expression, could be equal to a function, save the name
 		case "AssignmentExpression":
 			if(node.left.name) {
-				assignmentChain.push({name:node.left.name,func:curFunction});
+				assignmentChain.push(node.left.name);
 			}
 			else if(node.left.object && node.left.property) {
 				var objName = node.left.object.name;
@@ -205,15 +205,15 @@ function recurse_node(node, assignmentChain, curFunction) {
 				//	else return; // ThisExpression with no parent function is invalid
 				//}
 				if(!objName || !propName) break; // invalid name(s) in assignment expression, abort
-				assignmentChain.push({name:objName+'.'+propName,func:curFunction});
+				assignmentChain.push(objName+'.'+propName);
 			}
 			break;
 		case "FunctionExpression":
-			for(var i=0; assignmentChain && i<assignmentChain.length; i++) {
-				if(libFunctionsOnly.checked && assignmentChain[i].name.indexOf('.') <= 0) continue;
-				// register the function inside all namespaces of the current function
-				addFunc(assignmentChain[i].name, parseParams(node.params));
-				curFunction = assignmentChain[i].name;
+			for(var i=0; i<assignmentChain.length; i++) {
+				if(libFunctionsOnly.checked && assignmentChain[i].indexOf('.') <= 0) continue;
+				// register the function to all the names currently being assigned to
+				addFunc(assignmentChain[i], parseParams(node.params));
+				curFunction = assignmentChain[i];
 			}
 			break;
 		case "ObjectExpression":
