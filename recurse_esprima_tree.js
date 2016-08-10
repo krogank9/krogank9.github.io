@@ -3,7 +3,7 @@ var minFuncLength = document.getElementById("minFuncLength");
 
 var libFunctionsOnly = document.getElementById("libFunctionsOnly");
 
-var saveDiv = document.getElementById("saveDiv");
+var saveForm = document.getElementById("saveForm");
 var saveButton = document.getElementById("saveButton");
 var saveName = document.getElementById("saveName");
 saveButton.onclick = function (evt) {
@@ -119,7 +119,7 @@ function recurse_tree(rootNode) {
 	loading--;
 	if(loading == 0) {
 		sourceTextArea.value = "Finished parsing. Type below to test autocompletion.";
-		saveDiv.style.display = "block";
+		saveForm.style.display = "block";
 	}
 	console.log(rootNode);
 	console.log(functions);
@@ -168,6 +168,7 @@ function recurse_node(node, namespaceArr, curFunction) {
 					else return; // this. with no parent function, invalid
 				}
 				if(!objName || !propName) break; // invalid name(s) in assignment expression, abort
+				if(propName == "prototype" || objName == "prototype") return; // don't parse functions prototypes
 				if(!namespaceArr) namespaceArr = new Array();
 				namespaceArr.push({name: objName+'.'+propName, scope: curFunction});
 			}
