@@ -71,6 +71,7 @@ function removeDuplicateFunctions() {
 					for(var a=0; a<functions[i].params.length; a++) {
 						if(functions[i].params[a] != functions[j].params[a]) {
 							identicalArgs = false;
+							break;
 						}
 					}
 				}
