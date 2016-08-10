@@ -181,7 +181,7 @@ function recurse_node(node, namespaceArr, curFunction) {
 			for(var i=0; namespaceArr && i<namespaceArr.length; i++) {
 				if(libFunctionsOnly.checked && namespaceArr[i].name.indexOf('.') <= 0) continue;
 				//only loop through namespaces in current function(scope)
-				if(namespaceArr[i].scope != curFunction) continue;
+				//if(namespaceArr[i].scope != curFunction) continue;
 				addFunc(namespaceArr[i].name, parseParams(node.params));
 				curFunction = namespaceArr[i].name;
 			}
