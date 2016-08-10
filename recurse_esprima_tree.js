@@ -19,7 +19,7 @@ function traverseFileTree(item, path) {
 			var reader = new FileReader();
 			reader.onload = function(e) { // finished reading file data.
 				var tree = esprima.parse(e.target.result);
-				setTimeout(recurse_tree(), 10, tree);
+				recurse_tree(tree);
 				//print_functions();
 			}
 			// start reading the file data.
