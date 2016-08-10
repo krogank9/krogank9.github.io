@@ -146,6 +146,7 @@ function recurse_node(node, namespaceArr, curFunction) {
 		case "VariableDeclaration":
 			if(!namespaceArr) namespaceArr = new Array();
 			namespaceArr.push(node.declarations[0].id.name);
+			console.log("Var declared: " + node.declarations[0].id.name);
 			break;
 		case "AssignmentExpression":
 			if(node.left.name) {
@@ -161,7 +162,7 @@ function recurse_node(node, namespaceArr, curFunction) {
 					var objName = node.left.object.name;
 					if(node.left.object.type == "ThisExpression") {
 						if(curFunction) { objName = curFunction; }
-						else return; // this. pointer with no parent, invalid
+						else return; // this. with no parent function, invalid
 					}
 					if(!objName) break; // no valid object name in assignment expression, abort
 					if(!namespaceArr) namespaceArr = new Array();
