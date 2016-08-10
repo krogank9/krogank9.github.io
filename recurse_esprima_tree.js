@@ -12,7 +12,7 @@ saveButton.onclick = function (evt) {
 
 var functions;
 function addFunc(_name, _params) {
-	if(_name.length < (minFuncLength.value||0)) return;
+	if(_name.length < (minFuncLength.value||1)) return;
 	// make sure not to parse private functions
 	if(_name[0] == '_' || _name.indexOf("._") > -1) return;
 	functions.push({name: _name, params: _params});
@@ -158,7 +158,7 @@ function recurse_node(node, namespaceArr, curFunction) {
 					return;
 				}else if(node.left.object.name && node.left.property.name) {
 					var objName = node.left.object.name;
-					if(object.type == "ThisExpression") {
+					if(node.left.object.type == "ThisExpression") {
 						if(curFunction) { objName = curFunction; }
 						else return; // this. pointer with no parent, invalid
 					}
