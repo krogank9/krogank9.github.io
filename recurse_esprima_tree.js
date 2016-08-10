@@ -95,7 +95,7 @@ function removeDuplicateFunctions() {
 function save_functions_to_file(filename) {
 	if(filename.length == 0) filename = "mylib.tags";
 	
-	var libraryName = filename;
+	var libName = filename;
 	// cut off the .js.tags extension if available
 	var lastExtPos = libName.lastIndexOf('.');
 	if(lastExtPos > -1) libName = libName.substring(0,libName.lastIndexOf('.'));
@@ -121,7 +121,7 @@ function save_functions_to_file(filename) {
 		text += ")|\n";
 	}
 	var blob = new Blob([text], {type: "text/plain;charset=utf-8"});
-	saveAs(blob, libname+".js.tags");
+	saveAs(blob, libName+".js.tags");
 }
 
 function recurse_tree(rootNode) {
