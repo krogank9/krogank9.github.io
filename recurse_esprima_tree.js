@@ -156,14 +156,15 @@ function recurse_node(node, namespaceArr, curFunction) {
 				   && node.left.object.property.name == "prototype") {
 					// don't parse any functions that are prototypes
 					return;
-				}else if(node.left.object.name && node.left.property.name) {
+				}else if(node.left.property.name) {
 					var objName = node.left.object.name;
 					if(node.left.object.type == "ThisExpression") {
 						if(curFunction) { objName = curFunction; }
 						else return; // this. pointer with no parent, invalid
 					}
+					if(!objName) break; // no valid object name in assignment expression, abort
 					if(!namespaceArr) namespaceArr = new Array();
-					namespaceArr.push(objName + "." + node.left.property.name);
+					namespaceArr.push(objName||node.left.object.name + "." + node.left.property.name);
 				}
 			}
 			break;
