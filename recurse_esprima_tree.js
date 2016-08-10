@@ -218,11 +218,12 @@ function recurse_node(node, namespaceArr, curFunction) {
 			// ObjectsExpressions, e.g. { test: function(abc) {} };
 			// Special recurse case for ObjectExpressions: iterate through the keys&values,
 			//  giving each value its key's name as a namespace
-			for( k in node ) {
-				if(typeof node[k] == "object" && node[k] !== null) {
-					if(node[k].key && node[k].value) {
-						namespaceArr.push(node[k].key.name);
-						recurse_node(node[k].value, namespaceArr, curFunction);
+			if(!node.properties) break;
+			for( k in node.properties ) {
+				if(typeof node.properties[k] == "object" && node.properties[k] !== null) {
+					if(node.properties[k].key && node.properties[k].value) {
+						namespaceArr.push(node.properties[k].key.name);
+						recurse_node(node.properties[k].value, namespaceArr, curFunction);
 						namespaceArr.pop();
 					}
 				}
