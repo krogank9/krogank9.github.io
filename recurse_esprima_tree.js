@@ -128,8 +128,6 @@ function recurse_tree(rootNode) {
 		sourceTextArea.value = "Finished parsing. Type below to test autocompletion.";
 		saveForm.style.display = "block";
 	}
-	console.log(rootNode);
-	console.log(functions);
 }
 
 function parseParams(paramsNode) {
@@ -155,7 +153,6 @@ function recurse_node(node, namespaceArr, curFunction) {
 		case "VariableDeclaration":
 			if(!namespaceArr) namespaceArr = new Array();
 			namespaceArr.push({name: node.declarations[0].id.name, scope: curFunction});
-			console.log("Var declared: " + node.declarations[0].id.name);
 			break;
 		case "AssignmentExpression":
 			if(node.left.name) {
