@@ -61,6 +61,14 @@ sourceTextArea.addEventListener("drop", function(event) {
 	}
 }, false);
 
+function removeDuplicateFunctions() {
+	for(var i=0; i<functions.length; i++) {
+		for(var j=i; j<functions.length; j++) {
+			if(functions[i].name == functions[j].name) functions.splice(j--);
+		}
+	}
+}
+
 function save_functions_to_file(filename) {
 	if(filename.length == 0) filename = "mylib.tags";
 	var libraryName = filename;
@@ -68,6 +76,7 @@ function save_functions_to_file(filename) {
 		libraryName = filename.substring(0,filename.lastIndexOf('.'));
 	} else filename += ".tags";
 	
+	removeDuplicateFunctions();
 	functions.sort(function(a,b){
 		if(a.name < b.name) return 1;
 		if(a.name > b.name) return -1;
