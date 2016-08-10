@@ -64,11 +64,17 @@ sourceTextArea.addEventListener("drop", function(event) {
 function removeDuplicateFunctions() {
 	for(var i=0; i<functions.length; i++) {
 		for(var j=i+1; j<functions.length; j++) {
-			//remove duplicate functions which are empty
-			if(functions[i].name == functions[j].name
-			   && functions[i].params.length == 0
-			   && functions[j].params.length == 0) {
-				functions.splice(j--,1);
+			//remove duplicate functions with identical arguements
+			if(functions[i].name == functions[j].name) {
+				var identicalArgs = true;
+				if(functions[i].params.length == functions[j].params.length) {
+					for(var a=0; a<functions[i].params.length; a++) {
+						if(functions[i].params[a] != functions[j].params[a]) {
+							identicalArgs = false;
+						}
+					}
+				}
+				if(identicalArgs) functions.splice(j--,1);
 			}
 		}
 	}
