@@ -68,6 +68,7 @@ function print_functions() {
 function recurse_tree(rootNode) {
 	sourceTextArea.value += " .";
 	if(rootNode) recurse_node(rootNode);
+	else console.log("undefined node");
 }
 
 function parseParams(paramsNode) {
