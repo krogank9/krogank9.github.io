@@ -1,6 +1,13 @@
 var sourceTextArea = document.getElementById("source");
 var minFuncLength = document.getElementById("minFuncLength");
 
+var saveDiv = document.getElementById("saveDiv");
+var saveButton = document.getElementById("saveButton");
+var saveName = document.getElementById("saveName");
+saveButton.onclick = function (evt) {
+	save_functions_to_file(Strings(saveName.value));
+};
+
 var functions;
 function addFunc(_name, _params) {
 	if(_name.length < (minFuncLength.value||0)) return;
@@ -43,7 +50,7 @@ sourceTextArea.addEventListener("drop", function(event) {
 	event.stopPropagation();
 	event.preventDefault();
 	functions = new Array();
-	sourceTextArea.value = "Loading";
+	sourceTextArea.value = "Parsing. . .";
 	var items = event.dataTransfer.items;
 	for (var i=0; i<items.length; i++) {
 		// webkitGetAsEntry, drag and drop folders
@@ -54,25 +61,36 @@ sourceTextArea.addEventListener("drop", function(event) {
 	}
 }, false);
 
-function print_functions() {
+function save_functions_to_file(filename) {
+	if(filename.length == 0) filename = "mylib.tags";
+	var libraryName = filename;
+	if(filename.indexOf('.') > -1) {
+		libraryName = filename.substring(0,filename.lastIndexOf('.'));
+	} else filename += ".tags";
+	
 	functions.sort(function(a,b){return a.name < b.name;});
-	sourceTextArea.value = "";
+	var text = "# format=pipe\n# Library: " + libraryName;
 	for(var i=0; i<functions.length; i++) {
-		sourceTextArea.value += functions[i].name;
-		sourceTextArea.value += "(";
+		text += functions[i].name;
+		text += "|(";
 		for(var p=0; p<functions[i].params.length; p++) {
-			if(p > 0) sourceTextArea.value += ", ";
-			sourceTextArea.value += functions[i].params[p];
+			if(p > 0) text += ", ";
+			text += functions[i].params[p];
 		}
-		sourceTextArea.value += ")\n";
+		text += ")\n";
 	}
+	var blob = new Blob([text]), {type: "text/plain;charset=utf-8"});
+	saveAs(blob, filename);
 }
 
 function recurse_tree(rootNode) {
 	sourceTextArea.value += " .";
 	if(rootNode) recurse_node(rootNode);
 	loading--;
-	if(loading == 0) sourceTextArea.value = "Done. Type below to see autocomplete suggestions.";
+	if(loading == 0) {
+		sourceTextArea.value = "Finished parsing. Type below to test autocompletion.";
+		saveDiv.style.display = "block";
+	}
 }
 
 function parseParams(paramsNode) {
