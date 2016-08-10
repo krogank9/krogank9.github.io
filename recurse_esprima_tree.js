@@ -116,7 +116,7 @@ function save_functions_to_file(filename) {
 		text += "||(";
 		for(var p=0; p<functions[i].params.length; p++) {
 			if(p > 0) text += ", ";
-			text += functions[i].params[p];
+			text += "mixed "+functions[i].params[p];
 		}
 		text += ")|\n";
 	}
