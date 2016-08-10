@@ -122,15 +122,15 @@ function isEventListener(text) {
 // canvas.onmouseover = function() { } 
 // we don't want these. remove any that are found
 function removeEventListeners() {
-	for(var i=0; i<functions.length; i++) {
-		var name = functions[i].name;
+	for(var f=0; f<functions.length; f++) {
+		var name = functions[f].name;
 		var index = name.lastIndexOf('.');
 		if(index < 0 || (index+1) >= name.length) continue;
 		
 		var lastProp = name.substring(index+1);
 		if( isEventListener(lastProp) ) {
-			functions.splice(i);
-			i--;
+			functions.splice(f);
+			f--;
 		}
 	}
 }
@@ -171,7 +171,7 @@ function recurse_tree(rootNode) {
 	console.log(rootNode);
 	loading--;
 	if(loading == 0) {
-		removeEventListeners();
+		//removeEventListeners();
 		removeDotsFromFunctions();
 		removeDuplicateFunctions();
 		console.log(new Array("parsed functions:", functions));
