@@ -120,6 +120,7 @@ function recurse_tree(rootNode) {
 		sourceTextArea.value = "Finished parsing. Type below to test autocompletion.";
 		saveDiv.style.display = "block";
 	}
+	console.log(rootNode);
 }
 
 function parseParams(paramsNode) {
