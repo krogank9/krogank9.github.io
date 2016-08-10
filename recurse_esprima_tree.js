@@ -68,7 +68,12 @@ function save_functions_to_file(filename) {
 		libraryName = filename.substring(0,filename.lastIndexOf('.'));
 	} else filename += ".tags";
 	
-	functions.sort(function(a,b){return a.name < b.name;});
+	functions.sort(function(a,b){
+		if(a.name < b.name) return 1;
+		if(a.name > b.name) return -1;
+		return 0;
+	});
+	
 	var text = "# format=pipe\n# Library: " + libraryName + "\n";
 	for(var i=0; i<functions.length; i++) {
 		text += functions[i].name;
