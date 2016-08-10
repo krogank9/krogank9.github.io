@@ -181,7 +181,7 @@ function recurse_node(node, nsArr, curFunction) {
 			break;
 		case "FunctionExpression":
 			for(var i=0; namespaceArr && i<namespaceArr.length; i++) {
-				if(libFunctionsOnly.checked && namespaceArr[i].name.indexOf('.') <= 0) continue;
+				if(libFunctionsOnly.checked && namespaceArr[i].indexOf('.') <= 0) continue;
 				addFunc(namespaceArr[i], parseParams(node.params));
 				curFunction = namespaceArr[i];
 			}
