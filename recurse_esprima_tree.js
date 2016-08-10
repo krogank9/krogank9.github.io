@@ -187,11 +187,11 @@ function recurse_node(node, assignmentChain, curFunction) {
 			addFunc(node.id.name, parseParams(node.params));
 			curFunction = node.id.name;
 			break;
-		// variable declaration, var x = ; could be equal to a function, remember the vars name
+		// variable declaration, var x = ; could be equal to a function, save the vars name
 		case "VariableDeclaration":
 			assignmentChain.push({name:node.declarations[0].id.name,func:curFunction});
 			break;
-		// assignment expression, could be equal to a function
+		// assignment expression, could be equal to a function, save the name
 		case "AssignmentExpression":
 			if(node.left.name) {
 				assignmentChain.push({name:node.left.name,func:curFunction});
@@ -212,7 +212,6 @@ function recurse_node(node, assignmentChain, curFunction) {
 			for(var i=0; assignmentChain && i<assignmentChain.length; i++) {
 				if(libFunctionsOnly.checked && assignmentChain[i].name.indexOf('.') <= 0) continue;
 				// register the function inside all namespaces of the current function
-				if(assignmentChain[i].func != curFunction) continue;
 				addFunc(assignmentChain[i].name, parseParams(node.params));
 				curFunction = assignmentChain[i].name;
 			}
