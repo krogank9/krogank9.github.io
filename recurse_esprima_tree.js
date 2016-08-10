@@ -168,50 +168,53 @@ function parseParams(paramsNode) {
 	return params;
 }
 
-function recurse_node(node, namespaceArr, curFunction) {
-	if(!namespaceArr) namespaceArr = new Array();
-	var startLength = namespaceArr.length
+// recurse_node(): recurse through a node in an esprima tree
+// node: current node
+// assignmentChain: current variables being assigned to..
+//                  handles things like var f = function(){}
+//                  or var f = b = c = function(){}
+function recurse_node(node, assignmentChain, curFunction) {
+	if(!assignmentChain) assignmentChain = new Array();
+	var startLength = assignmentChain.length;
 	var startCurFunction = curFunction;
 	if(!node) return;
 	switch(node.type) {
+		// normal variable declaration: function abc(a,b,c) {}
 		case "FunctionDeclaration":
-			//if a function is declared normally while inside a namespace, it will be invisible
-			if(namespaceArr && namespaceArr.length > 0) break;
+			//if a function is declared normally while inside another function, it will be invisible
+			if(curFunction && curFunction.length > 0) return;
 			if(libFunctionsOnly.checked) break;
 			addFunc(node.id.name, parseParams(node.params));
 			curFunction = node.id.name;
 			break;
+		// variable declaration, var x = ; could be equal to a function, remember the vars name
 		case "VariableDeclaration":
-			namespaceArr.push({name:node.declarations[0].id.name,func:curFunction});
+			assignmentChain.push({name:node.declarations[0].id.name,func:curFunction});
 			break;
+		// assignment expression, could be equal to a function
 		case "AssignmentExpression":
 			if(node.left.name) {
-				namespaceArr.push({name:node.left.name,func:curFunction});
+				assignmentChain.push({name:node.left.name,func:curFunction});
 			}
 			else if(node.left.object && node.left.property) {
-				if(node.left.object.property
-				   && node.left.object.property.name == "prototype") {
-					// don't parse functions prototypes
-					break;
-				}
 				var objName = node.left.object.name;
 				var propName = node.left.property.name;
+				if(propName == "prototype" || objName == "prototype") break; // don't parse prototypes
 				//if(node.left.object.type == "ThisExpression") {
 				//	if(curFunction) { objName = curFunction; }
 				//	else return; // ThisExpression with no parent function is invalid
 				//}
 				if(!objName || !propName) break; // invalid name(s) in assignment expression, abort
-				if(propName == "prototype" || objName == "prototype") break; // don't parse functions prototypes
-				namespaceArr.push({name:objName+'.'+propName,func:curFunction});
+				assignmentChain.push({name:objName+'.'+propName,func:curFunction});
 			}
 			break;
 		case "FunctionExpression":
-			for(var i=0; namespaceArr && i<namespaceArr.length; i++) {
-				if(libFunctionsOnly.checked && namespaceArr[i].name.indexOf('.') <= 0) continue;
+			for(var i=0; assignmentChain && i<assignmentChain.length; i++) {
+				if(libFunctionsOnly.checked && assignmentChain[i].name.indexOf('.') <= 0) continue;
 				// register the function inside all namespaces of the current function
-				if(namespaceArr[i].func != curFunction) continue;
-				addFunc(namespaceArr[i].name, parseParams(node.params));
-				curFunction = namespaceArr[i].name;
+				if(assignmentChain[i].func != curFunction) continue;
+				addFunc(assignmentChain[i].name, parseParams(node.params));
+				curFunction = assignmentChain[i].name;
 			}
 			break;
 		case "ObjectExpression":
@@ -224,25 +227,25 @@ function recurse_node(node, namespaceArr, curFunction) {
 			for( k in prop ) {
 				if(typeof prop[k] != "object" || prop[k] === null) continue;
 				if(prop[k].key && prop[k].value) {
-					console.log(prop[k].key + ": " + prop[k].value);
-					namespaceArr.push(prop[k].key.name);
-					recurse_node(prop[k].value, namespaceArr, curFunction);
-					namespaceArr.pop();
+					console.log(prop[k].key.name + ": " + prop[k].value.type);
+					assignmentChain.push(prop[k].key.name);
+					recurse_node(prop[k].value, assignmentChain, curFunction);
+					assignmentChain.pop();
 				}
 			}
-			while(namespaceArr.length > startLength) namespaceArr.pop();
+			while(assignmentChain.length > startLength) assignmentChain.pop();
 			curFunction = startCurFunction;
 			return;
 	}
 	
 	for(k in node) {
 		if(typeof node[k] == "object" && node[k] !== null) {
-			recurse_node(node[k], namespaceArr, curFunction);
+			recurse_node(node[k], assignmentChain, curFunction);
 		}
 	}
 	
-	// exit out of any namespaces entered while in this node
-	while(namespaceArr.length > startLength) namespaceArr.pop();
+	// exit out of any assignment chains entered inside this node
+	while(assignmentChain.length > startLength) assignmentChain.pop();
 	curFunction = startCurFunction;
 }
 
