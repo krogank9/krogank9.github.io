@@ -84,6 +84,7 @@ function removeDuplicateFunctions() {
 					} else {
 						functions.splice(i--,1);
 						j--;
+						break;
 					}
 				}
 			}
