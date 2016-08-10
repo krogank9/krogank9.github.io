@@ -221,12 +221,14 @@ function recurse_node(node, namespaceArr, curFunction) {
 			if(!node.properties) break;
 			console.log(node.properties);
 			for( k in node.properties ) {
-				if(typeof node.properties[k] == "object" && node.properties[k] !== null) {
-					if(node.properties[k].key && node.properties[k].value) {
-						namespaceArr.push(node.properties[k].key.name);
-						recurse_node(node.properties[k].value, namespaceArr, curFunction);
-						namespaceArr.pop();
-					}
+				if(typeof node.properties[k] != "object" || node.properties[k] === null) {
+					continue;
+				}
+				if(node.properties[k].key && node.properties[k].value) {
+					console.log(node.properties[k].key + ": " + node.properties[k].value);
+					namespaceArr.push(node.properties[k].key.name);
+					recurse_node(node.properties[k].value, namespaceArr, curFunction);
+					namespaceArr.pop();
 				}
 			}
 			while(namespaceArr.length > startLength) namespaceArr.pop();
