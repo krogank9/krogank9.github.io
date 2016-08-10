@@ -72,7 +72,7 @@ function recurse_tree(rootNode) {
 	sourceTextArea.value += " .";
 	if(rootNode) recurse_node(rootNode);
 	loading--;
-	if(loading == 0) sourceTextArea.value = "Done"
+	if(loading == 0) sourceTextArea.value = "Done. Type below to see autocomplete suggestions.";
 }
 
 function parseParams(paramsNode) {
@@ -106,8 +106,10 @@ function recurse_node(node, namespaceArr) {
 				   && node.left.object.property.name == "prototype") {
 					// don't parse any functions that are prototypes
 					return;
-				}else if(!namespaceArr) namespaceArr = new Array();
-				namespaceArr.push(node.left.object.name + "." + node.left.property.name);
+				}else if(node.left.object.name && node.left.property.name) {
+					if(!namespaceArr) namespaceArr = new Array();
+					namespaceArr.push(node.left.object.name + "." + node.left.property.name);
+				}
 			}
 			break;
 		case "FunctionExpression":
