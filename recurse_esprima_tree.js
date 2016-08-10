@@ -152,12 +152,12 @@ function recurse_node(node, namespaceArr, curFunction) {
 			break;
 		case "VariableDeclaration":
 			if(!namespaceArr) namespaceArr = new Array();
-			namespaceArr.push({name: node.declarations[0].id.name, scope: curFunction});
+			namespaceArr.push(node.declarations[0].id.name);
 			break;
 		case "AssignmentExpression":
 			if(node.left.name) {
 				if(!namespaceArr) namespaceArr = new Array();
-				namespaceArr.push({name: node.left.name, scope: curFunction});
+				namespaceArr.push(node.left.name);
 			}
 			else if(node.left.object && node.left.property) {
 				if(node.left.object.property
@@ -169,21 +169,19 @@ function recurse_node(node, namespaceArr, curFunction) {
 				var propName = node.left.property.name;
 				if(node.left.object.type == "ThisExpression") {
 					if(curFunction) { objName = curFunction; }
-					else return; // this. with no parent function, invalid
+					else return; // ThisExpression with no parent function is invalid
 				}
 				if(!objName || !propName) break; // invalid name(s) in assignment expression, abort
 				if(propName == "prototype" || objName == "prototype") return; // don't parse functions prototypes
 				if(!namespaceArr) namespaceArr = new Array();
-				namespaceArr.push({name: objName+'.'+propName, scope: curFunction});
+				namespaceArr.push(objName+'.'+propName);
 			}
 			break;
 		case "FunctionExpression":
 			for(var i=0; namespaceArr && i<namespaceArr.length; i++) {
 				if(libFunctionsOnly.checked && namespaceArr[i].name.indexOf('.') <= 0) continue;
-				//only loop through namespaces in current function(scope)
-				//if(namespaceArr[i].scope != curFunction) continue;
-				addFunc(namespaceArr[i].name, parseParams(node.params));
-				curFunction = namespaceArr[i].name;
+				addFunc(namespaceArr[i], parseParams(node.params));
+				curFunction = namespaceArr[i];
 			}
 			break;
 	}
