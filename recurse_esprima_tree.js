@@ -63,8 +63,11 @@ sourceTextArea.addEventListener("drop", function(event) {
 
 function removeDuplicateFunctions() {
 	for(var i=0; i<functions.length; i++) {
-		for(var j=i; j<functions.length; j++) {
-			if(functions[i].name == functions[j].name) functions.splice(j--);
+		for(var j=i+1; j<functions.length; j++) {
+			if(functions[i].name == functions[j].name) {
+				functions.splice(j);
+				j--;
+			}
 		}
 	}
 }
