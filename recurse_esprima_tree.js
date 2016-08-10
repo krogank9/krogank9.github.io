@@ -143,7 +143,8 @@ function parseParams(paramsNode) {
 
 function recurse_node(node, namespaceArr, curFunction) {
 	if(!namespaceArr) namespaceArr = new Array();
-	var startLength = namespaceArr.length;
+	var startLength = namespaceArr.length
+	var startCurFunction = curFunction;
 	if(!node) return;
 	switch(node.type) {
 		case "FunctionDeclaration":
@@ -154,11 +155,11 @@ function recurse_node(node, namespaceArr, curFunction) {
 			curFunction = node.id.name;
 			break;
 		case "VariableDeclaration":
-			namespaceArr.push(node.declarations[0].id.name);
+			namespaceArr.push({name:node.declarations[0].id.name,func:curFunction});
 			break;
 		case "AssignmentExpression":
 			if(node.left.name) {
-				namespaceArr.push(node.left.name);
+				namespaceArr.push({name:node.left.name,func:curFunction});
 			}
 			else if(node.left.object && node.left.property) {
 				if(node.left.object.property
@@ -174,14 +175,16 @@ function recurse_node(node, namespaceArr, curFunction) {
 				//}
 				if(!objName || !propName) break; // invalid name(s) in assignment expression, abort
 				if(propName == "prototype" || objName == "prototype") break; // don't parse functions prototypes
-				namespaceArr.push(objName+'.'+propName);
+				namespaceArr.push({name:objName+'.'+propName,func:curFunction});
 			}
 			break;
 		case "FunctionExpression":
 			for(var i=0; namespaceArr && i<namespaceArr.length; i++) {
-				if(libFunctionsOnly.checked && namespaceArr[i].indexOf('.') <= 0) continue;
-				addFunc(namespaceArr[i], parseParams(node.params));
-				//curFunction = namespaceArr[i];
+				if(libFunctionsOnly.checked && namespaceArr[i].name.indexOf('.') <= 0) continue;
+				// register the function inside all namespaces of the current function
+				if(namespaceArr[i].func != curFunction) continue;
+				addFunc(namespaceArr[i].name, parseParams(node.params));
+				curFunction = namespaceArr[i].name;
 			}
 			break;
 	}
@@ -196,6 +199,7 @@ function recurse_node(node, namespaceArr, curFunction) {
 	if(namespaceArr.length > startLength) {
 		while(namespaceArr.length > startLength) namespaceArr.pop();
 	}
+	curFunction = startCurFunction;
 }
 
 function strInStr(container, member, pos) {
