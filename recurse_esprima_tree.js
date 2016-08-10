@@ -15,12 +15,10 @@ function traverseFileTree(item, path) {
 		console.log(item.name);
 		// Get file
 		item.file(function(file) {
-			console.log("found file");
 			var extension = file.name.split('.').pop().toLowerCase();
 			if(extension != "js") return; //only parses javascript files
 			var reader = new FileReader();
 			reader.onload = function(e) { // finished reading file data.
-				console.log("loaded");
 				var tree = esprima.parse(e.target.result);
 				recurse_tree(tree);
 				print_functions();
@@ -29,7 +27,6 @@ function traverseFileTree(item, path) {
 			reader.readAsText(file);
 		}, function(e) { console.log(e); } );
 	} else if (item.isDirectory) {
-		console.log("folder");
 		// Get folder contents
 		var dirReader = item.createReader();
 		dirReader.readEntries(function(entries) {
@@ -62,7 +59,7 @@ function print_functions() {
 		sourceTextArea.value += functions[i].name;
 		sourceTextArea.value += "(";
 		for(var p=0; p<functions[i].params.length; p++) {
-			if(p > 0) text += ", ";
+			if(p > 0) sourceTextArea.value += ", ";
 			sourceTextArea.value += functions[i].params[p];
 		}
 		sourceTextArea.value += ")\n";
