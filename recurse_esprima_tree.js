@@ -147,6 +147,7 @@ function save_functions_to_file(filename) {
 function recurse_tree(rootNode) {
 	sourceTextArea.value += " .";
 	if(rootNode) recurse_node(rootNode);
+	console.log(rootNode);
 	loading--;
 	if(loading == 0) {
 		removeDotsFromFunctions();
