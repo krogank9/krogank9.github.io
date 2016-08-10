@@ -121,6 +121,7 @@ function recurse_tree(rootNode) {
 		saveDiv.style.display = "block";
 	}
 	console.log(rootNode);
+	console.log(functions);
 }
 
 function parseParams(paramsNode) {
