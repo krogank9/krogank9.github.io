@@ -69,7 +69,7 @@ function save_functions_to_file(filename) {
 	} else filename += ".tags";
 	
 	functions.sort(function(a,b){return a.name < b.name;});
-	var text = "# format=pipe\n# Library: " + libraryName;
+	var text = "# format=pipe\n# Library: " + libraryName + "\n";
 	for(var i=0; i<functions.length; i++) {
 		text += functions[i].name;
 		text += "|(";
