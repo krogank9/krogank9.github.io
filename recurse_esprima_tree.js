@@ -142,7 +142,8 @@ function parseParams(paramsNode) {
 }
 
 function recurse_node(node, namespaceArr, curFunction) {
-	var startLength = namespaceArr.length || 0;
+	if(!namespaceArr) namespaceArr = new Array();
+	var startLength = namespaceArr.length;
 	if(!node) return;
 	switch(node.type) {
 		case "FunctionDeclaration":
@@ -153,12 +154,10 @@ function recurse_node(node, namespaceArr, curFunction) {
 			curFunction = node.id.name;
 			break;
 		case "VariableDeclaration":
-			if(!namespaceArr) namespaceArr = new Array();
 			namespaceArr.push(node.declarations[0].id.name);
 			break;
 		case "AssignmentExpression":
 			if(node.left.name) {
-				if(!namespaceArr) namespaceArr = new Array();
 				namespaceArr.push(node.left.name);
 			}
 			else if(node.left.object && node.left.property) {
@@ -175,7 +174,6 @@ function recurse_node(node, namespaceArr, curFunction) {
 				//}
 				if(!objName || !propName) break; // invalid name(s) in assignment expression, abort
 				if(propName == "prototype" || objName == "prototype") break; // don't parse functions prototypes
-				if(!namespaceArr) namespaceArr = new Array();
 				namespaceArr.push(objName+'.'+propName);
 			}
 			break;
@@ -195,7 +193,7 @@ function recurse_node(node, namespaceArr, curFunction) {
 	}
 	
 	// exit out of any namespaces entered while in this node
-	if(startLength > 0) {
+	if(namespaceArr > startLength) {
 		while(namespaceArr.length > startLength) namespaceArr.pop();
 	}
 }
