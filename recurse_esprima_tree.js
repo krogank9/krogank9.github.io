@@ -227,7 +227,7 @@ function recurse_node(node, assignmentChain, curFunction) {
 				if(typeof prop[k] != "object" || prop[k] === null) continue;
 				if(prop[k].key && prop[k].value) {
 					console.log(prop[k].key.name + ": " + prop[k].value.type);
-					recurse_node(prop[k].value, [prop[k].key.name], curFunction);
+					recurse_node(prop[k].value, new Array(prop[k].key.name), curFunction);
 				}
 			}
 			while(assignmentChain.length > startLength) assignmentChain.pop();
