@@ -148,7 +148,7 @@ function recurse_tree(rootNode) {
 	sourceTextArea.value += " .";
 	recurse_node(rootNode);
 	console.log(rootNode);
-	console.log(functions);
+	console.log(new Array("parsed functions", functions));
 	loading--;
 	if(loading == 0) {
 		removeDotsFromFunctions();
