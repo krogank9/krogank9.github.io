@@ -147,8 +147,8 @@ function save_functions_to_file(filename) {
 function recurse_tree(rootNode) {
 	sourceTextArea.value += " .";
 	recurse_node(rootNode);
-	console.log(rootNode);
-	console.log(new Array("parsed functions", functions));
+	console.log(new Array("esprima tree:", rootNode));
+	console.log(new Array("parsed functions:", functions));
 	loading--;
 	if(loading == 0) {
 		removeDotsFromFunctions();
