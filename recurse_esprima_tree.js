@@ -214,21 +214,22 @@ function recurse_node(node, namespaceArr, curFunction) {
 				curFunction = namespaceArr[i].name;
 			}
 			break;
-		/*case "ObjectExpression":
+		case "ObjectExpression":
 			// ObjectsExpressions, e.g. { test: function(abc) {} };
 			// Special recurse case for ObjectExpressions: iterate through the keys&values,
 			//  giving each value its key's name as a namespace
 			for( k in node ) {
 				if(typeof node[k] == "object" && node[k] !== null) {
-					if(!node[k].value || !node[k].key || node[k].key.name) continue;
-					namespaceArr.push(node[k].key.name);
-					recurse_node(node[k].value, namespaceArr, curFunction);
-					namespaceArr.pop();
+					if(node[k].key && node[k].value) {
+						namespaceArr.push(node[k].key.name);
+						recurse_node(node[k].value, namespaceArr, curFunction);
+						namespaceArr.pop();
+					}
 				}
 			}
 			while(namespaceArr.length > startLength) namespaceArr.pop();
 			curFunction = startCurFunction;
-			return;*/
+			return;
 	}
 	
 	for(k in node) {
