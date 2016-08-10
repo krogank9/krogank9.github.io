@@ -126,7 +126,7 @@ function removeEventListeners() {
 	for(var i=0; i<functions.length; i++) {
 		var name = functions[i].name;
 		var index = name.lastIndexOf('.');
-		if(index < 0) continue;
+		if(index < 0 && (index+1) < name.length) continue;
 		if( isEventListener(name.substring(index+1)) ) {
 			functions.splice(i--);
 		}
@@ -169,8 +169,8 @@ function recurse_tree(rootNode) {
 	console.log(rootNode);
 	loading--;
 	if(loading == 0) {
-		removeEventListeners();
-		removeDotsFromFunctions();
+		//removeEventListeners();
+		//removeDotsFromFunctions();
 		removeDuplicateFunctions();
 		console.log(new Array("parsed functions:", functions));
 		sourceTextArea.value = "Finished parsing. Type below to test autocompletion.";
