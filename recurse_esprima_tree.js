@@ -156,20 +156,22 @@ function recurse_node(node, namespaceArr, curFunction) {
 				namespaceArr.push(node.left.name);
 			}
 			else if(node.left.object && node.left.property) {
+				console.log("Found AssignmentExpression");
 				if(node.left.object.property
 				   && node.left.object.property.name == "prototype") {
-					// don't parse any functions that are prototypes
+					// don't parse functions prototypes
 					return;
-				}else if(node.left.property.name) {
-					var objName = node.left.object.name;
-					if(node.left.object.type == "ThisExpression") {
-						if(curFunction) { objName = curFunction; }
-						else return; // this. with no parent function, invalid
-					}
-					if(!objName) break; // no valid object name in assignment expression, abort
-					if(!namespaceArr) namespaceArr = new Array();
-					namespaceArr.push(objName||node.left.object.name + "." + node.left.property.name);
 				}
+				var objName = node.left.object.name;
+				var propName = node.left.property.name;
+				if(node.left.object.type == "ThisExpression") {
+					console.log("found ThisExpression"+propName||"ERROR"+" in " + curFunction||"ERROR");
+					if(curFunction) { objName = curFunction; }
+					else return; // this. with no parent function, invalid
+				}
+				if(!objName || !propName) break; // invalid name(s) in assignment expression, abort
+				if(!namespaceArr) namespaceArr = new Array();
+				namespaceArr.push(objName + "." + propName);
 			}
 			break;
 		case "FunctionExpression":
