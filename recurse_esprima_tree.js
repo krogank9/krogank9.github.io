@@ -61,14 +61,14 @@ sourceTextArea.addEventListener("drop", function(event) {
 	}
 }, false);
 
-//
 function removeDuplicateFunctions() {
 	for(var i=0; i<functions.length; i++) {
 		for(var j=i+1; j<functions.length; j++) {
+			//remove duplicate functions which are empty
 			if(functions[i].name == functions[j].name
-			   && functions[i].params.length == functions[j].params.length == 0) {
-				functions.splice(j,1);
-				j--;
+			   && functions[i].params.length == 0
+			   && functions[j].params.length == 0) {
+				functions.splice(j--,1);
 			}
 		}
 	}
