@@ -21,7 +21,7 @@ function traverseFileTree(item, path) {
 			reader.onload = function(e) { // finished reading file data.
 				var tree = esprima.parse(e.target.result);
 				recurse_tree(tree);
-				print_functions();
+				//print_functions();
 			}
 			// start reading the file data.
 			loading++;
