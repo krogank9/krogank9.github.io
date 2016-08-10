@@ -141,7 +141,8 @@ function parseParams(paramsNode) {
 	return params;
 }
 
-function recurse_node(node, namespaceArr, curFunction) {
+function recurse_node(node, nsArr, curFunction) {
+	var namespaceArr = nsArr;
 	if(!node) return;
 	switch(node.type) {
 		case "FunctionDeclaration":
