@@ -156,9 +156,7 @@ function save_functions_to_file(filename) {
 			if(p > 0) text += ", ";
 			text += functions[i].params[p];
 		}
-		text+= ")";
-		
-		text += "|\n";
+		text+= ")|\n";
 	}
 	var blob = new Blob([text], {type: "text/plain;charset=us-ascii"});
 	saveAs(blob, libName+".js.tags");
