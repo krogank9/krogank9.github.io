@@ -29,7 +29,7 @@ function traverseFileTree(item, path) {
 			var reader = new FileReader();
 			reader.onload = function(e) { // finished reading file data.
 				var tree = esprima.parse(e.target.result);
-				setTimeout(recurse_tree, 1*loading, tree);
+				setTimeout(recurse_tree, loading, tree);
 				//print_functions();
 			}
 			// start reading the file data.
@@ -94,10 +94,13 @@ function removeDuplicateFunctions() {
 
 function save_functions_to_file(filename) {
 	if(filename.length == 0) filename = "mylib.tags";
+	
 	var libraryName = filename;
-	if(filename.indexOf('.') > -1) {
-		libraryName = filename.substring(0,filename.lastIndexOf('.'));
-	} else filename += ".tags";
+	// cut off the .js.tags extension if available
+	var lastExtPos = libName.lastIndexOf('.');
+	if(lastExtPos > -1) libName = libName.substring(0,libName.lastIndexOf('.'));
+	lastExtPos = libName.lastIndexOf('.');
+	if(lastExtPos > -1) libName = libName.substring(0,libName.lastIndexOf('.'));
 	
 	removeDuplicateFunctions();
 	//sort functions alphabetically
@@ -107,7 +110,7 @@ function save_functions_to_file(filename) {
 		return 0;
 	});
 	
-	var text = "# format=pipe\n# Library: " + libraryName + "\n";
+	var text = "# format=pipe\n# Library: " + libName + "\n";
 	for(var i=0; i<functions.length; i++) {
 		text += functions[i].name;
 		text += "||(";
@@ -118,7 +121,7 @@ function save_functions_to_file(filename) {
 		text += ")|\n";
 	}
 	var blob = new Blob([text], {type: "text/plain;charset=utf-8"});
-	saveAs(blob, filename);
+	saveAs(blob, libname+".js.tags");
 }
 
 function recurse_tree(rootNode) {
