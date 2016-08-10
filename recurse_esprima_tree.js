@@ -101,12 +101,10 @@ function removeDotsFromFunctions() {
 	for(var i=0; i<functions.length; i++) {
 		var name = functions[i].name;
 		var index = name.lastIndexOf('.');
-		// if the function is dotted and has a parameter list
+		// look for sub functions in functions, but only ones with parameters
 		if(index > -1 && functions[i].params.length > 0) {
 			//copy the parameters to a sub function, so geany can autcomplete arguements
-			addFunc(name.substring(index+1), functions[i].params);
-			functions[i].params = new Array(); // won't be needing those anymore
-		}
+			addFunc(name.substring(index+1), functions[i].params);		}
 	}
 }
 
@@ -154,14 +152,12 @@ function save_functions_to_file(filename) {
 		text += functions[i].name;
 		text += "||";
 		
-		if(functions[i].params.length > 0) {
-			text += "(";
-			for(var p=0; p<functions[i].params.length; p++) {
-				if(p > 0) text += ", ";
-				text += functions[i].params[p];
-			}
-			text+= ")";
+		text += "(";
+		for(var p=0; p<functions[i].params.length; p++) {
+			if(p > 0) text += ", ";
+			text += functions[i].params[p];
 		}
+		text+= ")";
 		
 		text += "|\n";
 	}
