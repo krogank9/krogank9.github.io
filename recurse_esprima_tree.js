@@ -189,6 +189,7 @@ function recurse_node(node, assignmentChain, curFunction) {
 			break;
 		// variable declaration, var x = ; could be equal to a function, save the vars name
 		case "VariableDeclaration":
+			if(!node.declarations[0].id.name) break;
 			assignmentChain.push(node.declarations[0].id.name);
 			break;
 		// assignment expression, could be equal to a function, save the name
@@ -224,7 +225,7 @@ function recurse_node(node, assignmentChain, curFunction) {
 			var prop = node.properties;
 			for( k in prop ) {
 				if(typeof prop[k] != "object" || prop[k] === null) continue;
-				if(prop[k].key && prop[k].value) {
+				if(prop[k].key && prop[k].key.name && prop[k].value) {
 					recurse_node(prop[k].value, new Array(prop[k].key.name), curFunction);
 				}
 			}
