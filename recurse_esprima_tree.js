@@ -124,7 +124,7 @@ function isEventListener(text) {
 	for(var i=0; i<eventArr.length; i++) {
 		if( furstLoop && i!=0 ) console.log( "isEventListener(): wtf?" );
 		furstLoop = false;
-		if(text == eventArr[e]) return true;
+		if(text == eventArr[i]) return true;
 	}
 	return false;
 }
