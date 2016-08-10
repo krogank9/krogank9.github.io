@@ -199,15 +199,17 @@ function recurse_node(node, assignmentChain, curFunction) {
 			else if(node.left.object && node.left.property) {
 				var objName = node.left.object.name;
 				var propName = node.left.property.name;
+				// replace this. with the function we're in
+				if(node.left.object.type == "ThisExpression") {
+					if(curFunction) { objName = curFunction; }
+					else return; // ThisExpression with no parent function is invalid
+				}
 				if(propName == "prototype" || objName == "prototype") break; // don't parse prototypes
-				//if(node.left.object.type == "ThisExpression") {
-				//	if(curFunction) { objName = curFunction; }
-				//	else return; // ThisExpression with no parent function is invalid
-				//}
 				if(!objName || !propName) break; // invalid name(s) in assignment expression, abort
 				assignmentChain.push(objName+'.'+propName);
 			}
 			break;
+		// FunctionExpression: when a function which is not declared normally, e.g. var func = function(){}
 		case "FunctionExpression":
 			for(var i=0; i<assignmentChain.length; i++) {
 				if(libFunctionsOnly.checked && assignmentChain[i].indexOf('.') <= 0) continue;
@@ -216,17 +218,13 @@ function recurse_node(node, assignmentChain, curFunction) {
 				curFunction = assignmentChain[i];
 			}
 			break;
+		// ObjectExpression: special case. {key: value} pass key names to values thru assignmentChain
 		case "ObjectExpression":
-			// ObjectsExpressions, e.g. { test: function(abc) {} };
-			// Special recurse case for ObjectExpressions: iterate through the keys&values,
-			//  giving each value its key's name as a namespace
 			if(!node.properties) break;
 			var prop = node.properties;
-			console.log(prop);
 			for( k in prop ) {
 				if(typeof prop[k] != "object" || prop[k] === null) continue;
 				if(prop[k].key && prop[k].value) {
-					console.log(prop[k].key.name + ": " + prop[k].value.type);
 					recurse_node(prop[k].value, new Array(prop[k].key.name), curFunction);
 				}
 			}
