@@ -9,6 +9,7 @@ function addFunc(_name, _params) {
 	functions.push({name: _name, params: _params});
 }
 
+var loading;
 function traverseFileTree(item, path) {
 	path = path || "";
 	if (item.isFile) {
@@ -20,9 +21,10 @@ function traverseFileTree(item, path) {
 			reader.onload = function(e) { // finished reading file data.
 				var tree = esprima.parse(e.target.result);
 				recurse_tree(tree);
-				//print_functions();
+				print_functions();
 			}
 			// start reading the file data.
+			loading++;
 			reader.readAsText(file);
 		}, function(e) { console.log(e); } );
 	} else if (item.isDirectory) {
@@ -37,6 +39,7 @@ function traverseFileTree(item, path) {
 }
 
 sourceTextArea.addEventListener("drop", function(event) {
+	loading = 0;
 	event.stopPropagation();
 	event.preventDefault();
 	functions = new Array();
@@ -68,7 +71,8 @@ function print_functions() {
 function recurse_tree(rootNode) {
 	sourceTextArea.value += " .";
 	if(rootNode) recurse_node(rootNode);
-	else console.log("undefined node");
+	loading--;
+	if(loading == 0) sourceTextArea.value = "Done"
 }
 
 function parseParams(paramsNode) {
@@ -82,6 +86,7 @@ function parseParams(paramsNode) {
 }
 
 function recurse_node(node, namespaceArr) {
+	if(!node) return;
 	switch(node.type) {
 		case "FunctionDeclaration":
 			//if a function is declared normally while inside a namespace, it will be invisible
