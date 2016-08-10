@@ -148,6 +148,7 @@ function recurse_tree(rootNode) {
 	sourceTextArea.value += " .";
 	if(rootNode) recurse_node(rootNode);
 	console.log(rootNode);
+	console.log(functions);
 	loading--;
 	if(loading == 0) {
 		removeDotsFromFunctions();
@@ -215,8 +216,8 @@ function recurse_node(node, namespaceArr, curFunction) {
 			break;
 		case "ObjectExpression":
 			// ObjectsExpressions, e.g. { test: function(abc) {} };
-			// Special recurse case for ObjectExpressions, iterate through the keys&values,
-			//  giving the values their key as a namespace
+			// Special recurse case for ObjectExpressions: iterate through the keys&values,
+			//  giving each value its key's name as a namespace
 			for( k in node ) {
 				if(typeof node[k] == "object" && node[k] !== null) {
 					if(!node[k].value || !node[k].key || node[k].key.name) continue;
@@ -225,6 +226,8 @@ function recurse_node(node, namespaceArr, curFunction) {
 					namespaceArr.pop();
 				}
 			}
+			while(namespaceArr.length > startLength) namespaceArr.pop();
+			curFunction = startCurFunction;
 			return;
 	}
 	
@@ -235,9 +238,7 @@ function recurse_node(node, namespaceArr, curFunction) {
 	}
 	
 	// exit out of any namespaces entered while in this node
-	if(namespaceArr.length > startLength) {
-		while(namespaceArr.length > startLength) namespaceArr.pop();
-	}
+	while(namespaceArr.length > startLength) namespaceArr.pop();
 	curFunction = startCurFunction;
 }
 
