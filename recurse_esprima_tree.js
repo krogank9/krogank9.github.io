@@ -147,16 +147,15 @@ function recurse_node(node, namespaceArr, curFunction) {
 			break;
 		case "VariableDeclaration":
 			if(!namespaceArr) namespaceArr = new Array();
-			namespaceArr.push(node.declarations[0].id.name);
+			namespaceArr.push({name: node.declarations[0].id.name, scope: curFunction});
 			console.log("Var declared: " + node.declarations[0].id.name);
 			break;
 		case "AssignmentExpression":
 			if(node.left.name) {
 				if(!namespaceArr) namespaceArr = new Array();
-				namespaceArr.push(node.left.name);
+				namespaceArr.push({name: node.left.name, scope: curFunction});
 			}
 			else if(node.left.object && node.left.property) {
-				console.log("Found AssignmentExpression");
 				if(node.left.object.property
 				   && node.left.object.property.name == "prototype") {
 					// don't parse functions prototypes
@@ -165,20 +164,21 @@ function recurse_node(node, namespaceArr, curFunction) {
 				var objName = node.left.object.name;
 				var propName = node.left.property.name;
 				if(node.left.object.type == "ThisExpression") {
-					console.log("found ThisExpression"+propName||"ERROR"+" in " + curFunction||"ERROR");
 					if(curFunction) { objName = curFunction; }
 					else return; // this. with no parent function, invalid
 				}
 				if(!objName || !propName) break; // invalid name(s) in assignment expression, abort
 				if(!namespaceArr) namespaceArr = new Array();
-				namespaceArr.push(objName + "." + propName);
+				namespaceArr.push({name: objName+'.'+propName, scope: curFunction});
 			}
 			break;
 		case "FunctionExpression":
 			for(var i=0; namespaceArr && i<namespaceArr.length; i++) {
-				if(libFunctionsOnly.checked && namespaceArr[i].indexOf('.') <= 0) continue;
-				addFunc(namespaceArr[i], parseParams(node.params));
-				curFunction = namespaceArr[i];
+				if(libFunctionsOnly.checked && namespaceArr[i].name.indexOf('.') <= 0) continue;
+				//only loop through namespaces in current function(scope)
+				if(namespaceArr[i].scope != curFunction) continue;
+				addFunc(namespaceArr[i].name, parseParams(node.params));
+				curFunction = namespaceArr[i].name;
 			}
 			break;
 	}
