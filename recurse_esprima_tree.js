@@ -68,8 +68,9 @@ function removeDuplicateFunctions() {
 		for(var j=i+1; j<functions.length; j++) {
 			//remove duplicate functions with identical arguements
 			if(functions[i].name == functions[j].name) {
-				var identicalArgs = true;
+				var identicalArgs = false;
 				if(functions[i].params.length == functions[j].params.length) {
+					identicalArgs = true;
 					for(var a=0; a<functions[i].params.length; a++) {
 						if(functions[i].params[a] != functions[j].params[a]) {
 							identicalArgs = false;
