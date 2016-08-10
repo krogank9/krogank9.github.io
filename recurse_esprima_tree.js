@@ -147,7 +147,7 @@ function save_functions_to_file(filename) {
 function recurse_tree(rootNode) {
 	sourceTextArea.value += " .";
 	recurse_node(rootNode);
-	console.log(new Array("esprima tree:", rootNode));
+	console.log(rootNode);
 	loading--;
 	if(loading == 0) {
 		removeDotsFromFunctions();
@@ -169,10 +169,12 @@ function parseParams(paramsNode) {
 }
 
 // recurse_node(): recurse through a node in an esprima tree
-// node: current node
+// node: current node in esprima tree
 // assignmentChain: current variables being assigned to..
 //                  handles things like var f = function(){}
 //                  or var f = b = c = function(){}
+// curFunction: saves the current function whose scope we're in
+//              used for handling "this." in functions
 function recurse_node(node, assignmentChain, curFunction) {
 	if(!assignmentChain) assignmentChain = new Array();
 	var startLength = assignmentChain.length;
