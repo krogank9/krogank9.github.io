@@ -117,8 +117,6 @@ function save_functions_to_file(filename) {
 	lastExtPos = libName.lastIndexOf('.');
 	if(lastExtPos > -1) libName = libName.substring(0,libName.lastIndexOf('.'));
 
-	removeDotsFromFunctions();
-	removeDuplicateFunctions();
 	//sort functions alphabetically
 	functions.sort(function(a,b){
 		if(a.name < b.name) return -1;
@@ -145,6 +143,8 @@ function recurse_tree(rootNode) {
 	if(rootNode) recurse_node(rootNode);
 	loading--;
 	if(loading == 0) {
+		removeDotsFromFunctions();
+		removeDuplicateFunctions();
 		sourceTextArea.value = "Finished parsing. Type below to test autocompletion.";
 		saveForm.style.display = "block";
 	}
