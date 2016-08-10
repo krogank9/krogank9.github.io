@@ -67,7 +67,7 @@ function print_functions() {
 
 function recurse_tree(rootNode) {
 	sourceTextArea.value += " .";
-	recurse_node(rootNode);
+	if(rootNode) recurse_node(rootNode);
 }
 
 function parseParams(paramsNode) {
@@ -109,9 +109,6 @@ function recurse_node(node, namespaceArr) {
 				addFunc(namespaceArr[i], parseParams(node.params));
 			}
 			break;
-	}
-	if(node.type == "FunctionDeclaration") {
-		
 	}
 	
 	for(k in node) {
