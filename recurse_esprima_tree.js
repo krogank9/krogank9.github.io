@@ -15,6 +15,9 @@ function addFunc(_name, _params) {
 	if(_name.length < (minFuncLength.value||1)) return;
 	// make sure not to parse private functions
 	if(_name[0] == '_' || _name.indexOf("._") > -1) return;
+	for(var i=0; i<_params.length; i++) {
+		if(_params[i][0] == '_') return; // param starts with _ it is conventionally a private function
+	}
 	functions.push({name: _name, params: _params});
 }
 
