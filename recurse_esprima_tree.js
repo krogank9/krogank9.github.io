@@ -148,7 +148,7 @@ function recurse_node(node, nsArr, curFunction) {
 		case "FunctionDeclaration":
 			//if a function is declared normally while inside a namespace, it will be invisible
 			if(namespaceArr && namespaceArr.length > 0) break;
-			//if(libFunctionsOnly.checked) break;
+			if(libFunctionsOnly.checked) break;
 			addFunc(node.id.name, parseParams(node.params));
 			curFunction = node.id.name;
 			break;
