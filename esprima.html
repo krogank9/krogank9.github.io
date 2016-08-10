@@ -1,0 +1,59 @@
+<!DOCTYPE html PUBLIC"-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<style>
+		textarea{resize: none; scroll: none;}
+	</style>
+</head>
+<body>
+	
+<h2 style="font-weight: normal;">Convert .js to geany .tag format</h2>
+Minimum function name length: <input type="number" id="minFuncLength" min="0" style="width: 50px;" value="0" maxlength="1"></input>
+<br>
+<br><textarea id="source" rows="10" cols="75" placeholder="drag & drop javascript files+folders (Chrome >= v21)"></textarea>
+<br><textarea id="suggestions" rows="1" cols="75" placeholder="suggestions" readonly></textarea>
+<br><textarea id="user_input" rows="1" cols="75" placeholder="type function or variable"></textarea>
+
+<script src="esprima.js"></script>
+<script src="recurse_esprima_tree.js"></script>
+<script>
+	var input = document.getElementById("user_input");
+	var source = document.getElementById("source");
+	var suggestBox = document.getElementById("suggestions");
+	var suggestBox = document.getElementById("suggestions");
+	/*source.onchange = function(evt) { 
+		var tree = esprima.parse(this.value);
+		console.log(tree);
+		recurse_tree(tree);
+	}*/
+	input.oninput = function(evt) { makeSuggestions(); };
+	function makeSuggestions() {
+		suggestBox.value = "";
+		var text = input.value;
+		suggestBox.rows = 1;
+		if(text.length < 2) return;
+		text = text.replace(/\(.*/,"");
+		
+		var numSuggests = 0;
+		for(var i=0; functions && i<functions.length; i++) {
+			if( strInStr(functions[i].name,text,0) ) {
+				if(numSuggests>0) suggestBox.value += "\n";
+				suggestBox.value += functions[i].name;
+				suggestBox.value += "(";
+				for(var j=0; j<functions[i].params.length; j++) {
+					if(j>0) suggestBox.value +=	 ", ";
+					suggestBox.value += functions[i].params[j];
+				}
+				suggestBox.value += ")";
+				numSuggests++;
+			}
+		}
+		if(numSuggests<10) suggestBox.rows = numSuggests||1;
+		else suggestBox.rows = 10;
+	}
+</script>
+
+</body>
+</html>
