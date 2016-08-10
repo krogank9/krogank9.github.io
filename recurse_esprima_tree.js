@@ -1,6 +1,8 @@
 var sourceTextArea = document.getElementById("source");
 var minFuncLength = document.getElementById("minFuncLength");
 
+var libFunctionsOnly = document.getElementById("libFunctionsOnly");
+
 var saveDiv = document.getElementById("saveDiv");
 var saveButton = document.getElementById("saveButton");
 var saveName = document.getElementById("saveName");
@@ -89,9 +91,10 @@ function save_functions_to_file(filename) {
 	} else filename += ".tags";
 	
 	removeDuplicateFunctions();
+	//sort functions alphabetically
 	functions.sort(function(a,b){
-		if(a.name < b.name) return 1;
-		if(a.name > b.name) return -1;
+		if(a.name < b.name) return -1;
+		if(a.name > b.name) return 1;
 		return 0;
 	});
 	
@@ -129,13 +132,15 @@ function parseParams(paramsNode) {
 	return params;
 }
 
-function recurse_node(node, namespaceArr) {
+function recurse_node(node, namespaceArr, curFunction) {
 	if(!node) return;
 	switch(node.type) {
 		case "FunctionDeclaration":
 			//if a function is declared normally while inside a namespace, it will be invisible
 			if(namespaceArr && namespaceArr.length > 0) break;
+			if(libFunctionsOnly.checked) break;
 			addFunc(node.id.name, parseParams(node.params));
+			curFunction = node.id.name;
 			break;
 		case "VariableDeclaration":
 			namespace = node.declarations[0].id.name;
@@ -158,14 +163,16 @@ function recurse_node(node, namespaceArr) {
 			break;
 		case "FunctionExpression":
 			for(var i=0; namespaceArr && i<namespaceArr.length; i++) {
+				if(libFunctionsOnly.checked && namespaceArr[i].indexOf('.') <= 0) continue;
 				addFunc(namespaceArr[i], parseParams(node.params));
+				curFunction = namespaceArr[i];
 			}
 			break;
 	}
 	
 	for(k in node) {
 		if(typeof node[k] == "object" && node[k] !== null) {
-			recurse_node(node[k], namespaceArr);
+			recurse_node(node[k], namespaceArr, curFunction);
 		}
 	}
 }
