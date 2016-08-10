@@ -68,17 +68,24 @@ function removeDuplicateFunctions() {
 		for(var j=i+1; j<functions.length; j++) {
 			//remove duplicate functions with identical arguements
 			if(functions[i].name == functions[j].name) {
-				var identicalArgs = false;
 				if(functions[i].params.length == functions[j].params.length) {
-					identicalArgs = true;
+					var identicalArgs = true;
 					for(var a=0; a<functions[i].params.length; a++) {
 						if(functions[i].params[a] != functions[j].params[a]) {
 							identicalArgs = false;
 							break;
 						}
 					}
+					if(identicalArgs) functions.splice(j--,1);
+				}else { // same name but one has more arguments
+					//always favor functions with greater arg count
+					if(functions[i].params.length > functions[j].params.length) {
+						functions.splice(j--,1);
+					} else {
+						functions.splice(i--,1);
+						j--;
+					}
 				}
-				if(identicalArgs) functions.splice(j--,1);
 			}
 		}
 	}
