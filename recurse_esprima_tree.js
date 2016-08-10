@@ -193,7 +193,7 @@ function recurse_node(node, namespaceArr, curFunction) {
 	}
 	
 	// exit out of any namespaces entered while in this node
-	if(namespaceArr > startLength) {
+	if(namespaceArr.length > startLength) {
 		while(namespaceArr.length > startLength) namespaceArr.pop();
 	}
 }
