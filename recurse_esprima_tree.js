@@ -168,10 +168,10 @@ function recurse_node(node, namespaceArr, curFunction) {
 				}
 				var objName = node.left.object.name;
 				var propName = node.left.property.name;
-				if(node.left.object.type == "ThisExpression") {
-					if(curFunction) { objName = curFunction; }
-					else return; // ThisExpression with no parent function is invalid
-				}
+				//if(node.left.object.type == "ThisExpression") {
+				//	if(curFunction) { objName = curFunction; }
+				//	else return; // ThisExpression with no parent function is invalid
+				//}
 				if(!objName || !propName) break; // invalid name(s) in assignment expression, abort
 				if(propName == "prototype" || objName == "prototype") return; // don't parse functions prototypes
 				if(!namespaceArr) namespaceArr = new Array();
