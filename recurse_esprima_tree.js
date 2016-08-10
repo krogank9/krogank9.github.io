@@ -5,7 +5,7 @@ var saveDiv = document.getElementById("saveDiv");
 var saveButton = document.getElementById("saveButton");
 var saveName = document.getElementById("saveName");
 saveButton.onclick = function (evt) {
-	save_functions_to_file(Strings(saveName.value));
+	save_functions_to_file(String(saveName.value));
 };
 
 var functions;
