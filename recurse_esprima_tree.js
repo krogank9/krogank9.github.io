@@ -156,7 +156,7 @@ function save_functions_to_file(filename) {
 			if(p > 0) text += ", ";
 			text += functions[i].params[p];
 		}
-		text+= ")|\n";
+		text += ")|\n";
 	}
 	var blob = new Blob([text], {type: "text/plain;charset=us-ascii"});
 	saveAs(blob, libName+".js.tags");
@@ -168,8 +168,8 @@ function recurse_tree(rootNode) {
 	console.log(rootNode);
 	loading--;
 	if(loading == 0) {
-		removeEventListeners();
-		removeDotsFromFunctions();
+		//removeEventListeners();
+		//removeDotsFromFunctions();
 		removeDuplicateFunctions();
 		console.log(new Array("parsed functions:", functions));
 		sourceTextArea.value = "Finished parsing. Type below to test autocompletion.";
