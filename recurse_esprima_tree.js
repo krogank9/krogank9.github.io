@@ -146,7 +146,7 @@ function save_functions_to_file(filename) {
 
 function recurse_tree(rootNode) {
 	sourceTextArea.value += " .";
-	if(rootNode) recurse_node(rootNode);
+	recurse_node(rootNode);
 	console.log(rootNode);
 	console.log(functions);
 	loading--;
@@ -214,7 +214,7 @@ function recurse_node(node, namespaceArr, curFunction) {
 				curFunction = namespaceArr[i].name;
 			}
 			break;
-		case "ObjectExpression":
+		/*case "ObjectExpression":
 			// ObjectsExpressions, e.g. { test: function(abc) {} };
 			// Special recurse case for ObjectExpressions: iterate through the keys&values,
 			//  giving each value its key's name as a namespace
@@ -228,7 +228,7 @@ function recurse_node(node, namespaceArr, curFunction) {
 			}
 			while(namespaceArr.length > startLength) namespaceArr.pop();
 			curFunction = startCurFunction;
-			return;
+			return;*/
 	}
 	
 	for(k in node) {
