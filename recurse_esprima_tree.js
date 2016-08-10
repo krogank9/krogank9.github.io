@@ -213,6 +213,19 @@ function recurse_node(node, namespaceArr, curFunction) {
 				curFunction = namespaceArr[i].name;
 			}
 			break;
+		case "ObjectExpression":
+			// ObjectsExpressions, e.g. { test: function(abc) {} };
+			// Special recurse case for ObjectExpressions, iterate through the keys&values,
+			//  giving the values their key as a namespace
+			for( k in node ) {
+				if(typeof node[k] == "object" && node[k] !== null) {
+					if(!node[k].value || !node[k].key || node[k].key.name) continue;
+					namespaceArr.push(node[k].key.name);
+					recurse_node(node[k].value, namespaceArr, curFunction);
+					namespaceArr.pop();
+				}
+			}
+			return;
 	}
 	
 	for(k in node) {
