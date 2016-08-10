@@ -72,12 +72,12 @@ function save_functions_to_file(filename) {
 	var text = "# format=pipe\n# Library: " + libraryName + "\n";
 	for(var i=0; i<functions.length; i++) {
 		text += functions[i].name;
-		text += "|(";
+		text += "||(";
 		for(var p=0; p<functions[i].params.length; p++) {
 			if(p > 0) text += ", ";
 			text += functions[i].params[p];
 		}
-		text += ")\n";
+		text += ")|\n";
 	}
 	var blob = new Blob([text], {type: "text/plain;charset=utf-8"});
 	saveAs(blob, filename);
