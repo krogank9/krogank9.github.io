@@ -144,7 +144,8 @@ function recurse_node(node, namespaceArr, curFunction) {
 			curFunction = node.id.name;
 			break;
 		case "VariableDeclaration":
-			namespace = node.declarations[0].id.name;
+			if(!namespaceArr) namespaceArr = new Array();
+			namespaceArr.push(node.declarations[0].id.name);
 			break;
 		case "AssignmentExpression":
 			if(node.left.name) {
