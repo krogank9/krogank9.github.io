@@ -102,10 +102,11 @@ function removeDotsFromFunctions() {
 		var name = functions[i].name;
 		var index = name.lastIndexOf('.');
 		// if the function is dotted and has a parameter list
-		if(index > -1 && functions[i].params.length > 0) {
+		if(index > -1 && (index+1) < name.length && functions[i].params.length > 0) {
+			
 			//copy the parameters to a sub function, so geany can autcomplete arguements
 			addFunc(name.substring(index+1), functions[i].params);
-			functions[i].params = new Array(); // won't be needing those anymore
+			//functions[i].params = new Array(); // won't be needing those anymore
 		}
 	}
 }
