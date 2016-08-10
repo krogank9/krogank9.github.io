@@ -12,7 +12,6 @@ function addFunc(_name, _params) {
 function traverseFileTree(item, path) {
 	path = path || "";
 	if (item.isFile) {
-		console.log(item.name);
 		// Get file
 		item.file(function(file) {
 			var extension = file.name.split('.').pop().toLowerCase();
@@ -20,8 +19,8 @@ function traverseFileTree(item, path) {
 			var reader = new FileReader();
 			reader.onload = function(e) { // finished reading file data.
 				var tree = esprima.parse(e.target.result);
-				recurse_tree(tree);
-				print_functions();
+				setTimeout(recurse_tree(), 10, tree);
+				//print_functions();
 			}
 			// start reading the file data.
 			reader.readAsText(file);
@@ -41,7 +40,7 @@ sourceTextArea.addEventListener("drop", function(event) {
 	event.stopPropagation();
 	event.preventDefault();
 	functions = new Array();
-	sourceTextArea.value = "";
+	sourceTextArea.value = "Loading";
 	var items = event.dataTransfer.items;
 	for (var i=0; i<items.length; i++) {
 		// webkitGetAsEntry, drag and drop folders
@@ -67,6 +66,7 @@ function print_functions() {
 }
 
 function recurse_tree(rootNode) {
+	sourceTextArea.value += " .";
 	recurse_node(rootNode);
 }
 
