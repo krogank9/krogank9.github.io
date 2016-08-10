@@ -110,6 +110,28 @@ function removeDotsFromFunctions() {
 	}
 }
 
+var eventArr = ["onDOMActivate","onDOMAttrModified","onDOMAttributeNameChanged","onDOMCharacterDataModified","onDOMContentLoaded","onDOMElementNameChanged","onDOMFocusIn","onDOMFocusOut","onDOMNodeInserted","onDOMNodeInsertedIntoDocument","onDOMNodeRemoved","onDOMNodeRemovedFromDocument","onDOMSubtreeModified","onSVGAbort","onSVGError","onSVGLoad","onSVGResize","onSVGScroll","onSVGUnload","onSVGZoom","onabort","onafterprint","onanimationend","onanimationiteration","onanimationstart","onaudioend","onaudioprocess","onaudiostart","onbeforeprint","onbeforeunload","onbeginEvent","onblocked","onblur","onboundary","oncached","oncanplay","oncanplaythrough","onchange","onchargingchange","onchargingtimechange","onchecking","onclick","onclose","oncomplete","oncompositionend","oncompositionstart","oncompositionupdate","oncontextmenu","oncopy","oncut","ondblclick","ondevicechange","ondevicelight","ondevicemotion","ondeviceorientation","ondeviceproximity","ondischargingtimechange","ondownloading","ondrag","ondragend","ondragenter","ondragleave","ondragover","ondragstart","ondrop","ondurationchange","onemptied","onend","onendEvent","onended","onerror","onfocus","onfocusinUnimplemented","onfocusoutUnimplemented","onfullscreenchange","onfullscreenerror","ongamepadconnected","ongamepaddisconnected","ongotpointercapture","onhashchange","oninput","oninvalid","onkeydown","onkeypress","onkeyup","onlanguagechange","onlevelchange","onload","onloadeddata","onloadedmetadata","onloadend","onloadstart","onlostpointercapture","onmark","onmessage","onmousedown","onmouseenter","onmouseleave","onmousemove","onmouseout","onmouseover","onmouseup","onnomatch","onnotificationclick","onnoupdate","onobsolete","onoffline","ononline","onopen","onorientationchange","onpagehide","onpageshow","onpaste","onpause","onplay","onplaying","onpointercancel","onpointerdown","onpointerenter","onpointerleave","onpointerlockchange","onpointerlockerror","onpointermove","onpointerout","onpointerover","onpointerup","onpopstate","onprogress","onpush","onpushsubscriptionchange","onratechange","onreadystatechange","onrepeatEvent","onreset","onresize","onresourcetimingbufferfull","onresult","onresume","onscroll","onseeked","onseeking","onselect","onselectionchange","onselectstart","onshow","onsoundend","onsoundstart","onspeechend","onspeechstart","onstalled","onstart","onstorage","onsubmit","onsuccess","onsuspend","ontimeout","ontimeupdate","ontouchcancel","ontouchend","ontouchmove","ontouchstart","ontransitionend","onunload","onupdateready","onupgradeneeded","onuserproximity","onversionchange","onvisibilitychange","onvoiceschanged","onvolumechange","onvrdisplayconnected","onvrdisplaydisconnected","onvrdisplaypresentchange","onwaiting","onwheel"];
+function isEventListener(text) {
+	for(var i=0; i<eventArr.length; i++) {
+		if(text == eventArr[i]) return true;
+	}
+	return false;
+}
+
+// sometimes event listeners will be parsed as functions to autocomplete:
+// canvas.onmouseover = function() { } 
+// we don't want these. remove any that are found
+function removeEventListeners() {
+	for(var i=0; i<functions.length; i++) {
+		var name = functions[i].name;
+		var index = name.lastIndexOf('.');
+		var lastProp = name.substring(index+1);
+		if( isEventListener(lastProp) ) {
+			functions.splice(i--);
+		}
+	}
+}
+
 function save_functions_to_file(filename) {
 	if(filename.length == 0) filename = "mylib.tags";
 	
@@ -153,6 +175,7 @@ function recurse_tree(rootNode) {
 	console.log(rootNode);
 	loading--;
 	if(loading == 0) {
+		removeEventListeners();
 		removeDotsFromFunctions();
 		removeDuplicateFunctions();
 		console.log(new Array("parsed functions:", functions));
