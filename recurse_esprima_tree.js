@@ -92,6 +92,21 @@ function removeDuplicateFunctions() {
 	}
 }
 
+// Geany won't display arguments for dot.tted.functions(d,_,b) :(
+// work around is to break them into their parts, dot.tted and functions(d,_,b)
+function removeDotsFromFunctions() {
+	for(var i=0; i<functions.length; i++) {
+		var name = functions[i].name;
+		var index = name.lastIndexOf('.');
+		// if the function is dotted, create a new function for its parameters
+		if(index > -1) {
+			addFunc(name.substring(index+1), functions[i].params);
+			functions[i].params = new Array(); // won't be needing those anymore
+			functions[i].name = name.substring(0,index);
+		}
+	}
+}
+
 function save_functions_to_file(filename) {
 	if(filename.length == 0) filename = "mylib.tags";
 	
@@ -101,7 +116,8 @@ function save_functions_to_file(filename) {
 	if(lastExtPos > -1) libName = libName.substring(0,libName.lastIndexOf('.'));
 	lastExtPos = libName.lastIndexOf('.');
 	if(lastExtPos > -1) libName = libName.substring(0,libName.lastIndexOf('.'));
-	
+
+	removeDotsFromFunctions();
 	removeDuplicateFunctions();
 	//sort functions alphabetically
 	functions.sort(function(a,b){
@@ -116,7 +132,7 @@ function save_functions_to_file(filename) {
 		text += "||(";
 		for(var p=0; p<functions[i].params.length; p++) {
 			if(p > 0) text += ", ";
-			text += "mixed "+functions[i].params[p];
+			text += functions[i].params[p];
 		}
 		text += ")|\n";
 	}
