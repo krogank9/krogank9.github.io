@@ -219,15 +219,14 @@ function recurse_node(node, namespaceArr, curFunction) {
 			// Special recurse case for ObjectExpressions: iterate through the keys&values,
 			//  giving each value its key's name as a namespace
 			if(!node.properties) break;
-			console.log(node.properties);
-			for( k in node.properties ) {
-				if(typeof node.properties[k] != "object" || node.properties[k] === null) {
-					continue;
-				}
-				if(node.properties[k].key && node.properties[k].value) {
-					console.log(node.properties[k].key + ": " + node.properties[k].value);
-					namespaceArr.push(node.properties[k].key.name);
-					recurse_node(node.properties[k].value, namespaceArr, curFunction);
+			var prop = node.properties;
+			console.log(prop);
+			for( k in prop ) {
+				if(typeof prop[k] != "object" || prop[k] === null) continue;
+				if(prop[k].key && prop[k].value) {
+					console.log(prop[k].key + ": " + prop[k].value);
+					namespaceArr.push(prop[k].key.name);
+					recurse_node(prop[k].value, namespaceArr, curFunction);
 					namespaceArr.pop();
 				}
 			}
