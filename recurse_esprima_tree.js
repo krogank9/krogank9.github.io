@@ -148,11 +148,11 @@ function recurse_tree(rootNode) {
 	sourceTextArea.value += " .";
 	recurse_node(rootNode);
 	console.log(new Array("esprima tree:", rootNode));
-	console.log(new Array("parsed functions:", functions));
 	loading--;
 	if(loading == 0) {
 		removeDotsFromFunctions();
 		removeDuplicateFunctions();
+		console.log(new Array("parsed functions:", functions));
 		sourceTextArea.value = "Finished parsing. Type below to test autocompletion.";
 		saveForm.style.display = "block";
 	}
