@@ -125,8 +125,8 @@ function removeEventListeners() {
 	for(var i=0; i<functions.length; i++) {
 		var name = functions[i].name;
 		var index = name.lastIndexOf('.');
-		var lastProp = name.substring(index+1);
-		if( isEventListener(lastProp) ) {
+		if(index < 0) continue;
+		if( isEventListener(name.substring(index+1)) ) {
 			functions.splice(i--);
 		}
 	}
