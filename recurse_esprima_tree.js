@@ -130,17 +130,15 @@ function isEventListener(text) {
 // canvas.onmouseover = function() { } 
 // we don't want these. remove any that are found
 function removeEventListeners() {
-	for(var i=0; i<functions.length; i++) {
-		var name = functions[i].name;
+	for(var j=0; j<functions.length; j++) {
+		var name = functions[j].name;
 		var index = name.lastIndexOf('.');
 		if(index < 0 || (index+1) >= name.length) continue;
 		
-		var save = i;
 		var lastProp = name.substring(index+1);
 		if( isEventListener(lastProp) ) {
-			if(i != save) console.log("wtf");
-			functions.splice(i);
-			i--;
+			functions.splice(j);
+			j--;
 		}
 	}
 }
