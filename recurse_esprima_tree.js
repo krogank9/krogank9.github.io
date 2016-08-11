@@ -171,7 +171,7 @@ function recurse_tree(rootNode) {
 	console.log(rootNode);
 	loading--;
 	if(loading == 0) {
-		removeEventListeners();
+		//removeEventListeners();
 		//removeDotsFromFunctions();
 		removeDuplicateFunctions();
 		console.log(new Array("parsed functions:", functions));
