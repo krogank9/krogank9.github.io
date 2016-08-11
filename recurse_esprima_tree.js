@@ -67,7 +67,7 @@ sourceTextArea.addEventListener("drop", function(event) {
 }, false);
 
 function removeDuplicateFunctions() {
-	for(var i=functions.length; i >= 0; i--) {
+	for(var i=functions.length-1; i >= 0; i--) {
 		for(var j=i-1; j >= 0; j--) {
 			//remove duplicate functions with identical arguements
 			if(functions[i].name == functions[j].name) {
