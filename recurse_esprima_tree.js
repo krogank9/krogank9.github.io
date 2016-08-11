@@ -65,29 +65,31 @@ sourceTextArea.addEventListener("drop", function(event) {
 			traverseFileTree(item);
 		}
 	}
+	sourceTextArea.readOnly = true;
 }, false);
 
 function removeDuplicateFunctions() {
-	for(var i=functions.length-1; i >= 0; i--) {
-		for(var j=i-1; j >= 0; j--) {
+	for (var i = 0; i < functions.length; i++) {
+		for (var j = i + 1; j < functions.length; j++) {
 			//remove duplicate functions with identical arguements
-			if(functions[i].name == functions[j].name) {
-				if(functions[i].params.length == functions[j].params.length) {
+			if (functions[i].name == functions[j].name) {
+				if (functions[i].params.length == functions[j].params.length) {
 					var identicalArgs = true;
-					for(var a=0; a<functions[i].params.length; a++) {
-						if(functions[i].params[a] != functions[j].params[a]) {
+					for (var a = 0; a < functions[i].params.length; a++) {
+						if (functions[i].params[a] != functions[j].params[a]) {
 							identicalArgs = false;
 							break;
 						}
 					}
-					if(identicalArgs) functions.splice(j,1);
-				}
-				else { // same name but one has more arguments
+					if (identicalArgs) functions.splice(j--, 1);
+				} else { // same name but one has more arguments
 					//always favor functions with greater arg count
-					if(functions[i].params.length > functions[j].params.length) {
-						functions.splice(j,1);
+					if (functions[i].params.length > functions[j].params.length) {
+						functions.splice(j--, 1);
 					} else {
-						functions.splice(i,1);
+						functions.splice(i--, 1);
+						//deleted the current [i], reloop
+						break;
 					}
 				}
 			}
@@ -171,8 +173,8 @@ function recurse_tree(rootNode) {
 	console.log(rootNode);
 	loading--;
 	if(loading == 0) {
-		//removeEventListeners();
-		//removeDotsFromFunctions();
+		removeEventListeners();
+		removeDotsFromFunctions();
 		removeDuplicateFunctions();
 		console.log(new Array("parsed functions:", functions));
 		sourceTextArea.value = "Finished parsing. Type below to test autocompletion.";
