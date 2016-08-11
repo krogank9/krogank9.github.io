@@ -1,8 +1,6 @@
 var sourceTextArea = document.getElementById("source");
 var minFuncLength = document.getElementById("minFuncLength");
 
-var libFunctionsOnly = document.getElementById("libFunctionsOnly");
-
 var saveForm = document.getElementById("saveForm");
 var saveButton = document.getElementById("saveButton");
 var saveName = document.getElementById("saveName");
@@ -208,8 +206,6 @@ function recurse_node(node, assignmentChain, curFunction) {
 		// normal variable declaration: function abc(a,b,c) {}
 		case "FunctionDeclaration":
 			//if a function is declared normally while inside another function, it will be invisible
-			if(curFunction && curFunction.length > 0) return;
-			if(libFunctionsOnly.checked) break;
 			addFunc(node.id.name, parseParams(node.params));
 			curFunction = node.id.name;
 			break;
@@ -226,7 +222,7 @@ function recurse_node(node, assignmentChain, curFunction) {
 			else if(node.left.object && node.left.property) {
 				var objName = node.left.object.name;
 				var propName = node.left.property.name;
-				// replace this. with the function we're in
+				// replace this. with the name of the function we're in
 				if(node.left.object.type == "ThisExpression") {
 					if(curFunction) { objName = curFunction; }
 					else return; // ThisExpression with no parent function is invalid
@@ -239,10 +235,11 @@ function recurse_node(node, assignmentChain, curFunction) {
 		// FunctionExpression: when a function which is not declared normally, e.g. var func = function(){}
 		case "FunctionExpression":
 			for(var i=0; i<assignmentChain.length; i++) {
-				if(libFunctionsOnly.checked && assignmentChain[i].indexOf('.') <= 0) continue;
 				// register the function to all the names currently being assigned to
 				addFunc(assignmentChain[i], parseParams(node.params));
 				curFunction = assignmentChain[i];
+				// already set all the assignments equal to this function, clear the chain for proceeding recursions
+				assignmentChain = [];
 			}
 			break;
 		// ObjectExpression: special case. {key: value} pass key names to values thru assignmentChain
