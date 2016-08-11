@@ -67,6 +67,7 @@ sourceTextArea.addEventListener("drop", function(event) {
 }, false);
 
 function removeDuplicateFunctions() {
+	var newArr = [];
 	for(var i=0; i<functions.length; i++) {
 		for(var j=i+1; j<functions.length; j++) {
 			//remove duplicate functions with identical arguements
@@ -93,6 +94,7 @@ function removeDuplicateFunctions() {
 			}
 		}
 	}
+	functions = newArr;
 }
 
 // Geany won't display arguments for dot.tted.functions(d,_,b) :(
@@ -118,10 +120,17 @@ function removeDotsFromFunctions() {
  * the for loops from i to something unique in both of them and it works
  * 
  */
-var eventArr = ["onabort","onafterprint","onanimationend","onanimationiteration","onanimationstart","onaudioend","onaudioprocess","onaudiostart","onbeforeprint","onbeforeunload","onbeginEvent","onblocked","onblur","onboundary","oncached","oncanplay","oncanplaythrough","onchange","onchargingchange","onchargingtimechange","onchecking","onclick","onclose","oncomplete","oncompositionend","oncompositionstart","oncompositionupdate","oncontextmenu","oncopy","oncut","ondblclick","ondevicechange","ondevicelight","ondevicemotion","ondeviceorientation","ondeviceproximity","ondischargingtimechange","ondownloading","ondrag","ondragend","ondragenter","ondragleave","ondragover","ondragstart","ondrop","ondurationchange","onemptied","onend","onendEvent","onended","onerror","onfocus","onfocusinUnimplemented","onfocusoutUnimplemented","onfullscreenchange","onfullscreenerror","ongamepadconnected","ongamepaddisconnected","ongotpointercapture","onhashchange","oninput","oninvalid","onkeydown","onkeypress","onkeyup","onlanguagechange","onlevelchange","onload","onloadeddata","onloadedmetadata","onloadend","onloadstart","onlostpointercapture","onmark","onmessage","onmousedown","onmouseenter","onmouseleave","onmousemove","onmouseout","onmouseover","onmouseup","onnomatch","onnotificationclick","onnoupdate","onobsolete","onoffline","ononline","onopen","onorientationchange","onpagehide","onpageshow","onpaste","onpause","onplay","onplaying","onpointercancel","onpointerdown","onpointerenter","onpointerleave","onpointerlockchange","onpointerlockerror","onpointermove","onpointerout","onpointerover","onpointerup","onpopstate","onprogress","onpush","onpushsubscriptionchange","onratechange","onreadystatechange","onrepeatEvent","onreset","onresize","onresourcetimingbufferfull","onresult","onresume","onscroll","onseeked","onseeking","onselect","onselectionchange","onselectstart","onshow","onsoundend","onsoundstart","onspeechend","onspeechstart","onstalled","onstart","onstorage","onsubmit","onsuccess","onsuspend","ontimeout","ontimeupdate","ontouchcancel","ontouchend","ontouchmove","ontouchstart","ontransitionend","onunload","onupdateready","onupgradeneeded","onuserproximity","onversionchange","onvisibilitychange","onvoiceschanged","onvolumechange","onvrdisplayconnected","onvrdisplaydisconnected","onvrdisplaypresentchange","onwaiting","onwheel"];
-function isEventListener(text) {
-	for(var e=0; e<eventArr.length; e++) {
-		if(text == eventArr[e]) return true;
+var eventListeners = ["onabort","onafterprint","onanimationend","onanimationiteration","onanimationstart","onaudioend","onaudioprocess","onaudiostart","onbeforeprint","onbeforeunload","onbeginEvent","onblocked","onblur","onboundary","oncached","oncanplay","oncanplaythrough","onchange","onchargingchange","onchargingtimechange","onchecking","onclick","onclose","oncomplete","oncompositionend","oncompositionstart","oncompositionupdate","oncontextmenu","oncopy","oncut","ondblclick","ondevicechange","ondevicelight","ondevicemotion","ondeviceorientation","ondeviceproximity","ondischargingtimechange","ondownloading","ondrag","ondragend","ondragenter","ondragleave","ondragover","ondragstart","ondrop","ondurationchange","onemptied","onend","onendEvent","onended","onerror","onfocus","onfocusinUnimplemented","onfocusoutUnimplemented","onfullscreenchange","onfullscreenerror","ongamepadconnected","ongamepaddisconnected","ongotpointercapture","onhashchange","oninput","oninvalid","onkeydown","onkeypress","onkeyup","onlanguagechange","onlevelchange","onload","onloadeddata","onloadedmetadata","onloadend","onloadstart","onlostpointercapture","onmark","onmessage","onmousedown","onmouseenter","onmouseleave","onmousemove","onmouseout","onmouseover","onmouseup","onnomatch","onnotificationclick","onnoupdate","onobsolete","onoffline","ononline","onopen","onorientationchange","onpagehide","onpageshow","onpaste","onpause","onplay","onplaying","onpointercancel","onpointerdown","onpointerenter","onpointerleave","onpointerlockchange","onpointerlockerror","onpointermove","onpointerout","onpointerover","onpointerup","onpopstate","onprogress","onpush","onpushsubscriptionchange","onratechange","onreadystatechange","onrepeatEvent","onreset","onresize","onresourcetimingbufferfull","onresult","onresume","onscroll","onseeked","onseeking","onselect","onselectionchange","onselectstart","onshow","onsoundend","onsoundstart","onspeechend","onspeechstart","onstalled","onstart","onstorage","onsubmit","onsuccess","onsuspend","ontimeout","ontimeupdate","ontouchcancel","ontouchend","ontouchmove","ontouchstart","ontransitionend","onunload","onupdateready","onupgradeneeded","onuserproximity","onversionchange","onvisibilitychange","onvoiceschanged","onvolumechange","onvrdisplayconnected","onvrdisplaydisconnected","onvrdisplaypresentchange","onwaiting","onwheel"];
+function functionIsEventListener(func) {
+	// check if name is event listener, eg canvas.onchange = function(){}
+	var name = func.name;
+	// get the last property
+	var index = name.lastIndexOf('.');
+	if( index < 0 || (index+1) >= name.length) return false;
+	var lastProp = name.substring(index+1);
+	// check if the last property has the name of an event listener
+	for(var i=0; i<eventListeners.length; i++) {
+		if(lastProp == eventListeners[i]) return true;
 	}
 	return false;
 }
@@ -130,17 +139,7 @@ function isEventListener(text) {
 // canvas.onmouseover = function() { } 
 // we don't want these. remove any that are found
 function removeEventListeners() {
-	for(var j=0; j<functions.length; j++) {
-		var name = functions[j].name;
-		var index = name.lastIndexOf('.');
-		if(index < 0 || (index+1) >= name.length) continue;
-		
-		var lastProp = name.substring(index+1);
-		if( isEventListener(lastProp) ) {
-			functions.splice(j);
-			j--;
-		}
-	}
+	functions = functions.filter(functionIsEventListener);
 }
 
 function save_functions_to_file(filename) {
