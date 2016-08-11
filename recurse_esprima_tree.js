@@ -11,14 +11,15 @@ saveButton.onclick = function (evt) {
 };
 
 var functions;
-function addFunc(_name, _params) {
-	if(_name.length < (minFuncLength.value||1)) return;
+function newFunc(name, params) { return {name: name, params: params}; }
+function addFunc(name, params) {
+	if(name.length < (minFuncLength.value||1)) return;
 	// make sure not to parse private functions
-	if(_name[0] == '_' || _name.indexOf("._") > -1) return;
-	for(var i=0; i<_params.length; i++) {
-		if(_params[i][0] == '_') return; // param starts with _ it is conventionally a private function
+	if(name[0] == '_' || name.indexOf("._") > -1) return;
+	for(var i=0; i<params.length; i++) {
+		if(params[i][0] == '_') return; // param starts with _ it is conventionally a private function
 	}
-	functions.push({name: _name, params: _params});
+	functions.push(newFunc(name, params));
 }
 
 var loading;
@@ -97,16 +98,18 @@ function removeDuplicateFunctions() {
 // Geany won't display arguments for dot.tted.functions(d,_,b) :(
 // work around is to break them into their parts, dot.tted and functions(d,_,b)
 function removeDotsFromFunctions() {
+	var subFuncs = [];
 	for(var i=0; i<functions.length; i++) {
 		var name = functions[i].name;
 		var index = name.lastIndexOf('.');
 		// if the function is dotted and has a parameter list
 		if(index > -1 && (index+1) < name.length && functions[i].params.length > 0) {
 			//copy the parameters to a sub function, so geany can autcomplete arguements
-			addFunc(name.substring(index+1), functions[i].params);
+			subFuncs.push( newFunc(name.substring(index+1), functions[i].params) );
 			functions[i].params = []; // won't be needing those anymore
 		}
 	}
+	functions = functions.concat( subFuncs );
 }
 
 var eventListeners = ["onabort","onafterprint","onanimationend","onanimationiteration","onanimationstart","onaudioend","onaudioprocess","onaudiostart","onbeforeprint","onbeforeunload","onbeginEvent","onblocked","onblur","onboundary","oncached","oncanplay","oncanplaythrough","onchange","onchargingchange","onchargingtimechange","onchecking","onclick","onclose","oncomplete","oncompositionend","oncompositionstart","oncompositionupdate","oncontextmenu","oncopy","oncut","ondblclick","ondevicechange","ondevicelight","ondevicemotion","ondeviceorientation","ondeviceproximity","ondischargingtimechange","ondownloading","ondrag","ondragend","ondragenter","ondragleave","ondragover","ondragstart","ondrop","ondurationchange","onemptied","onend","onendEvent","onended","onerror","onfocus","onfocusinUnimplemented","onfocusoutUnimplemented","onfullscreenchange","onfullscreenerror","ongamepadconnected","ongamepaddisconnected","ongotpointercapture","onhashchange","oninput","oninvalid","onkeydown","onkeypress","onkeyup","onlanguagechange","onlevelchange","onload","onloadeddata","onloadedmetadata","onloadend","onloadstart","onlostpointercapture","onmark","onmessage","onmousedown","onmouseenter","onmouseleave","onmousemove","onmouseout","onmouseover","onmouseup","onnomatch","onnotificationclick","onnoupdate","onobsolete","onoffline","ononline","onopen","onorientationchange","onpagehide","onpageshow","onpaste","onpause","onplay","onplaying","onpointercancel","onpointerdown","onpointerenter","onpointerleave","onpointerlockchange","onpointerlockerror","onpointermove","onpointerout","onpointerover","onpointerup","onpopstate","onprogress","onpush","onpushsubscriptionchange","onratechange","onreadystatechange","onrepeatEvent","onreset","onresize","onresourcetimingbufferfull","onresult","onresume","onscroll","onseeked","onseeking","onselect","onselectionchange","onselectstart","onshow","onsoundend","onsoundstart","onspeechend","onspeechstart","onstalled","onstart","onstorage","onsubmit","onsuccess","onsuspend","ontimeout","ontimeupdate","ontouchcancel","ontouchend","ontouchmove","ontouchstart","ontransitionend","onunload","onupdateready","onupgradeneeded","onuserproximity","onversionchange","onvisibilitychange","onvoiceschanged","onvolumechange","onvrdisplayconnected","onvrdisplaydisconnected","onvrdisplaypresentchange","onwaiting","onwheel"];
@@ -169,7 +172,7 @@ function recurse_tree(rootNode) {
 	loading--;
 	if(loading == 0) {
 		removeEventListeners();
-		removeDotsFromFunctions();
+		//removeDotsFromFunctions();
 		removeDuplicateFunctions();
 		console.log(new Array("parsed functions:", functions));
 		sourceTextArea.value = "Finished parsing. Type below to test autocompletion.";
