@@ -122,6 +122,7 @@ function functionIsNotEventListener(func) {
 	var lastProp = name.substring(index+1);
 	// check if the last property has the name of an event listener
 	for(var i=0; i<eventListeners.length; i++) {
+		// the function is an event listener! return false
 		if(lastProp == eventListeners[i]) return false;
 	}
 	return true;
@@ -170,7 +171,7 @@ function recurse_tree(rootNode) {
 	console.log(rootNode);
 	loading--;
 	if(loading == 0) {
-		removeEventListeners();
+		//removeEventListeners();
 		//removeDotsFromFunctions();
 		//removeDuplicateFunctions();
 		console.log(new Array("parsed functions:", functions));
