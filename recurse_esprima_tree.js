@@ -112,14 +112,6 @@ function removeDotsFromFunctions() {
 	}
 }
 
-/*
- * 
- * Problem functions:
- * isEventListener() and removeEventListeners()
- * In this code, they don't work, but change the variable name in 
- * the for loops from i to something unique in both of them and it works
- * 
- */
 var eventListeners = ["onabort","onafterprint","onanimationend","onanimationiteration","onanimationstart","onaudioend","onaudioprocess","onaudiostart","onbeforeprint","onbeforeunload","onbeginEvent","onblocked","onblur","onboundary","oncached","oncanplay","oncanplaythrough","onchange","onchargingchange","onchargingtimechange","onchecking","onclick","onclose","oncomplete","oncompositionend","oncompositionstart","oncompositionupdate","oncontextmenu","oncopy","oncut","ondblclick","ondevicechange","ondevicelight","ondevicemotion","ondeviceorientation","ondeviceproximity","ondischargingtimechange","ondownloading","ondrag","ondragend","ondragenter","ondragleave","ondragover","ondragstart","ondrop","ondurationchange","onemptied","onend","onendEvent","onended","onerror","onfocus","onfocusinUnimplemented","onfocusoutUnimplemented","onfullscreenchange","onfullscreenerror","ongamepadconnected","ongamepaddisconnected","ongotpointercapture","onhashchange","oninput","oninvalid","onkeydown","onkeypress","onkeyup","onlanguagechange","onlevelchange","onload","onloadeddata","onloadedmetadata","onloadend","onloadstart","onlostpointercapture","onmark","onmessage","onmousedown","onmouseenter","onmouseleave","onmousemove","onmouseout","onmouseover","onmouseup","onnomatch","onnotificationclick","onnoupdate","onobsolete","onoffline","ononline","onopen","onorientationchange","onpagehide","onpageshow","onpaste","onpause","onplay","onplaying","onpointercancel","onpointerdown","onpointerenter","onpointerleave","onpointerlockchange","onpointerlockerror","onpointermove","onpointerout","onpointerover","onpointerup","onpopstate","onprogress","onpush","onpushsubscriptionchange","onratechange","onreadystatechange","onrepeatEvent","onreset","onresize","onresourcetimingbufferfull","onresult","onresume","onscroll","onseeked","onseeking","onselect","onselectionchange","onselectstart","onshow","onsoundend","onsoundstart","onspeechend","onspeechstart","onstalled","onstart","onstorage","onsubmit","onsuccess","onsuspend","ontimeout","ontimeupdate","ontouchcancel","ontouchend","ontouchmove","ontouchstart","ontransitionend","onunload","onupdateready","onupgradeneeded","onuserproximity","onversionchange","onvisibilitychange","onvoiceschanged","onvolumechange","onvrdisplayconnected","onvrdisplaydisconnected","onvrdisplaypresentchange","onwaiting","onwheel"];
 function functionIsEventListener(func) {
 	// check if name is event listener, eg canvas.onchange = function(){}
@@ -179,8 +171,8 @@ function recurse_tree(rootNode) {
 	loading--;
 	if(loading == 0) {
 		//removeEventListeners();
-		removeDotsFromFunctions();
-		removeDuplicateFunctions();
+		//removeDotsFromFunctions();
+		//removeDuplicateFunctions();
 		console.log(new Array("parsed functions:", functions));
 		sourceTextArea.value = "Finished parsing. Type below to test autocompletion.";
 		saveForm.style.display = "block";
