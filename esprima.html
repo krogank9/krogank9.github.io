@@ -13,12 +13,15 @@
 Minimum function name length when parsing: <input type="number" id="minFuncLength" style="width: 50px;" min="1" value="3"></input>
 <br>
 <br><textarea id="source" rows="10" cols="75"></textarea>
-<form id="saveForm" style="display:none;" action="javascript:void(0);">
+<br><input id="uploadSingle" type="file" multiple></input>
+<div id="saveDiv" style="display: none;">
 	<textarea id="user_input" rows="1" cols="75" placeholder="type function or variable"></textarea>
-	<br><input type="text" id="saveName" value="mylib.js.tags"></input>
-	<input type="submit" id="saveButton" value="Save"></input>
-	<span>Output should be OK, but have a look and edit it if needed</span>
-</form>
+	<form id="saveForm" action="javascript:void(0);">
+		<br><input type="text" id="saveName" value="mylib.js.tags"></input>
+		<input type="submit" id="saveButton" value="Save"></input>
+		<span>Output should be OK, but have a look and edit it if needed</span>
+	</form>
+</div>
 
 <script src="esprima.js"></script>
 <script src="FileSaver.js"></script>
@@ -27,7 +30,7 @@ Minimum function name length when parsing: <input type="number" id="minFuncLengt
 	var input = document.getElementById("user_input");
 	var source = document.getElementById("source");
 	window.addEventListener('DOMContentLoaded', function() {
-		source.value = "drag & drop javascript files+folders into this box (Requires Chrome >= v21)";
+		source.value = "drag & drop javascript files+folders into this box (Requires Chrome >= v21)\n\nOr, upload files (folders not supported) below";
 	});
 	/*source.onchange = function(evt) { 
 		var tree = esprima.parse(this.value);

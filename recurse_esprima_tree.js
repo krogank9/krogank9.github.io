@@ -1,7 +1,7 @@
 var sourceTextArea = document.getElementById("source");
 var minFuncLength = document.getElementById("minFuncLength");
 
-var saveForm = document.getElementById("saveForm");
+var saveDiv = document.getElementById("saveDiv");
 var saveButton = document.getElementById("saveButton");
 var saveName = document.getElementById("saveName");
 saveButton.onclick = function (evt) {
@@ -32,7 +32,6 @@ function traverseFileTree(item, path) {
 			reader.onload = function(e) { // finished reading file data.
 				var tree = esprima.parse(e.target.result);
 				setTimeout(recurse_tree, loading, tree);
-				//print_functions();
 			}
 			// start reading the file data.
 			loading++;
@@ -53,7 +52,7 @@ sourceTextArea.addEventListener("drop", function(event) {
 	loading = 0;
 	event.stopPropagation();
 	event.preventDefault();
-	functions = new Array();
+	functions = [];
 	sourceTextArea.value = "Parsing. . .";
 	var items = event.dataTransfer.items;
 	for (var i=0; i<items.length; i++) {
@@ -63,8 +62,27 @@ sourceTextArea.addEventListener("drop", function(event) {
 			traverseFileTree(item);
 		}
 	}
-	sourceTextArea.readOnly = true;
 }, false);
+
+var uploadSingle = document.getElementById("uploadSingle");
+uploadSingle.addEventListener("change", function(evt) {
+	var files = evt.target.files; // Array of all files
+	functions = [];
+	sourceTextArea.value = "Parsing. . .";
+	loading = 0;
+	for (var i=0, file; file=files[i]; i++) {
+		var extension = file.name.split('.').pop().toLowerCase();
+		if(extension != "js") continue; //only parses javascript files
+		var reader = new FileReader();
+		reader.onload = function(e) { // finished reading file data.
+			var tree = esprima.parse(e.target.result);
+			setTimeout(recurse_tree, loading, tree);
+		}
+		// start reading the file data.
+		loading++;
+		reader.readAsText(file);
+	}
+});
 
 function removeDuplicateFunctions() {
 	for (var i = 0; i < functions.length; i++) {
@@ -176,7 +194,7 @@ function recurse_tree(rootNode) {
 		removeDuplicateFunctions();
 		console.log(new Array("parsed functions:", functions));
 		sourceTextArea.value = "Finished parsing. Type below to test autocompletion.";
-		saveForm.style.display = "block";
+		saveDiv.style.display = "block";
 	}
 }
 
