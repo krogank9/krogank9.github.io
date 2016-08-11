@@ -68,8 +68,6 @@ sourceTextArea.addEventListener("drop", function(event) {
 }, false);
 
 function removeDuplicateFunctions() {
-	var nonDuplicateFunctions = [];
-	
 	for(var i=functions.length; i >= 0; i--) {
 		for(var j=i-1; j >= 0; j--) {
 			//remove duplicate functions with identical arguements
@@ -95,7 +93,6 @@ function removeDuplicateFunctions() {
 			}
 		}
 	}
-	functions = newArr;
 }
 
 // Geany won't display arguments for dot.tted.functions(d,_,b) :(
