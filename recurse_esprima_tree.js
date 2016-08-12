@@ -187,7 +187,7 @@ function save_functions_to_file(filename) {
 		return 0;
 	});
 	
-	var text = "# format=ctags\n# Library: " + libName + "\n";
+	var text = "!_TAG_FILE_FORMAT\t2\n!_TAG_FILE_SORTED\t1\n";
 	for(var i=0; i<functions.length; i++) {
 		text += functions[i].name + '\tsrc/dummy.js\t//;"\t';
 		
