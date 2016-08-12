@@ -5,19 +5,32 @@
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 	<style>
 		textarea{resize: none; scroll: none;}
+		::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+			 color:    #000;
+		}
+		:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+			color:    #000;
+			opacity:  1;
+		}
+		::-moz-placeholder { /* Mozilla Firefox 19+ */
+			color:    #000;
+			opacity:  1;
+		}
+		:-ms-input-placeholder { /* Internet Explorer 10-11 */
+			color:    #000;
+		}
 	</style>
 </head>
 <body>
 	
 <h2 style="font-weight: normal;">Convert .js to geany .js.tags format</h2>
-Minimum function name length when parsing: <input type="number" id="minFuncLength" style="width: 50px;" min="1" value="3"></input>
-<br>
-<br><textarea id="source" rows="10" cols="75"></textarea>
-<br><input id="uploadSingle" type="file" multiple></input>
-<div id="saveDiv" style="display: none;">
+Minimum function name length when parsing: <input type="number" id="minFuncLength" style="width: 50px;" min="1" value="4"></input>
+<div style="padding: 7px 0px;"><input id="uploadSingle" type="file" multiple></input></div>
+<textarea id="source" rows="10" cols="75"></textarea>
+<div id="saveDiv" style="display: none; padding-top: 4px;">
 	<textarea id="user_input" rows="1" cols="75" placeholder="type function or variable"></textarea>
 	<form id="saveForm" action="javascript:void(0);">
-		<br><input type="text" id="saveName" value="mylib.js.tags"></input>
+		<input type="text" id="saveName" value="mylib.js.tags"></input>
 		<input type="submit" id="saveButton" value="Save"></input>
 		<span>Output should be OK, but have a look and edit it if needed</span>
 	</form>
@@ -30,7 +43,7 @@ Minimum function name length when parsing: <input type="number" id="minFuncLengt
 	var input = document.getElementById("user_input");
 	var source = document.getElementById("source");
 	window.addEventListener('DOMContentLoaded', function() {
-		source.value = "drag & drop javascript files+folders into this box (Requires Chrome >= v21)\n\nOr, upload files (folders not supported) below";
+		source.value = "Click 'Choose files' (folders not supported)\n\nOr, drag & drop javascript files/folders into this box (Requires Chrome >= v21)";
 	});
 	/*source.onchange = function(evt) { 
 		var tree = esprima.parse(this.value);
@@ -42,26 +55,19 @@ Minimum function name length when parsing: <input type="number" id="minFuncLengt
 		if(!functions || functions.length == 0) return;
 		source.value = "";
 		var text = input.value;
-		source.rows = 1;
 		if(text.length < 2) return;
 		// when typing function parameters, show sub functions
-		if(text.indexOf('(') > -1) {
-			if(text.indexOf('.') > -1) {
-				var dotPos = text.indexOf('.');
-				while(dotPos < text.indexOf('(')) {
-					var nextDotPos = text.indexOf('.',dotPos+1);
-					if(nextDotPos > dotPos && nextDotPos < text.indexOf('(')){
-						dotPos = nextDotPos;
-					} else break;
-				}
-				text = text.substring(dotPos+1,text.indexOf('('));
-			}
+		var dotPos = text.indexOf('.');
+		var parent = "";
+		if(dotPos > -1) {
+			parent = text.substring(0,dotPos);
+			text = text.substring(dotPos+1);
 		}
 		text = text.replace(/\(.*/,"");
 		
 		var numSuggests = 0;
 		for(var i=0; functions && i<functions.length; i++) {
-			if( strInStr(functions[i].name,text,0) ) {
+			if( strInStr(functions[i].name,text,0) && (!parent || functions[i].parent == parent) ) {
 				if(numSuggests>0) source.value += "\n";
 				source.value += functions[i].name;
 				if(functions[i].params.length > 0) {
@@ -71,12 +77,13 @@ Minimum function name length when parsing: <input type="number" id="minFuncLengt
 						source.value += functions[i].params[j];
 					}
 					source.value += ")";
+					if(!parent && functions[i].parent) {
+						source.value += ` : ${functions[i].parent}`;
+					}
 				}
 				numSuggests++;
 			}
 		}
-		if(numSuggests<10) source.rows = numSuggests||1;
-		else source.rows = 10;
 	}
 </script>
 

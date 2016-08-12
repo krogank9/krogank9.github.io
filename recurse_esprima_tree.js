@@ -9,7 +9,7 @@ saveButton.onclick = function (evt) {
 };
 
 var functions;
-function newFunc(name, params) { return {name: name, params: params}; }
+function newFunc(name, params) { return {name: name, params: params, parent: null, hasChildren: false}; }
 function addFunc(name, params) {
 	if(name.length < (minFuncLength.value||1)) return;
 	// make sure not to parse private functions
@@ -30,8 +30,10 @@ function traverseFileTree(item, path) {
 			if(extension != "js") return; //only parses javascript files
 			var reader = new FileReader();
 			reader.onload = function(e) { // finished reading file data.
-				var tree = esprima.parse(e.target.result);
-				setTimeout(recurse_tree, loading, tree);
+				try {
+					var tree = esprima.parse(e.target.result, {tolerant: true});
+					setTimeout(recurse_tree, loading, tree);
+				}catch(e){ console.log("js parsing error"); loading--; }
 			}
 			// start reading the file data.
 			loading++;
@@ -75,7 +77,7 @@ uploadSingle.addEventListener("change", function(evt) {
 		if(extension != "js") continue; //only parses javascript files
 		var reader = new FileReader();
 		reader.onload = function(e) { // finished reading file data.
-			var tree = esprima.parse(e.target.result);
+			var tree = esprima.parse(e.target.result, {tolerant: true});
 			setTimeout(recurse_tree, loading, tree);
 		}
 		// start reading the file data.
@@ -88,7 +90,8 @@ function removeDuplicateFunctions() {
 	for (var i = 0; i < functions.length; i++) {
 		for (var j = i + 1; j < functions.length; j++) {
 			//remove duplicate functions with identical arguements
-			if (functions[i].name == functions[j].name) {
+			if(functions[i].name == functions[j].name
+			&& functions[i].parent == functions[j].parent) {
 				if (functions[i].params.length == functions[j].params.length) {
 					var identicalArgs = true;
 					for (var a = 0; a < functions[i].params.length; a++) {
@@ -97,12 +100,20 @@ function removeDuplicateFunctions() {
 							break;
 						}
 					}
-					if (identicalArgs) functions.splice(j--, 1);
+					if (identicalArgs) {
+						//preserve classes
+						if(functions[j].hasChildren) functions[i].hasChildren = true;
+						functions.splice(j--, 1);
+					}
 				} else { // same name but one has more arguments
 					//always favor functions with greater arg count
 					if (functions[i].params.length > functions[j].params.length) {
+						//preserve classes
+						if(functions[j].hasChildren) functions[i].hasChildren = true;
 						functions.splice(j--, 1);
 					} else {
+						//preserve classes
+						if(functions[i].hasChildren) functions[j].hasChildren = true;
 						functions.splice(i--, 1);
 						//deleted the current [i], reloop
 						break;
@@ -123,8 +134,14 @@ function removeDotsFromFunctions() {
 		// if the function is dotted and has a parameter list
 		if(index > -1 && (index+1) < name.length && functions[i].params.length > 0) {
 			//copy the parameters to a sub function, so geany can autcomplete arguements
-			subFuncs.push( newFunc(name.substring(index+1), functions[i].params) );
+			var sub = newFunc(name.substring(index+1), functions[i].params );
+			subFuncs.push( sub );
+			// we extracted the sub function from the function
+			// so remove the sub functions name from the functions name
+			functions[i].name = name.substring(0,index);
+			sub.parent = functions[i].name;
 			functions[i].params = []; // won't be needing those anymore
+			functions[i].hasChildren = true;
 		}
 	}
 	functions = functions.concat( subFuncs );
@@ -170,14 +187,28 @@ function save_functions_to_file(filename) {
 		return 0;
 	});
 	
-	var text = "# format=pipe\n# Library: " + libName + "\n";
+	var text = "# format=ctags\n# Library: " + libName + "\n";
 	for(var i=0; i<functions.length; i++) {
-		text += functions[i].name + "||(";
+		text += functions[i].name + '\tsrc/dummy.js\t//;"\t';
+		
+		// function in a class (method)
+		if(functions[i].parent && !functions[i].hasChildren) text += "kind:m\t";
+		// function outside a class (function)
+		else if(!functions[i].parent && !functions[i].hasChildren) text += "kind:f\t";
+		// if it isn't a function or a method, it's a class
+		else text += "kind:c\t";
+		//if the function has a parent, set it as a member of that class
+		if(functions[i].parent && functions[i].parent.length > 0) {
+			text += "class:" + functions[i].parent + "\t";
+		}
+		
+		//text += "access:public\t";
+		text += "signature:(";
 		for(var p=0; p<functions[i].params.length; p++) {
 			if(p > 0) text += ", ";
 			text += functions[i].params[p];
 		}
-		text += ")|\n";
+		text += ")\n";
 	}
 	var blob = new Blob([text], {type: "text/plain;charset=us-ascii"});
 	saveAs(blob, libName+".js.tags");
@@ -186,14 +217,16 @@ function save_functions_to_file(filename) {
 function recurse_tree(rootNode) {
 	sourceTextArea.value += " .";
 	recurse_node(rootNode);
-	console.log(rootNode);
 	loading--;
 	if(loading == 0) {
 		removeEventListeners();
 		removeDotsFromFunctions();
 		removeDuplicateFunctions();
-		console.log(new Array("parsed functions:", functions));
-		sourceTextArea.value = "Finished parsing. Type below to test autocompletion.";
+		sourceTextArea.value = "";
+		sourceTextArea.placeholder = "Finished parsing:\n\n";
+		for(var i=0; i<functions.length; i++) {
+			sourceTextArea.placeholder += functions[i].name + ", ";
+		}
 		saveDiv.style.display = "block";
 	}
 }
