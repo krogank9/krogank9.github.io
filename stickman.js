@@ -67,20 +67,27 @@ function updatePts(delta) {
 	for(var i=0; i<pts.length; i++) {
 		var pt = pts[i];
 		// apply gravity
-		pt.vel.y += 500*delta;
+		// accelerate by 980 pixels per second
+		pt.vel.y += 980*delta;
 		// update position from velocity
-		var dvel = pt.vel.scale( delta );
-		pt.pos = pt.pos.add( dvel );
+		pt.pos = pt.pos.add( pt.vel.scale( delta ) );
 		// check collision
-		if( pt.pos.y > canvas.height )
-			pt.pos.y = canvas.height, pt.vel.y *= -0.8;
+		if( pt.pos.y > canvas.height ) {
+			pt.pos.y = canvas.height;
+			pt.vel.y *= -0.5;
+		}
 	}
 }
 
 var lastUpdate = Date.now();
+var MAX_FRAME_TIME = 1000/10;
+
 function mainLoop() {
 	var now = Date.now();
-	var delta = now - lastUpdate;
+	var delta = (now - lastUpdate);
+	// prevent massive delta values
+	if( delta > MAX_FRAME_TIME )
+		delta = 0;
 	delta /= 1000;
 	
 	ctx.clearRect(0,0,canvas.width,canvas.height);
