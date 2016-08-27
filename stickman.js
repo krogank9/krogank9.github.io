@@ -23,9 +23,9 @@ vec.prototype.scale = function(scalar) {
 }
 vec.prototype.normalize = function() {
 	if(this.x > this.y)
-		return vec(1, this.y/this.x);
+		return new vec(1, this.y/this.x);
 	else
-		return vec(this.x/this.y, 1);
+		return new vec(this.x/this.y, 1);
 }
 vec.prototype.magnitude = function() {
 	return Math.sqrt(this.x*this.x + this.y*this.y);
@@ -67,9 +67,10 @@ function updatePts(delta) {
 	for(var i=0; i<pts.length; i++) {
 		var pt = pts[i];
 		// apply gravity
-		pt.vel.y += 9*delta;
+		pt.vel.y += 500*delta;
 		// update position from velocity
-		pt.pos = pt.pos.add( pt.vel );
+		var dvel = pt.vel.scale( delta );
+		pt.pos = pt.pos.add( dvel );
 		// check collision
 		if( pt.pos.y > canvas.height )
 			pt.pos.y = canvas.height, pt.vel.y *= -0.8;
