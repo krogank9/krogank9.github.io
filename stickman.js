@@ -80,6 +80,7 @@ function updatePts(delta) {
 }
 
 var lastUpdate = Date.now();
+// don't go below 10 fps
 var MAX_FRAME_TIME = 1000/10;
 
 function mainLoop() {
