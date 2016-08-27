@@ -39,10 +39,11 @@ function ang2normal(ang) {
 	return normal;
 }
 
-function pt(x, y, rot) {	
+function pt(x, y, rot, mass) {	
 	this.pos = new vec(x||0, y||0);
 	this.vel = new vec(0,0);
 	this.rot = rot||0;
+	this.mass = mass||1;
 }
 
 var pts = [];
@@ -52,7 +53,7 @@ var pts = [];
 		var spill = i%canvas.height;
 		if( numCrossed%2 )
 			spill = canvas.height - spill;
-		pts.push( new pt(i, spill) );
+		pts.push( new pt(i, spill, 0, Math.floor(Math.random()*10)) );
 	}
 })();
 
@@ -68,7 +69,7 @@ function updatePts(delta) {
 		var pt = pts[i];
 		// apply gravity
 		// accelerate by 980 pixels per second
-		pt.vel.y += 980*delta;
+		pt.vel.y += 980*delta/pt.mass;
 		// update position from velocity
 		pt.pos = pt.pos.add( pt.vel.scale( delta ) );
 		// check collision
@@ -77,6 +78,9 @@ function updatePts(delta) {
 			pt.vel.y *= -0.5;
 		}
 	}
+}
+
+function updateConstraints() {
 }
 
 var lastUpdate = Date.now();
@@ -93,6 +97,7 @@ function mainLoop() {
 	
 	ctx.clearRect(0,0,canvas.width,canvas.height);
 	drawPts();
+	updateConstraints();
 	updatePts(delta);
 	
 	lastUpdate = now;
