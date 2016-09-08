@@ -6,7 +6,7 @@ function vec(x,y) {
 	
 	this.magnitude = function()
 	{
-		return Math.sqrt(this.x*this.x* + this.y*this.y);
+		return Math.sqrt(this.x*this.x + this.y*this.y);
 	}
 	this.normalize = function()
 	{
@@ -31,9 +31,12 @@ function vec(x,y) {
 	}
 	this.angle = function()
 	{
-		return Math.atan(this.y/this.x)*rad2deg;
+		if( this.x >= 0 )
+			return Math.atan(this.y/this.x)*rad2deg;
+		else
+			return Math.atan(this.y/this.x)*rad2deg + 180;
 	}
-	this.rotate = function(by_ang)
+	this.rotate_by = function(by_ang)
 	{
 		var new_ang = this.angle() + by_ang;
 		var normal = ang2normal(new_ang);
@@ -49,9 +52,12 @@ function vec(x,y) {
 }
 
 function ang2normal(ang) {
-	var opp = Math.sin( ang / rad2deg );
-	var adj = Math.cos( ang / rad2deg );
-	return new vec(adj, opp);
+	var rads = ang / rad2deg;
+
+	var x = Math.cos( rads );
+	var y = Math.sin( rads );
+	
+	return new vec(x, y);
 }
 
 function round_to_place(num, num_places) {

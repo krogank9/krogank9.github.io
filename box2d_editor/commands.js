@@ -16,10 +16,10 @@ function redo_one_command() {
 		return false;
 
 	var action = redo_history.pop();
-	// Preserve chain of redos only when redoing an action in the chain
-	var save = redo_history;
+	// Preserve chain of redos when redoing an action in the chain
+	var tmp = redo_history;
 	action.redo();
-	redo_history = save;
+	redo_history = tmp;
 }
 // Make sure to clear redo history if any command is executed, as it
 // will corrupt the perfect chain of undos/redos
@@ -33,12 +33,17 @@ function clear_redo_history() {
 function add_body(body, opt_index) {
 	clear_redo_history();
 	
+	body.aabb = calculate_aabb(body);
+	
 	var index = opt_index || world.bodies.length;
 	world.bodies.splice(index, 0, body);
 	
 	var action = {
 		redo: function() { add_body(body, index); },
-		undo: function() { world.bodies.splice(index, 1); }
+		undo: function() {
+			world.bodies.splice(index, 1);
+			update_selection();
+		}
 	};
 	
 	undo_history.push(action);
@@ -50,9 +55,11 @@ function remove_body(index) {
 	world.bodies.splice(index);
 	var action = {
 		redo: function() { remove_body(index) },
-		undo: function() { add_body(deleted, index) }
+		undo: function() { world.bodies.splice(index, 0, deleted); }
 	};
 	undo_history.push(action);
+	
+	update_selection();
 }
 
 // Composite commands, don't need undos because they are made up of
@@ -62,16 +69,16 @@ function add_box(width, height) {
 	width = Math.abs(width) || 1;
 	height = Math.abs(height) || 1;
 	
-	var box = new body(new vec(cursor_pos.x, cursor_pos.y));
+	var pos = new vec(cursor_pos.x, cursor_pos.y);
+	var rot = 0;
+	
 	var top_left = new vec(-width/2,height/2);
 	var top_right = new vec(width/2,height/2);
 	var bottom_right = new vec(width/2,-height/2);
 	var bottom_left = new vec(-width/2,-height/2);
+	var verts = [bottom_left, bottom_right, top_right, top_left];
 	
-	var shape = new polygon_shape(
-		[bottom_left, bottom_right, top_right, top_left]
-	);
-	box.fixtures.push(new fixture(shape));
+	var box = new body(pos, rot, verts);
 	
 	add_body(box);
 }
