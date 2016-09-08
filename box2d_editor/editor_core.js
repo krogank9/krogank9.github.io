@@ -21,6 +21,7 @@ var cursor_pos = new vec(0,0);
 
 var Z_KEYCODE = 90;
 var B_KEYCODE = 66;
+var DELETE_KEYCODE = 46;
 window.onkeydown = function(evt) {
 	switch(evt.keyCode) {
 		case Z_KEYCODE:
@@ -37,6 +38,9 @@ window.onkeydown = function(evt) {
 			break;
 		case B_KEYCODE:
 			add_box(1, 1); // add a 1m by 1m box
+			break;
+		case DELETE_KEYCODE:
+			remove_bodies(bodies_to_indices(viewport.selection));
 			break;
 	}
 }

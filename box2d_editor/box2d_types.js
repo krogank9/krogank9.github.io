@@ -15,9 +15,9 @@ function body(pos, rotation, verts) {
 	this.friction = 0.3;
 }
 
-function AABB(bottom_left, top_right) {
-	this.bottom_left = new vec(bottom_left.x, bottom_left.y)
-	this.top_right = new vec(top_right.x, top_right.y)
+function AABB(min, max) {
+	this.min = new vec(min.x, min.y)
+	this.max = new vec(max.x, max.y)
 }
 
 function calculate_aabb(body) {
@@ -28,44 +28,52 @@ function calculate_aabb(body) {
 		var rotated = vert.rotate_by(body.rotation);
 		var real_pos = body.pos.add(rotated);
 		
-		if(aabb.bottom_left.x > real_pos.x)
-			aabb.bottom_left.x = real_pos.x;
-		else if(aabb.top_right.x < real_pos.x)
-			aabb.top_right.x = real_pos.x;
-		if(aabb.bottom_left.y > real_pos.y)
-			aabb.bottom_left.y = real_pos.y;
-		else if(aabb.top_right.y < real_pos.y)
-			aabb.top_right.y = real_pos.y;
+		if(aabb.min.x > real_pos.x)
+			aabb.min.x = real_pos.x;
+		else if(aabb.max.x < real_pos.x)
+			aabb.max.x = real_pos.x;
+		if(aabb.min.y > real_pos.y)
+			aabb.min.y = real_pos.y;
+		else if(aabb.max.y < real_pos.y)
+			aabb.max.y = real_pos.y;
 	});
 	
 	return aabb;
 }
 
 AABB.prototype.test = function(test_point) {
-	let bottom_left = this.bottom_left;
-	let top_right = this.top_right;
-	return (test_point.x > bottom_left.x
-	&& test_point.x < top_right.x
-	&& test_point.y > bottom_left.y
-	&& test_point.y < top_right.y);
+	let min = this.min;
+	let max = this.max;
+	return (test_point.x >= min.x)
+	&& (test_point.x <= max.x)
+	&& (test_point.y >= min.y)
+	&& (test_point.y <= max.y);
 }
 
 AABB.prototype.contains = function(aabb) {
-	return (this.test(aabb.bottom_left) && this.test(aabb.top_right));
+	return this.test(aabb.min) && this.test(aabb.max);
+}
+
+AABB.prototype.overlaps = function(aabb) {
+	if (this.max.x < aabb.min.x) return false; // a is left of b
+	if (this.min.x > aabb.max.x) return false; // a is right of b
+	if (this.max.y < aabb.min.y) return false; // a is above b
+	if (this.min.y > aabb.max.y) return false; // a is below b
+	return true; // boxes overlap
 }
 
 AABB.prototype.normalize = function() {
-	let b_l = new vec(this.bottom_left.x, this.bottom_left.y);
-	let t_r = new vec(this.top_right.x, this.top_right.y);
-	if(b_l.x > t_r.x) {
-		var tmp = b_l.x;
-		b_l.x = t_r.x;
-		t_r.x = tmp;
+	var min = new vec(this.min.x, this.min.y);
+	var max = new vec(this.max.x, this.max.y);
+	if(min.x > max.x) {
+		var tmp = min.x;
+		min.x = max.x;
+		max.x = tmp;
 	}
-	if(b_l.y > t_r.y) {
-		var tmp = b_l.y;
-		b_l.y = t_r.y;
-		t_r.y = tmp;
+	if(min.y > max.y) {
+		var tmp = min.y;
+		min.y = max.y;
+		max.y = tmp;
 	}
-	return new AABB(b_l, t_r);
+	return new AABB(min, max);
 }

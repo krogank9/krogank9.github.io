@@ -169,8 +169,8 @@ function draw_all_bodies() {
 }
 
 function draw_aabb(aabb, world_coords) {
-	var top = aabb.top_right;
-	var bottom = aabb.bottom_left;
+	var top = aabb.max;
+	var bottom = aabb.min;
 	if(world_coords == true) {
 		top = viewport_to_canvas(top);
 		bottom = viewport_to_canvas(bottom);

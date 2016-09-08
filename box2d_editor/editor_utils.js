@@ -13,7 +13,7 @@ function get_selection_pt(pt) {
 		var aabb = body.aabb;
 		for(let i=0; i<selection.length; i++) {
 			var select = selection[i];
-			if(body.aabb.contains(select.aabb))
+			if(select != body && body.aabb.contains(select.aabb))
 				return false;
 		}
 		return true;
@@ -30,7 +30,7 @@ function get_selection_box(select_box) {
 	var selection = [];
 	for(let i=0; i<world.bodies.length; i++) {
 		var body = world.bodies[i];
-		if(select_box.contains(body.aabb))
+		if(select_box.overlaps(body.aabb))
 			selection.push(body);
 	}
 	return selection;
@@ -69,4 +69,23 @@ function update_selection() {
 	});
 	
 	viewport.selection = selection;
+}
+
+function find_body_index(body) {
+	for(let i=0; i<world.bodies.length; i++) {
+		if(world.bodies[i] == body)
+			return i;
+	}
+	return -1;
+}
+
+function bodies_to_indices(bodies) {
+	var indices = [];
+	for(let i=0; i<bodies.length; i++) {
+		var body = bodies[i];
+		var index = find_body_index(body);
+		if(index != -1)
+			indices.push( index );
+	}
+	return indices;
 }
