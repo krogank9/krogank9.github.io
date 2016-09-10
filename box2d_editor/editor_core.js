@@ -52,9 +52,7 @@ window.onkeydown = function(evt) {
 			break;
 		case key.V:
 			if(evt.ctrlKey && viewport.clipboard.length > 0) {
-				var copies = generate_duplicate_bodies(viewport.clipboard);
-				move_bodies(copies, new vec(0.1, 0.1));
-				add_bodies(copies);
+				duplicate_bodies(viewport.clipboard);
 			}
 			break;
 		case key.S:
