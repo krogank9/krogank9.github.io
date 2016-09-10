@@ -13,6 +13,9 @@ function vec(x,y) {
 		var mag = this.magnitude();
 		return new vec(this.x/mag, this.y/mag);
 	}
+	this.abs = function() {
+		return new vec(Math.abs(this.x), Math.abs(this.y));
+	}
 	this.add = function(other)
 	{
 		return new vec(this.x+other.x, this.y+other.y);
@@ -31,16 +34,18 @@ function vec(x,y) {
 	}
 	this.angle = function()
 	{
-		if( this.x >= 0 )
-			return Math.atan(this.y/this.x)*rad2deg;
-		else
-			return Math.atan(this.y/this.x)*rad2deg + 180;
+		return Math.atan2(this.y,this.x)*rad2deg;
 	}
 	this.rotate_by = function(by_ang)
 	{
 		var new_ang = this.angle() + by_ang;
 		var normal = ang2normal(new_ang);
 		return normal.scale(this.magnitude());
+	}
+	this.rotate_around = function(origin_vec, by_ang) {
+		var rel = this.subtract(origin_vec);
+		rel = rel.rotate_by(by_ang);
+		return origin_vec.add(rel);
 	}
 	this.compare = function(other) {
 		return this.x==other.x && this.y==other.y;
@@ -49,6 +54,10 @@ function vec(x,y) {
 		this.x = other_vec.x;
 		this.y = other_vec.y;
 	}
+}
+
+function copy_vec(v) {
+	return new vec(v.x, v.y);
 }
 
 function ang2normal(ang) {

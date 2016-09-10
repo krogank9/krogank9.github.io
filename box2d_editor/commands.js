@@ -1,5 +1,7 @@
 // Every command creates & pushes a function to the undo history
-// that will undo itself.
+// that will undo itself. See existing base commands for example.
+// The history of the undo/redo stack is preserved when calling 
+// functions in it, so you can reuse commands when pushing to the stack.
 var undo_history = [];
 var redo_history = [];
 
@@ -83,9 +85,15 @@ function add_bodies(bodies, opt_indices) {
 		world.bodies.splice(index, 0, body);
 	}
 	
+	var prev_selection = viewport.selection.slice();
+	viewport.selection = bodies;
+	
 	var action = {
 		redo: function() { add_bodies(bodies, indices) },
-		undo: function() { remove_bodies(indices); }
+		undo: function() {
+			remove_bodies(indices);
+			viewport.selection = prev_selection;
+		}
 	};
 	
 	undo_history.push(action);
@@ -93,7 +101,7 @@ function add_bodies(bodies, opt_indices) {
 function remove_bodies(indices) {
 	clear_redo_history();
 	
-	var deleted_bodies = [];	
+	var deleted_bodies = [];
 	// Filter bodies with matching indices to remove them
 	world.bodies = world.bodies.filter(function(body, index) {
 		var to_filter = indices.some(function(elem) {
@@ -108,33 +116,44 @@ function remove_bodies(indices) {
 		}
 	});
 	
+	var prev_selection = viewport.selection.slice();
 	update_selection();
 	
 	var action = {
 		redo: function() { remove_bodies(indices) },
-		undo: function() { add_bodies(deleted_bodies, indices) }
+		undo: function() {
+			add_bodies(deleted_bodies, indices)
+			viewport.selection = prev_selection;
+		}
 	};
 	
 	undo_history.push(action);
 }
 
-// Composite commands, don't need undos because they are made up of
-// base commands:
+function commit_transform(save_state, new_state) {
+	clear_redo_history();
+	var save_state = save_state;
+	var new_state = new_state;
+	var action = {
+		redo: function() {
+			restore_transforms(new_state);
+			commit_transform(save_state, new_state);
+		},
+		undo: function() {
+			restore_transforms(save_state);
+		}
+	};
+	undo_history.push(action);
+}
 
-function add_box(width, height) {
-	width = Math.abs(width) || 1;
-	height = Math.abs(height) || 1;
-	
-	var pos = new vec(cursor_pos.x, cursor_pos.y);
-	var rot = 0;
-	
-	var top_left = new vec(-width/2,height/2);
-	var max = new vec(width/2,height/2);
-	var bottom_right = new vec(width/2,-height/2);
-	var min = new vec(-width/2,-height/2);
-	var verts = [min, bottom_right, max, top_left];
-	
-	var box = new body(pos, rot, verts);
-	
-	add_bodies([box]);
+
+function set_selection(bodies) {
+	var new_selection = bodies.slice();
+	var old_selection = viewport.selection.slice();
+	viewport.selection = bodies;
+	var action = {
+		redo: function() { set_selection(new_selection); },
+		undo: function() { set_selection(old_selection); }
+	};
+	undo_history.push(action);
 }

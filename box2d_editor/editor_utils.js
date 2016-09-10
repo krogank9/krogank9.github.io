@@ -1,3 +1,18 @@
+// Animation for the label radio buttons used
+$(".custom_label_button").mousedown( function() {
+	this.style.background = "linear-gradient(#ffffff,#dddddd)";
+});
+$(".custom_label_button").mouseup( function() {
+	this.style.background = "";
+});
+
+function get_radio_value(radio_name) {
+	var radios = document.getElementsByName(radio_name);
+	for(var r in radios)
+		if(r.checked)
+			return r.value;
+}
+
 function get_selection_pt(pt) {
 	var selection = [];
 	// Get all bodies that the mouse hits
@@ -79,6 +94,13 @@ function find_body_index(body) {
 	return -1;
 }
 
+function indices_to_bodies(indices) {
+	var bodies = [];
+	for(let i=0; i<indices.length; i++) {
+		bodies.push( indices[i] );
+	}
+	return bodies;
+}
 function bodies_to_indices(bodies) {
 	var indices = [];
 	for(let i=0; i<bodies.length; i++) {
@@ -88,4 +110,74 @@ function bodies_to_indices(bodies) {
 			indices.push( index );
 	}
 	return indices;
+}
+
+function copy_vert_array(verts) {
+	var copied_verts = [];
+	for(let i=0; i<verts.length; i++)
+		copied_verts.push(copy_vec(verts[i]));
+	return copied_verts;
+}
+
+function save_transforms(bodies) {
+	var save_state = [];
+	for(let i=0; i<bodies.length; i++) {
+		var body = bodies[i];
+		var body_info = {
+			body: body,
+			pos: copy_vec(body.pos),
+			rotation: body.rotation,
+			verts: copy_vert_array(body.verts),
+			aabb: copy_aabb(body.aabb)
+		};
+		save_state.push(body_info);
+	}
+	return save_state;
+}
+
+function restore_transforms(save_state) {
+	for(let i=0; i<save_state.length; i++) {
+		var save = save_state[i];
+		var body = save.body;
+		body.pos = save.pos;
+		body.rotation = save.rotation;
+		body.verts = save.verts;
+		body.aabb = save.aabb;
+	}
+}
+
+function copy_body(b) {
+	var copy = new body(copy_vec(b.pos), b.rotation, copy_vert_array(b.verts));
+	copy.aabb = calculate_aabb(b);
+	return copy;
+}
+
+function generate_duplicate_bodies(bodies) {
+	var duplicates = [];
+	for(let i=0; i<bodies.length; i++) {
+		duplicates.push( copy_body(bodies[i]) );
+	}
+	return duplicates;
+}
+
+function move_bodies(bodies, travel) {
+	for(let i=0; i<bodies.length; i++) {
+		var body = bodies[i];
+		body.pos = body.pos.add(travel);
+		body.aabb = calculate_aabb(body);
+	}
+}
+
+function find_bodies_center(bodies) {
+	if(bodies.length == 0)
+		return new vec(0,0);
+		
+	var center = new vec(0,0);
+	for(let i=0; i<bodies.length; i++) {
+		var body = bodies[i];
+		center = center.add(body.pos);
+	}
+	center.x /= bodies.length;
+	center.y /= bodies.length;
+	return center;
 }

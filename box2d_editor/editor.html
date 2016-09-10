@@ -4,41 +4,158 @@
 	<head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 		<style>
-			* { margin: 0; padding: 0;}
+			html, body, canvas { margin: 0; padding: 0;}
 
 			body, html { height:100%; }
 			
 			#editor_canvas {
 				 position:absolute;
-				 width:100%;
-				 height:100%;
 				 z-index: 1;
 			}
-			#menubar, #bottombar {
-				z-index: 10;
-				width:95%;
-				width:calc(100% - 6px);
-				background-color: #e5e5e5;
-				padding:3px;
-				position: absolute;
+			#bottombar, .custom_label_button, .toolbox_label, canvas {
 				-webkit-touch-callout: none; /* iOS Safari */
 				-webkit-user-select: none;   /* Chrome/Safari/Opera */
 				-khtml-user-select: none;    /* Konqueror */
 				-moz-user-select: none;      /* Firefox */
 				-ms-user-select: none;       /* Internet Explorer/Edge */
 			}
-			#bottombar { bottom: 0; }
+			#bottombar {
+				position: absolute;
+				z-index: 10;
+				padding: 3px;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				border-top: solid 1px grey;
+				background-color: #f0f0f0;
+			}
+			#toolbox {
+				position: absolute;
+				z-index: 10;
+				padding: 10px;
+				top: 0;
+				bottom: 0;
+				right: 0;
+				background-color: #f0f0f0;
+				border-left: solid 1px grey;
+			}
+			.toolbox_label {
+				cursor: default;
+				background-color: inherit;
+				padding-right:3px;
+				position: relative;
+				left:10px;
+				z-index: 2;
+			}
+			.toolbox_section {
+				position: relative;
+				border: solid 1px #d5dfe5;
+				top: -10px;
+				border-radius: 3px;
+				padding: 10px;
+				box-shadow: inset 1px 1px 0px #fff, inset -1px -1px 0px #fff;
+			}
+			.toolbox_section input[type="radio"] { display:none; }
+
+			.toolbox_section label {
+				display:inline-block;
+				background: linear-gradient(#ffffff,#cfcfcf);
+				border: 1px solid #707070;
+				border-radius: 3px;
+				padding:2px 26px;
+				width: 50px;
+				text-align: center;
+				font-family:Arial;
+				font-size:13px;
+			}
+
+			.toolbox_section input[type="radio"]:checked + label { 
+				background: linear-gradient(#ffffff,#68b3db) !important;
+				border: 1px solid #707070;
+				border-radius: 3px;
+			}
+			
+			.toolbox_table td {
+				padding-right: 6px;
+			}
+			.toolbox_table td:last-child {
+				padding-right: 0px;
+			}
+			
+			.button_held_down {
+				background: "linear-gradient(#ffffff,#68b3db)";
+			}
 		</style>
 	</head>
 	<body>
+		<div id="toolbox">
+			<span class="toolbox_label">Tools</span>
+			<div id="tools" class="toolbox_section">
+				<table style="margin: auto;" class="toolbox_table">
+					<tr>
+						<td>
+							<input type="radio" id="select_tool" value="Select" name="tool_button" checked></input>
+							<label for="select_tool" class="custom_label_button">Select</label>
+						</td>
+						<td>
+							<input type="radio" id="move_tool" value="Move" name="tool_button" />
+							<label for="move_tool" class="custom_label_button">Move</label>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<input type="radio" id="rotate_tool" value="Rotate" name="tool_button" />
+							<label for="rotate_tool" class="custom_label_button">Rotate</label>
+						</td>
+						<td>
+							<input type="radio" id="scale_tool" value="Scale" name="tool_button" />
+							<label for="scale_tool" class="custom_label_button">Scale</label>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<input type="radio" id="box_tool" value="Box" name="tool_button" />
+							<label for="box_tool" class="custom_label_button">Box</label>
+						</td>
+						<td>
+							<input type="radio" id="polygon_tool" value="Polygon" name="tool_button" />
+							<label for="polygon_tool" class="custom_label_button">Polygon</label>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<input type="radio" id="joint_tool" value="Joint" name="tool_button" />
+							<label for="joint_tool" class="custom_label_button">Joint</label>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<span id="tool_options_label" class="toolbox_label">Select Options</span>
+			<div id="tooloptions" class="toolbox_section">
+				<div id="Select_options" class="tool_options_tab">
+				</div>
+				<div id="Move_options" class="tool_options_tab" style="display:none"></div>
+				<div id="Rotate_options" class="tool_options_tab" style="display:none">
+					<input type="checkbox" id="localize_rotation">Localize rotation</input>
+				</div>
+				<div id="Scale_options" class="tool_options_tab" style="display:none"></div>
+				<div id="Box_options" class="tool_options_tab" style="display:none"></div>
+				<div id="Polygon_options" class="tool_options_tab" style="display:none"></div>
+				<div id="Joint_options" class="tool_options_tab" style="display:none"></div>
+			</div>
+		</div>
 		<div id="bottombar">
-			<span id="document_info"></span>
+			<span id="document_info">&nbsp;</span>
 		</div>
 		<canvas id="editor_canvas"></canvas>
+		
+		<script src="jquery-3.1.0.min.js"></script>
+		
 		<script src="math.js"></script>
 		<script src="draw.js"></script>
 		<script src="box2d_types.js"></script>
 		<script src="commands.js"></script>
+		<script src="tools.js"></script>
 		<script src="editor_utils.js"></script>
 		<script src="editor_core.js"></script>
 	</body>

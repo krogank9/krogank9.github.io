@@ -20,6 +20,10 @@ function AABB(min, max) {
 	this.max = new vec(max.x, max.y)
 }
 
+function copy_aabb(aabb) {
+	return new AABB(aabb.min, aabb.max);
+}
+
 function calculate_aabb(body) {
 	var aabb = new AABB(body.pos, body.pos);
 
