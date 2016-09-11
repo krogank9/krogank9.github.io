@@ -1,9 +1,32 @@
 var canvas = document.getElementById("editor_canvas");
-var ctx = canvas.getContext("2d");
+var renderer = PIXI.autoDetectRenderer(canvas.width, canvas.height, {view: canvas, backgroundColor: 0xFFFFFF});
+var graphics = new PIXI.Graphics();
+graphics.lineStyle(0);
+graphics.beginFill(0);
+graphics.drawRect(0,100);
+graphics.endFill();
+var stage = new PIXI.Container();
+stage.addChild(graphics);
 
 // 100px = 1m for Box2D
 var meters_to_px = 100.0;
 var px_to_meters = 1.0/meters_to_px;
+
+$(document).ready(function() {
+	animate();
+});
+function animate() {
+	renderer.render(stage);
+	requestAnimationFrame(animate);
+
+	graphics.clear();
+	
+	draw_grid( viewport.pos, viewport.zoom);
+	draw_axes( viewport.pos, viewport.zoom );
+	update_info_div();
+	draw_all_bodies();
+	current_tool.draw()
+}
 
 function resize_canvas_dpi() {
 	// save viewport's relative position:
@@ -34,7 +57,7 @@ function resize_elems() {
 function resize_all() {
 	resize_elems();
 	resize_canvas_dpi();
-	canvas_dirty = true;
+	renderer.resize(canvas.width, canvas.height);
 }
 
 // Turn a position from the canvas into a position relative to a viewport
@@ -60,115 +83,89 @@ function viewport_to_canvas(pos) {
 	return viewport.pos.add(unzoomed);
 }
 
-function draw_arrow(start, end) {
+function draw_arrow(start, end, color) {
+	graphics.lineStyle(2, color||0);
+	graphics.beginFill(color||0,1);
 	var dir = end.subtract(start);
 	var ang = dir.angle();
 	var head_size = 10; // 5px
 	var head_end = end.add(dir.normalize().scale(head_size));
 	
-	ctx.beginPath();
 	//arrow base --
-	ctx.moveTo(Math.round(start.x),Math.round(start.y));
-	ctx.lineTo(Math.round(end.x),Math.round(end.y));
-	ctx.stroke();
+	graphics.moveTo(Math.round(start.x),Math.round(start.y));
+	graphics.lineTo(Math.round(end.x),Math.round(end.y));
+	graphics.endFill();
 	//arrow head   >
+	graphics.lineStyle(1, color||0);
+	graphics.beginFill(color||0,1);
 	var cur_pos = end;
 	var arrow_head_a = end.add( ang2normal(ang + 90).scale(head_size*0.5) );
 	var arrow_head_b = end.add( ang2normal(ang).scale(head_size) );
 	var arrow_head_c = end.add( ang2normal(ang - 90).scale(head_size*0.5) );
-	ctx.lineTo(Math.round(arrow_head_a.x), Math.round(arrow_head_a.y));
-	ctx.lineTo(Math.round(arrow_head_b.x), Math.round(arrow_head_b.y));
-	ctx.lineTo(Math.round(arrow_head_c.x), Math.round(arrow_head_c.y));
-	ctx.lineTo(Math.round(end.x),Math.round(end.y));
-	ctx.closePath();
-	ctx.fill();
-}
-
-// Draw grid lines every 5m
-function draw_grid(pos, scale) {
-	ctx.strokeStyle = "#808080";
-	ctx.lineWidth = 1;
-	
-	var line_spacing = 5*meters_to_px*scale;
-	var startx = Math.round(viewport.pos.x)%line_spacing;
-	var starty = Math.round(viewport.pos.y)%line_spacing;
-
-	// vertical lines
-	for(let x=startx; x<canvas.width; x+=line_spacing) {
-		ctx.beginPath();
-		ctx.moveTo(x, 0);
-		ctx.lineTo(x, canvas.height);
-		ctx.closePath();
-		ctx.stroke();
-	}
-	// horizontal lines
-	for(let y=starty; y<canvas.height; y+=line_spacing) {
-		ctx.beginPath();
-		ctx.moveTo(0, y);
-		ctx.lineTo(canvas.width, y);
-		ctx.closePath();
-		ctx.stroke();
-	}
+	graphics.lineTo(Math.round(arrow_head_a.x), Math.round(arrow_head_a.y));
+	graphics.lineTo(Math.round(arrow_head_b.x), Math.round(arrow_head_b.y));
+	graphics.lineTo(Math.round(arrow_head_c.x), Math.round(arrow_head_c.y));
+	graphics.lineTo(Math.round(end.x),Math.round(end.y));
+	graphics.endFill();
 }
 
 function draw_axes(pos, scale) {
 	var len = 100*scale;
 	// x
-	ctx.fillStyle = "#f00";
-	ctx.strokeStyle = "#f00";
-	ctx.lineWidth = 2;
 	var x_end = pos.add( new vec(len,0) );
 	x_end.x = Math.round(x_end.x);
 	x_end.y = Math.round(x_end.y);
-	draw_arrow(pos, x_end);
+	draw_arrow(pos, x_end, 0xFF0000);
 	// y
-	ctx.fillStyle = "#008000";
-	ctx.strokeStyle = "#008000";
 	var y_end = pos.add( new vec(0,-len) );
 	y_end.x = Math.round(y_end.x);
 	y_end.y = Math.round(y_end.y);
-	draw_arrow(pos, y_end);
+	draw_arrow(pos, y_end, 0x00FF00);
 }
 
-function draw_cursor(pos) {
-	ctx.lineWidth = 1;
-	ctx.strokeStyle = "#ffffff";
-	ctx.beginPath();
-	ctx.arc(Math.floor(pos.x), Math.floor(pos.y), 10, 0, 2 * Math.PI, false);
-	ctx.closePath();
-	ctx.stroke();
-
-	ctx.strokeStyle = "#ff0000";
-	ctx.setLineDash([5,4]);
-	ctx.beginPath();
-	ctx.arc(Math.floor(pos.x), Math.floor(pos.y), 10, 0, 2 * Math.PI, false);
-	ctx.closePath();
-	ctx.stroke();
+// Draw grid lines every 5m
+function draw_grid(pos, zoom) {
+	graphics.lineStyle(1, 0x808080);
+	graphics.beginFill(0,0);
 	
-	ctx.setLineDash([1,0]);
+	var line_spacing = 5*meters_to_px*zoom;
+	var startx = Math.round(viewport.pos.x)%line_spacing;
+	var starty = Math.round(viewport.pos.y)%line_spacing;
+
+	// vertical lines
+	for(let x=startx; x<canvas.width; x+=line_spacing) {
+		graphics.moveTo(x, 0);
+		graphics.lineTo(x, canvas.height);
+	}
+	// horizontal lines
+	for(let y=starty; y<canvas.height; y+=line_spacing) {
+		graphics.moveTo(0, y);
+		graphics.lineTo(canvas.width, y);
+	}
+	
+	graphics.endFill();
 }
 
 function draw_selection_box(aabb) {
-	ctx.lineWidth = 2;
-	ctx.strokeStyle = "blue";
-	ctx.setLineDash([5,4]);
+	graphics.lineStyle(1, 0x0000FF);
 	draw_aabb(aabb);
-	ctx.setLineDash([1,0]);
 }
 
 function draw_polygon(pos, verts, scale, rotation) {
-	ctx.beginPath();
+	graphics.beginFill(0,0); //transparent fill
+	graphics.lineStyle(1, 0x000000);
+	var begin = new vec(0,0);
 	for(var v=0; v<verts.length; v++) {
 		var vert = verts[v];
 		var transformed = vert.scale(-1*scale).rotate_by(rotation);
 		var draw_pos = pos.add(transformed);
 		if(v == 0)
-			ctx.moveTo(draw_pos.x, draw_pos.y);
+			graphics.moveTo(begin.x=draw_pos.x, begin.y=draw_pos.y);
 		else
-			ctx.lineTo(draw_pos.x, draw_pos.y);
+			graphics.lineTo(draw_pos.x, draw_pos.y);
 	}
-	ctx.closePath();
-	ctx.stroke();
+	graphics.lineTo(begin.x, begin.y);
+	graphics.endFill();
 }
 
 function draw_all_bodies() {
@@ -178,14 +175,12 @@ function draw_all_bodies() {
 		var rot = body.rotation;
 		var scale = meters_to_px*viewport.zoom;
 		
-		ctx.lineWidth = 1;
-		ctx.strokeStyle = "#000000";
 		draw_polygon(draw_pos, body.verts, scale, rot);
 
 		if( viewport.selection.some(function(s_body) {return s_body==body}) )
-			ctx.strokeStyle = '#f00';
+			graphics.lineStyle(1, 0xFF0000);//red
 		else
-			ctx.strokeStyle = '#00f';
+			graphics.lineStyle(1, 0x0000FF);//blue
 
 		if(body.aabb !== null && body.aabb !== 'undefined')
 			draw_aabb(body.aabb, true);
@@ -193,6 +188,7 @@ function draw_all_bodies() {
 }
 
 function draw_aabb(aabb, world_coords) {
+	graphics.beginFill(0,0);
 	var max = aabb.max;
 	var min = aabb.min;
 	if(world_coords == true) {
@@ -201,5 +197,5 @@ function draw_aabb(aabb, world_coords) {
 	}
 	var width = max.x - min.x;
 	var height = max.y - min.y;
-	ctx.strokeRect(min.x, min.y, width, height);
+	graphics.drawRect(min.x, min.y, width, height);
 }

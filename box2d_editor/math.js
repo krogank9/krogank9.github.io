@@ -28,6 +28,9 @@ function vec(x,y) {
 	{
 		return new vec(this.x*scalar, this.y*scalar);
 	}
+	this.scale_by_vec = function(v) {
+		return new vec(this.x*v.x, this.y*v.y);
+	}
 	this.perpendicular = function()
 	{
 		return new vec(this.y, this.x);
@@ -45,6 +48,11 @@ function vec(x,y) {
 	this.rotate_around = function(origin_vec, by_ang) {
 		var rel = this.subtract(origin_vec);
 		rel = rel.rotate_by(by_ang);
+		return origin_vec.add(rel);
+	}
+	this.scale_around = function(origin_vec, scale_vec) {
+		var rel = this.subtract(origin_vec);
+		rel = rel.scale_by_vec(scale_vec);
 		return origin_vec.add(rel);
 	}
 	this.compare = function(other) {

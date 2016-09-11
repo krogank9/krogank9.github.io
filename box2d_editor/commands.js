@@ -159,15 +159,13 @@ function set_selection(bodies) {
 }
 
 
-// Some composite commands, no need for duplicates because they are
+// Some composite commands, no need for undoing because they are
 // made up of the base commands: 
 function duplicate_bodies(bodies) {
 	var copies = generate_duplicate_bodies(viewport.clipboard);
 	var copypos = find_bodies_center(copies);
 	var curpos = find_bodies_center(viewport.selection);
 	var travel = curpos.subtract(copypos);
-	if(viewport.selection.length == 0)
-		travel.x = travel.y = 0;
 	// offset the position a bit so bodies don't overlap
 	travel = travel.add( new vec(0.1, 0.1) );
 	move_bodies(copies, travel);

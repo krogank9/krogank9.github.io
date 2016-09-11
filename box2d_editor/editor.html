@@ -12,7 +12,8 @@
 				 position:absolute;
 				 z-index: 1;
 			}
-			#bottombar, .custom_label_button, .toolbox_label, canvas {
+			#bottombar, .custom_label_button, .toolbox_label, canvas,
+			input[type="checkbox"] {
 				-webkit-touch-callout: none; /* iOS Safari */
 				-webkit-user-select: none;   /* Chrome/Safari/Opera */
 				-khtml-user-select: none;    /* Konqueror */
@@ -138,7 +139,9 @@
 				<div id="Rotate_options" class="tool_options_tab" style="display:none">
 					<input type="checkbox" id="localize_rotation">Localize rotation</input>
 				</div>
-				<div id="Scale_options" class="tool_options_tab" style="display:none"></div>
+				<div id="Scale_options" class="tool_options_tab" style="display:none">
+					<input type="checkbox" id="localize_scale">Localize scale</input>
+				</div>
 				<div id="Box_options" class="tool_options_tab" style="display:none"></div>
 				<div id="Polygon_options" class="tool_options_tab" style="display:none"></div>
 				<div id="Joint_options" class="tool_options_tab" style="display:none"></div>
@@ -150,6 +153,7 @@
 		<canvas id="editor_canvas"></canvas>
 		
 		<script src="jquery-3.1.0.min.js"></script>
+		<script src="pixi.min.js"></script>
 		
 		<script src="math.js"></script>
 		<script src="draw.js"></script>

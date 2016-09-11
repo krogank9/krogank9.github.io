@@ -2,7 +2,6 @@ var toolbox = document.getElementById("toolbox")
 var bottombar = document.getElementById("bottombar")
 var document_info = document.getElementById("document_info")
 var canvas = document.getElementById("editor_canvas")
-var ctx = canvas.getContext("2d")
 
 var viewport = {
 	pos: new vec(canvas.width*0.5,canvas.height*0.75),
@@ -35,13 +34,26 @@ var DELETE_KEYCODE = 46;
 
 window.onkeydown = function(evt) {
 	switch(evt.keyCode) {
+		case key.A:
+			if(evt.ctrlKey) {
+				current_tool.action_cancelled();
+				if(evt.shiftKey)
+					set_selection([]);
+				else
+					set_selection(world.bodies);
+			}
+			break;
 		case key.Z:
 			if(undo_locked)
 				break;
-			else if(evt.ctrlKey && evt.shiftKey)
-				redo_one_command();
 			else if(evt.ctrlKey)
 				undo_one_command();
+			break;
+		case key.Y:
+			if(current_tool.edit_in_progress)
+				break;
+			else if(evt.ctrlKey)
+				redo_one_command();
 			break;
 		case DELETE_KEYCODE:
 			remove_bodies(bodies_to_indices(viewport.selection));
@@ -72,8 +84,6 @@ window.onkeydown = function(evt) {
 			set_current_tool("Box");
 			break;
 	}
-	
-	canvas_dirty = true;
 }
 
 canvas.onmousedown = function(evt) {
@@ -92,7 +102,6 @@ canvas.onmousedown = function(evt) {
 	
 	cur_mouse_pos.set_equal_to(pos);
 	start_mouse_pos.set_equal_to(pos);
-	canvas_dirty = true;
 }
 canvas.onmouseup = function(evt) {
 	canvas.style.cursor = "default"
@@ -101,7 +110,10 @@ canvas.onmouseup = function(evt) {
 	var pos = new vec(x,y);
 	
 	if(evt.button == 0) {
-		current_tool.mouseup(evt);
+		if(start_mouse_pos.subtract(pos).magnitude() >= current_tool.min_drag_distance)
+			current_tool.mouseup(evt);
+		else
+			current_tool.action_cancelled();
 		left_mouse_down = false;
 	}
 	else if(evt.button == 2) {
@@ -109,7 +121,6 @@ canvas.onmouseup = function(evt) {
 	}
 	
 	cur_mouse_pos.set_equal_to(pos);
-	canvas_dirty = true;
 }
 canvas.onmousemove = function(evt) {
 	var x = evt.pageX - this.offsetLeft
@@ -146,18 +157,12 @@ canvas.onmousemove = function(evt) {
 	}
 	
 	cur_mouse_pos.set_equal_to(pos);
-	canvas_dirty = true;
-}
-canvas.onmouseout = function() {
-	canvas.style.cursor = "default";
-	// End zooming right mouse but don't end panning left,
-	// because it feels more natural while editing.
-	right_mouse_down = false;
 }
 window.onblur = function() {
 	canvas.style.cursor = "default";
 	left_mouse_down = right_mouse_down = false;
 }
+canvas.onmouseout = function() { canvas.style.cursor = "default"; }
 canvas.oncontextmenu = function() { return false }
 canvas.ondragstart = function() { return false }
 
@@ -169,21 +174,3 @@ function update_info_div() {
 	
 	document_info.innerHTML += "untitled.qbe";
 }
-
-var canvas_dirty = true;
-function render() {
-	if(canvas_dirty == false)
-		return;
-	ctx.clearRect(0,0,canvas.width,canvas.height);
-
-	draw_grid( viewport.pos, viewport.zoom);
-	draw_axes( viewport.pos, viewport.zoom );
-	update_info_div();
-	draw_all_bodies();
-	current_tool.draw();
-	
-	canvas_dirty = false;
-}
-
-var ONE_FRAME_TIME = 1000/60;
-setInterval(render, ONE_FRAME_TIME);
