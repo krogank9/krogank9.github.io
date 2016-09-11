@@ -27,7 +27,7 @@ function tool() {
 	this.mousemove = function(evt) {};
 	this.action_cancelled = function() {};
 	this.draw = function() {};
-	this.min_drag_distance = 5;
+	this.min_drag_distance = 1;
 	this.edit_in_progress = false;
 }
 var select_tool = new tool();
@@ -113,7 +113,6 @@ select_tool.draw = function() {
 
 move_tool.save_state = null;
 move_tool.start_pos = new vec(0,0);
-move_tool.min_drag_distance = 1;
 move_tool.mousedown = function(evt) {
 	if(viewport.selection.length > 0) {
 		this.edit_in_progress = true;
@@ -293,6 +292,7 @@ scale_tool.draw = function() {
 
 box_tool.cur_box = null;
 box_tool.start_pos = new vec(0,0);
+box_tool.min_drag_distance = 5;
 box_tool.mousedown = function(evt) {
 	this.edit_in_progress = true;
 	if(this.cur_box !== null)

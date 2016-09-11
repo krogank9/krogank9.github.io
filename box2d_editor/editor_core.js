@@ -10,12 +10,6 @@ var viewport = {
 	clipboard: []
 }
 
-$( document ).ready(function() {
-	update_info_div();
-	resize_all();
-});
-window.onresize = function() { resize_all(); }
-
 var left_mouse_down = false;
 var right_mouse_down = false;
 var undo_locked = false;

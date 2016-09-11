@@ -1,20 +1,25 @@
 var canvas = document.getElementById("editor_canvas");
-var renderer = PIXI.autoDetectRenderer(canvas.width, canvas.height, {view: canvas, backgroundColor: 0xFFFFFF});
+var stage = new PIXI.Container();
+var renderer = PIXI.autoDetectRenderer(canvas.width, canvas.height, {view: canvas});
+renderer.backgroundColor = 0xFFFFFF;
+renderer.render(stage);
 var graphics = new PIXI.Graphics();
 graphics.lineStyle(0);
 graphics.beginFill(0);
 graphics.drawRect(0,100);
 graphics.endFill();
-var stage = new PIXI.Container();
 stage.addChild(graphics);
 
 // 100px = 1m for Box2D
 var meters_to_px = 100.0;
 var px_to_meters = 1.0/meters_to_px;
 
-$(document).ready(function() {
+$( document ).ready(function() {
+	update_info_div();
+	resize_all();
 	animate();
 });
+
 function animate() {
 	renderer.render(stage);
 	requestAnimationFrame(animate);
@@ -54,6 +59,7 @@ function resize_elems() {
 	canvas.style.height = window.innerHeight - bottombar_height + "px";
 }
 
+window.onresize = function() { resize_all(); }
 function resize_all() {
 	resize_elems();
 	resize_canvas_dpi();
