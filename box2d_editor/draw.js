@@ -163,7 +163,7 @@ function draw_polygon(pos, verts, scale, rotation) {
 	var begin = new vec(0,0);
 	for(var v=0; v<verts.length; v++) {
 		var vert = verts[v];
-		var transformed = vert.scale(-1*scale).rotate_by(rotation);
+		var transformed = vert.scale(scale).rotate_by(rotation);
 		var draw_pos = pos.add(transformed);
 		if(v == 0)
 			graphics.moveTo(begin.x=draw_pos.x, begin.y=draw_pos.y);
@@ -195,13 +195,12 @@ function draw_all_bodies() {
 
 function draw_aabb(aabb, world_coords) {
 	graphics.beginFill(0,0);
-	var max = aabb.max;
-	var min = aabb.min;
+	var tmp = new AABB(aabb.min, aabb.max);
 	if(world_coords == true) {
-		max = viewport_to_canvas(max);
-		min = viewport_to_canvas(min);
+		tmp.max = viewport_to_canvas(tmp.max);
+		tmp.min = viewport_to_canvas(tmp.min);
 	}
-	var width = max.x - min.x;
-	var height = max.y - min.y;
-	graphics.drawRect(min.x, min.y, width, height);
+	tmp = tmp.normalize();
+	var size = tmp.get_size();
+	graphics.drawRect(tmp.min.x, tmp.min.y, size.x, size.y);
 }

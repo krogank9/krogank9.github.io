@@ -111,6 +111,8 @@ select_tool.draw = function() {
  *
  *------------*/
 
+move_tool.move_x_axis = document.getElementById("move_x_axis");
+move_tool.move_y_axis = document.getElementById("move_y_axis");
 move_tool.save_state = null;
 move_tool.start_pos = new vec(0,0);
 move_tool.mousedown = function(evt) {
@@ -126,6 +128,10 @@ move_tool.mousemove = function(evt) {
 		var world_mouse = canvas_to_viewport(cur_mouse_pos);
 		var world_start = canvas_to_viewport(this.start_pos);
 		var travel = world_mouse.subtract(world_start);
+		if(this.move_x_axis.checked == false)
+			travel.x = 0;
+		if(this.move_y_axis.checked == false)
+			travel.y = 0;
 		restore_transforms(this.save_state);
 		move_bodies(viewport.selection, travel);
 	}
@@ -153,8 +159,13 @@ move_tool.draw = function() {
 	if(this.edit_in_progress) {
 		graphics.lineStyle(1,0);
 		graphics.beginFill(0,0);
-		graphics.moveTo(start_mouse_pos.x, start_mouse_pos.y);
-		graphics.lineTo(cur_mouse_pos.x, cur_mouse_pos.y);
+		var end = copy_vec(cur_mouse_pos);
+		if(this.move_x_axis.checked == false)
+			end.x = this.start_pos.x;
+		if(this.move_y_axis.checked == false)
+			end.y = this.start_pos.y;
+		graphics.moveTo(this.start_pos.x, this.start_pos.y);
+		graphics.lineTo(end.x, end.y);
 		graphics.endFill();
 	}
 }
@@ -204,6 +215,8 @@ rotate_tool.mouseup = function(evt) {
 }
 
 rotate_tool.draw = function() {
+	if(viewport.selection.length == 0)
+		return;
 	var center = find_bodies_center(viewport.selection);
 	var pos = viewport_to_canvas(center);
 	graphics.lineStyle(1,0);
@@ -231,9 +244,14 @@ var scale_tool_local = document.getElementById("localize_scale");
 scale_tool.save_state = null;
 scale_tool.start_pos = new vec(0,0);
 scale_tool.mousedown = function(evt) {
+	if(viewport.selection.length == 0 || this.edit_in_progress)
+		return;
 	this.edit_in_progress = true;
 	this.save_state = save_transforms(viewport.selection);
 	this.start_pos = copy_vec(cur_mouse_pos);
+	// get the start size so we can scale relative to it with click and drag
+	var start_aabb = find_aabb_around(viewport.selection);
+	this.start_size = start_aabb.get_size();
 }
 
 scale_tool.mousemove = function(evt) {
@@ -242,18 +260,28 @@ scale_tool.mousemove = function(evt) {
 		var selection = viewport.selection;
 		var world_mouse_end = canvas_to_viewport(cur_mouse_pos);
 		var world_mouse_start = canvas_to_viewport(this.start_pos);
-		// scale all the bodies around their averaged center
-		var center = find_bodies_center(selection);
+		var center = find_bodies_center(viewport.selection);
 		var start_off = world_mouse_start.subtract(center);
 		var end_off = world_mouse_end.subtract(center);
-		var rot_amount = end_off.angle() - start_off.angle();
-		for(let i=0; i<selection.length && rot_amount!=0; i++) {
+		var diff = end_off.subtract(start_off);
+		
+		var scale_amount = copy_vec(this.start_size);
+		scale_amount = scale_amount.add(diff);
+		
+		if(this.start_size.x != 0) scale_amount.x /= this.start_size.x;
+		else scale_amount.x = 1.0;
+		
+		if(scale_amount.y != 0) scale_amount.y /= this.start_size.y;
+		else scale_amount.y = 1.0;
+		
+		for(let i=0; i<selection.length; i++) {
 			var body = selection[i];
-			body.rotation -= rot_amount;
-			if(scale_tool_local.checked == false)
-				body.pos = body.pos.scale_around(center, rot_amount);
+			body.pos = body.pos.scale_around(center, scale_amount);
+			for(let v=0; v<body.verts.length; v++){
+				var vert = body.verts[v];
+				body.verts[v] = vert.scale_by_vec(scale_amount);
+			}
 			body.aabb = calculate_aabb(body);
-			this.move_made = true;
 		}
 	}
 }
@@ -276,6 +304,8 @@ scale_tool.action_cancelled = function() {
 }
 
 scale_tool.draw = function() {
+	if(viewport.selection == 0)
+		return;
 	var center = find_bodies_center(viewport.selection);
 	var pos = viewport_to_canvas(center);
 	graphics.lineStyle(1,0);

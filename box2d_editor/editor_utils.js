@@ -139,10 +139,10 @@ function restore_transforms(save_state) {
 	for(let i=0; i<save_state.length; i++) {
 		var save = save_state[i];
 		var body = save.body;
-		body.pos = save.pos;
+		body.pos = copy_vec(save.pos);
 		body.rotation = save.rotation;
-		body.verts = save.verts;
-		body.aabb = save.aabb;
+		body.verts = copy_vert_array(save.verts);
+		body.aabb = copy_aabb(save.aabb);
 	}
 }
 

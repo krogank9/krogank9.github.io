@@ -9,7 +9,7 @@ var BODY_TYPES = { STATIC: 0, DYNAMIC: 1 }
 function body(pos, rotation, verts) {
 	this.pos = pos || new vec();
 	this.type =  BODY_TYPES.DYNAMIC;
-	this.rotation = rotation || 0.0
+	this.rotation = rotation || 0.0;
 	this.verts = verts;
 	this.density = 1.0;
 	this.friction = 0.3;
@@ -21,7 +21,7 @@ function AABB(min, max) {
 }
 
 function copy_aabb(aabb) {
-	return new AABB(aabb.min, aabb.max);
+	return new AABB(copy_vec(aabb.min), copy_vec(aabb.max));
 }
 
 function calculate_aabb(body) {
@@ -29,20 +29,45 @@ function calculate_aabb(body) {
 
 	// enlarge the AABB to encompass all verts
 	body.verts.forEach( function(vert) {
-		var rotated = vert.rotate_by(body.rotation);
-		var real_pos = body.pos.add(rotated);
+		var vert_rotated = vert.rotate_by(body.rotation);
+		var real_pos = body.pos.add(vert_rotated);
 		
-		if(aabb.min.x > real_pos.x)
-			aabb.min.x = real_pos.x;
-		else if(aabb.max.x < real_pos.x)
-			aabb.max.x = real_pos.x;
-		if(aabb.min.y > real_pos.y)
-			aabb.min.y = real_pos.y;
-		else if(aabb.max.y < real_pos.y)
-			aabb.max.y = real_pos.y;
+		aabb = aabb.expand(real_pos);
 	});
 	
 	return aabb;
+}
+
+function find_aabb_around(bodies) {
+	if(bodies.length == 0)
+		return null;
+	
+	var all_aabb = copy_aabb(bodies[0].aabb);
+
+	// enlarge the AABB to encompass all verts
+	bodies.forEach( function(body) {
+		all_aabb = all_aabb.expand(body.aabb.min);
+		all_aabb = all_aabb.expand(body.aabb.max);
+	});
+	
+	return all_aabb;
+}
+
+// expand an aabb to contain the given point
+AABB.prototype.expand = function(expand_point) {
+	var min = copy_vec(this.min);
+	var max = copy_vec(this.max);
+	
+	if(min.x > expand_point.x)
+		min.x = expand_point.x;
+	else if(max.x < expand_point.x)
+		max.x = expand_point.x;
+	if(min.y > expand_point.y)
+		min.y = expand_point.y;
+	else if(max.y < expand_point.y)
+		max.y = expand_point.y;
+		
+	return new AABB(min, max);
 }
 
 AABB.prototype.test = function(test_point) {
@@ -80,4 +105,8 @@ AABB.prototype.normalize = function() {
 		max.y = tmp;
 	}
 	return new AABB(min, max);
+}
+
+AABB.prototype.get_size = function() {
+	return new vec(this.max.x - this.min.x, this.max.y - this.min.y);
 }

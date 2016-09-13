@@ -12,8 +12,7 @@
 				 position:absolute;
 				 z-index: 1;
 			}
-			#bottombar, .custom_label_button, .toolbox_label, canvas,
-			input[type="checkbox"] {
+			:not(.selectable) {
 				-webkit-touch-callout: none; /* iOS Safari */
 				-webkit-user-select: none;   /* Chrome/Safari/Opera */
 				-khtml-user-select: none;    /* Konqueror */
@@ -56,9 +55,11 @@
 				padding: 10px;
 				box-shadow: inset 1px 1px 0px #fff, inset -1px -1px 0px #fff;
 			}
+			
 			.toolbox_section input[type="radio"] { display:none; }
+			#tooloptions input[type="checkbox"] { display:none; }
 
-			.toolbox_section label {
+			.custom_label_button.long_label {
 				display:inline-block;
 				background: linear-gradient(#ffffff,#cfcfcf);
 				border: 1px solid #707070;
@@ -68,9 +69,22 @@
 				text-align: center;
 				font-family:Arial;
 				font-size:13px;
+				margin: 2px;
 			}
-
-			.toolbox_section input[type="radio"]:checked + label { 
+			.custom_label_button.short_label {
+				display:inline-block;
+				background: linear-gradient(#ffffff,#cfcfcf);
+				border: 1px solid #707070;
+				border-radius: 3px;
+				padding:2px 13px;
+				width: 25px;
+				text-align: center;
+				font-family:Arial;
+				font-size:13px;
+				margin: 2px;
+			}
+			
+			input[type]:checked + .custom_label_button { 
 				background: linear-gradient(#ffffff,#68b3db) !important;
 				border: 1px solid #707070;
 				border-radius: 3px;
@@ -92,55 +106,46 @@
 		<div id="toolbox">
 			<span class="toolbox_label">Tools</span>
 			<div id="tools" class="toolbox_section">
-				<table style="margin: auto;" class="toolbox_table">
-					<tr>
-						<td>
-							<input type="radio" id="select_tool" value="Select" name="tool_button" checked></input>
-							<label for="select_tool" class="custom_label_button">Select</label>
-						</td>
-						<td>
-							<input type="radio" id="move_tool" value="Move" name="tool_button" />
-							<label for="move_tool" class="custom_label_button">Move</label>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<input type="radio" id="rotate_tool" value="Rotate" name="tool_button" />
-							<label for="rotate_tool" class="custom_label_button">Rotate</label>
-						</td>
-						<td>
-							<input type="radio" id="scale_tool" value="Scale" name="tool_button" />
-							<label for="scale_tool" class="custom_label_button">Scale</label>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<input type="radio" id="box_tool" value="Box" name="tool_button" />
-							<label for="box_tool" class="custom_label_button">Box</label>
-						</td>
-						<td>
-							<input type="radio" id="polygon_tool" value="Polygon" name="tool_button" />
-							<label for="polygon_tool" class="custom_label_button">Polygon</label>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<input type="radio" id="joint_tool" value="Joint" name="tool_button" />
-							<label for="joint_tool" class="custom_label_button">Joint</label>
-						</td>
-					</tr>
-				</table>
+				<input type="radio" id="select_tool" value="Select" name="tool_button" checked></input>
+				<label for="select_tool" class="custom_label_button long_label">Select</label>
+				<input type="radio" id="move_tool" value="Move" name="tool_button" />
+				<label for="move_tool" class="custom_label_button long_label">Move</label>
+				<br>
+				<input type="radio" id="rotate_tool" value="Rotate" name="tool_button" />
+				<label for="rotate_tool" class="custom_label_button long_label">Rotate</label>
+				<input type="radio" id="scale_tool" value="Scale" name="tool_button" />
+				<label for="scale_tool" class="custom_label_button long_label">Scale</label>
+				<br>
+				<input type="radio" id="box_tool" value="Box" name="tool_button" />
+				<label for="box_tool" class="custom_label_button long_label">Box</label>
+				<input type="radio" id="polygon_tool" value="Polygon" name="tool_button" />
+				<label for="polygon_tool" class="custom_label_button long_label">Polygon</label>
+				<br>
+				<input type="radio" id="joint_tool" value="Joint" name="tool_button" />
+				<label for="joint_tool" class="custom_label_button long_label">Joint</label>
 			</div>
 			<span id="tool_options_label" class="toolbox_label">Select Options</span>
 			<div id="tooloptions" class="toolbox_section">
 				<div id="Select_options" class="tool_options_tab">
 				</div>
-				<div id="Move_options" class="tool_options_tab" style="display:none"></div>
+				<div id="Move_options" class="tool_options_tab" style="display:none">
+					<input type="checkbox" id="move_x_axis" checked></input>
+					<label for="move_x_axis" class="custom_label_button short_label">X</label>
+					<input type="checkbox" id="move_y_axis" checked></input>
+					<label for="move_y_axis" class="custom_label_button short_label">Y</label>
+				</div>
 				<div id="Rotate_options" class="tool_options_tab" style="display:none">
-					<input type="checkbox" id="localize_rotation">Localize rotation</input>
+					<input type="checkbox" id="localize_rotation" />
+					<label for="localize_rotation" class="custom_label_button long_label">Localize rotation</label>
 				</div>
 				<div id="Scale_options" class="tool_options_tab" style="display:none">
-					<input type="checkbox" id="localize_scale">Localize scale</input>
+					<input type="checkbox" id="scale_x_axis" checked></input>
+					<label for="scale_x_axis" class="custom_label_button short_label">X</label>
+					<input type="checkbox" id="scale_y_axis" checked></input>
+					<label for="scale_y_axis" class="custom_label_button short_label">Y</label>
+					<br>
+					<input type="checkbox" id="localize_scale" />
+					<label for="localize_scale" class="custom_label_button long_label">Localize scale</label>
 				</div>
 				<div id="Box_options" class="tool_options_tab" style="display:none"></div>
 				<div id="Polygon_options" class="tool_options_tab" style="display:none"></div>
