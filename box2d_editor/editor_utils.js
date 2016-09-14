@@ -181,3 +181,20 @@ function find_bodies_center(bodies) {
 	center.y /= bodies.length;
 	return center;
 }
+
+// Vertex positions are relative to each body. Here's a function to 
+// transform them to world positions and then to canvas.
+function body_verts_to_canvas(body) {
+	var rot = body.rotation;
+	var pos = body.pos;
+	
+	var world_positions = [];
+	for(let i=0; i<body.verts.length; i++)
+		world_positions.push(body.verts[i].rotate_by(rot).add(pos));
+		
+	var canvas_positions = [];
+	for(let i=0; i<world_positions.length; i++)
+		canvas_positions.push( viewport_to_canvas(world_positions[i]) );
+		
+	return canvas_positions;
+}

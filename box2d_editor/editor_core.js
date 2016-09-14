@@ -166,7 +166,7 @@ canvas.ondragstart = function() { return false }
 function update_info_div() {
 	document_info.innerHTML = "";
 	
-	var m = canvas_to_viewport(cur_mouse_pos, viewport);
+	var m = canvas_to_viewport(cur_mouse_pos);
 	document_info.innerHTML += "Mouse position: ("+float2str(m.x,2)+","+float2str(m.y,2)+") ";
 	
 	document_info.innerHTML += "untitled.qbe";

@@ -84,12 +84,14 @@ function round_to_place(num, num_places) {
 
 function float2str(num, num_places) {
 	var rounded = round_to_place(num, num_places);
+	var sign = rounded<0 ? -1:1;
 	var fraction = Math.abs(rounded%1);
+
+	rounded = Math.floor( Math.abs(rounded) );
+	var num_str = rounded + "";
 	
 	while(fraction%1 != 0)
 		fraction *= 10;
-	
-	var num_str = Math.floor(rounded) + "";
 	var fract_str = fraction + "";
 	
 	fract_str = fract_str.substring(0,num_places);
@@ -99,9 +101,10 @@ function float2str(num, num_places) {
 	}
 	
 	var full_str = num_str;
-	if(fract_str.length > 0) {
+	if(fract_str.length > 0)
 		full_str += "." + fract_str;
-	}
+	if(sign == -1)
+		full_str = "-" + full_str;
 	
 	return full_str;
 }

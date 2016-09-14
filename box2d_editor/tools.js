@@ -198,7 +198,7 @@ rotate_tool.mousemove = function(evt) {
 		var rot_amount = end_off.angle() - start_off.angle();
 		for(let i=0; i<selection.length && rot_amount!=0; i++) {
 			var body = selection[i];
-			body.rotation -= rot_amount;
+			body.rotation += rot_amount;
 			if(rotate_tool_local.checked == false)
 				body.pos = body.pos.rotate_around(center, rot_amount);
 			body.aabb = calculate_aabb(body);

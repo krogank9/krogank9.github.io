@@ -157,33 +157,28 @@ function draw_selection_box(aabb) {
 	draw_aabb(aabb);
 }
 
-function draw_polygon(pos, verts, scale, rotation) {
+function draw_polygon(verts) {
 	graphics.beginFill(0,0); //transparent fill
 	graphics.lineStyle(1, 0x000000);
-	var begin = new vec(0,0);
-	for(var v=0; v<verts.length; v++) {
-		var vert = verts[v];
-		var transformed = vert.scale(scale).rotate_by(rotation);
-		var draw_pos = pos.add(transformed);
-		if(v == 0)
-			graphics.moveTo(begin.x=draw_pos.x, begin.y=draw_pos.y);
+	for(var i=0; i<verts.length; i++) {
+		var vert = verts[i];
+		if(i == 0)
+			graphics.moveTo(vert.x, vert.y);
 		else
-			graphics.lineTo(draw_pos.x, draw_pos.y);
+			graphics.lineTo(vert.x, vert.y);
 	}
-	graphics.lineTo(begin.x, begin.y);
+	graphics.lineTo(verts[0].x, verts[0].y);
 	graphics.endFill();
 }
 
 function draw_all_bodies() {
 	for(var i=0; i<world.bodies.length; i++) {
 		var body = world.bodies[i];
-		var draw_pos = viewport_to_canvas(body.pos);
-		var rot = body.rotation;
-		var scale = meters_to_px*viewport.zoom;
+		var verts = body_verts_to_canvas(body);
 		
-		draw_polygon(draw_pos, body.verts, scale, rot);
+		draw_polygon(verts);
 
-		if( viewport.selection.some(function(s_body) {return s_body==body}) )
+		if( viewport.selection.some(function(sel) {return sel==body}) )
 			graphics.lineStyle(1, 0xFF0000);//red
 		else
 			graphics.lineStyle(1, 0x0000FF);//blue
