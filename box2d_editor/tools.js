@@ -259,6 +259,7 @@ scale_tool.mousedown = function(evt) {
 
 scale_tool.mousemove = function(evt) {
 	if(left_mouse_down && this.save_state !== null && this.edit_in_progress) {
+		restore_transforms(this.save_state);
 		var v_start_pos = canvas_to_viewport(this.start_pos);
 		var v_cur_pos = canvas_to_viewport(cur_mouse_pos);
 		var drag_size = v_cur_pos.subtract(v_start_pos);
@@ -268,7 +269,6 @@ scale_tool.mousemove = function(evt) {
 			1.0 + drag_size.y/this.start_size.y
 		);
 		var anchor_pt = find_bodies_center(viewport.selection);
-		restore_transforms(this.save_state);
 		scale_bodies(viewport.selection, rel_drag_size, anchor_pt);
 	}
 }
