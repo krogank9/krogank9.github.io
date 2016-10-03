@@ -168,6 +168,15 @@ function move_bodies(bodies, travel) {
 	}
 }
 
+function scale_bodies(bodies, scale_vec, origin_vec) {
+	for(let i=0; i<bodies.length; i++) {
+		var body = bodies[i];
+		body.pos = body.pos.scale_around(origin_vec, scale_vec);
+		console.log(origin_vec);
+		body.aabb = calculate_aabb(body);
+	}
+}
+
 function find_bodies_center(bodies) {
 	if(bodies.length == 0)
 		return new vec(0,0);

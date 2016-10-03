@@ -249,40 +249,27 @@ scale_tool.mousedown = function(evt) {
 	this.edit_in_progress = true;
 	this.save_state = save_transforms(viewport.selection);
 	this.start_pos = copy_vec(cur_mouse_pos);
-	// get the start size so we can scale relative to it with click and drag
+	// Get the start size so we can scale relative to it with click and drag
 	var start_aabb = find_aabb_around(viewport.selection);
 	this.start_size = start_aabb.get_size();
+	// Make sure the selection isn't completely flat, unscaleable
+	if(this.start_size.x == 0 || this.start_size.y == 0)
+		this.edit_in_progress = false;
 }
 
 scale_tool.mousemove = function(evt) {
 	if(left_mouse_down && this.save_state !== null && this.edit_in_progress) {
+		var v_start_pos = canvas_to_viewport(this.start_pos);
+		var v_cur_pos = canvas_to_viewport(cur_mouse_pos);
+		var drag_size = v_cur_pos.subtract(v_start_pos);
+		// Scale relative to the size of the selection
+		var rel_drag_size = new vec(
+			1.0 + drag_size.x/this.start_size.x,
+			1.0 + drag_size.y/this.start_size.y
+		);
+		var anchor_pt = find_bodies_center(viewport.selection);
 		restore_transforms(this.save_state);
-		var selection = viewport.selection;
-		var world_mouse_end = canvas_to_viewport(cur_mouse_pos);
-		var world_mouse_start = canvas_to_viewport(this.start_pos);
-		var center = find_bodies_center(viewport.selection);
-		var start_off = world_mouse_start.subtract(center);
-		var end_off = world_mouse_end.subtract(center);
-		var diff = end_off.subtract(start_off);
-		
-		var scale_amount = copy_vec(this.start_size);
-		scale_amount = scale_amount.add(diff);
-		
-		if(this.start_size.x != 0) scale_amount.x /= this.start_size.x;
-		else scale_amount.x = 1.0;
-		
-		if(scale_amount.y != 0) scale_amount.y /= this.start_size.y;
-		else scale_amount.y = 1.0;
-		
-		for(let i=0; i<selection.length; i++) {
-			var body = selection[i];
-			body.pos = body.pos.scale_around(center, scale_amount);
-			for(let v=0; v<body.verts.length; v++){
-				var vert = body.verts[v];
-				body.verts[v] = vert.scale_by_vec(scale_amount);
-			}
-			body.aabb = calculate_aabb(body);
-		}
+		scale_bodies(viewport.selection, rel_drag_size, anchor_pt);
 	}
 }
 
