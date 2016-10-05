@@ -260,15 +260,20 @@ scale_tool.mousedown = function(evt) {
 scale_tool.mousemove = function(evt) {
 	if(left_mouse_down && this.save_state !== null && this.edit_in_progress) {
 		restore_transforms(this.save_state);
+		var anchor_pt = find_bodies_center(viewport.selection);
 		var v_start_pos = canvas_to_viewport(this.start_pos);
 		var v_cur_pos = canvas_to_viewport(cur_mouse_pos);
 		var drag_size = v_cur_pos.subtract(v_start_pos);
+		// Invert when < anchor_pt, so dragging away from it always scales up
+		if(v_start_pos.x < anchor_pt.x)
+			drag_size.x *= -1;
+		if(v_start_pos.y < anchor_pt.y)
+			drag_size.y *= -1;
 		// Scale relative to the size of the selection
 		var rel_drag_size = new vec(
 			1.0 + drag_size.x/this.start_size.x,
 			1.0 + drag_size.y/this.start_size.y
 		);
-		var anchor_pt = find_bodies_center(viewport.selection);
 		scale_bodies(viewport.selection, rel_drag_size, anchor_pt);
 	}
 }
