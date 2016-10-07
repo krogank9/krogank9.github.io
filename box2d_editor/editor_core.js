@@ -38,7 +38,7 @@ window.onkeydown = function(evt) {
 			}
 			break;
 		case key.Z:
-			if(undo_locked)
+			if(undo_locked || current_tool.edit_in_progress)
 				break;
 			else if(evt.ctrlKey)
 				undo_one_command();

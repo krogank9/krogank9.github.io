@@ -148,6 +148,8 @@ function commit_transform(save_state, new_state) {
 
 
 function set_selection(bodies) {
+	if(viewport.selection.length == 0 && bodies.length == 0)
+		return;
 	clear_redo_history();
 	var new_selection = bodies.slice();
 	var old_selection = viewport.selection.slice();

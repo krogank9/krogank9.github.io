@@ -240,6 +240,8 @@ rotate_tool.action_cancelled = function() {
  *
  *------------*/
 
+scale_tool.scale_x_axis = document.getElementById("scale_x_axis");
+scale_tool.scale_y_axis = document.getElementById("scale_y_axis");
 var scale_tool_local = document.getElementById("localize_scale");
 scale_tool.save_state = null;
 scale_tool.start_pos = new vec(0,0);
@@ -264,11 +266,16 @@ scale_tool.mousemove = function(evt) {
 		var v_start_pos = canvas_to_viewport(this.start_pos);
 		var v_cur_pos = canvas_to_viewport(cur_mouse_pos);
 		var drag_size = v_cur_pos.subtract(v_start_pos);
-		// Invert when < anchor_pt, so dragging away from it always scales up
+		// Invert when mouse < anchor_pt, so dragging away from it always scales up
 		if(v_start_pos.x < anchor_pt.x)
 			drag_size.x *= -1;
 		if(v_start_pos.y < anchor_pt.y)
 			drag_size.y *= -1;
+		// Lock scaling to one axis or the other
+		if(this.scale_x_axis.checked == false)
+			drag_size.x = 0;
+		if(this.scale_y_axis.checked == false)
+			drag_size.y = 0;
 		// Scale relative to the size of the selection
 		var rel_drag_size = new vec(
 			1.0 + drag_size.x/this.start_size.x,
@@ -304,6 +311,19 @@ scale_tool.draw = function() {
 	graphics.beginFill(0,1);
 	graphics.drawRect(Math.round(pos.x)-2,Math.round(pos.y)-2,4,4);
 	graphics.endFill();
+	
+	if(this.edit_in_progress) {
+		graphics.lineStyle(1,0);
+		graphics.beginFill(0,0);
+		var end = copy_vec(cur_mouse_pos);
+		if(this.scale_x_axis.checked == false)
+			end.x = this.start_pos.x;
+		if(this.scale_y_axis.checked == false)
+			end.y = this.start_pos.y;
+		graphics.moveTo(this.start_pos.x, this.start_pos.y);
+		graphics.lineTo(end.x, end.y);
+		graphics.endFill();
+	}
 }
 
 /*-------------
