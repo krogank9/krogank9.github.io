@@ -17,6 +17,7 @@ function set_current_tool(name) {
 	
 	current_tool.action_cancelled();
 	current_tool = tools_list[name];
+	current_tool.tool_selected();
 	
 	current_tool.edit_in_progress = false;
 }
@@ -25,6 +26,7 @@ function tool() {
 	this.mousedown = function(evt) {};
 	this.mouseup = function(evt) {};
 	this.mousemove = function(evt) {};
+	this.tool_selected = function () {};
 	this.action_cancelled = function() {};
 	this.draw = function() {};
 	this.min_drag_distance = 1;
@@ -110,11 +112,39 @@ select_tool.draw = function() {
  * Move tool
  *
  *------------*/
+ 
+move_tool.move_input_x = document.getElementById("move_input_x");
+move_tool.move_input_y = document.getElementById("move_input_y");
+move_tool.move_input_confirm = document.getElementById("move_input_confirm");
 
 move_tool.move_x_axis = document.getElementById("move_x_axis");
 move_tool.move_y_axis = document.getElementById("move_y_axis");
+
 move_tool.save_state = null;
 move_tool.start_pos = new vec(0,0);
+
+
+this.move_input_confirm.onclick = function() {
+	var cur = find_bodies_center(viewport.selection);
+	var end = new vec(
+		parseFloat(move_tool.move_input_x.value),
+		parseFloat(move_tool.move_input_y.value)
+	);
+	var travel = end.subtract(cur);
+	move_bodies(viewport.selection, travel);
+	move_tool.update_input_pos();
+}
+
+move_tool.update_input_pos = function() {
+	var pos = find_bodies_center(viewport.selection);
+	this.move_input_x.value = float2str(pos.x,7);
+	this.move_input_y.value = float2str(pos.y,7);
+}
+
+move_tool.tool_selected = function() {
+	this.update_input_pos();
+}
+
 move_tool.mousedown = function(evt) {
 	if(viewport.selection.length > 0) {
 		this.edit_in_progress = true;
@@ -134,6 +164,7 @@ move_tool.mousemove = function(evt) {
 			travel.y = 0;
 		restore_transforms(this.save_state);
 		move_bodies(viewport.selection, travel);
+		this.update_input_pos();
 	}
 }
 
@@ -157,6 +188,7 @@ move_tool.action_cancelled = function() {
 
 move_tool.draw = function() {
 	if(this.edit_in_progress) {
+		//drag line
 		graphics.lineStyle(1,0);
 		graphics.beginFill(0,0);
 		var end = copy_vec(cur_mouse_pos);
@@ -166,6 +198,15 @@ move_tool.draw = function() {
 			end.y = this.start_pos.y;
 		graphics.moveTo(this.start_pos.x, this.start_pos.y);
 		graphics.lineTo(end.x, end.y);
+		graphics.endFill();
+	}
+	if(viewport.selection.length > 0) {
+		//center
+		var center = find_bodies_center(viewport.selection);
+		center = viewport_to_canvas(center);
+		graphics.lineStyle(1,0);
+		graphics.beginFill(0,1);
+		graphics.drawRect(Math.round(center.x)-2,Math.round(center.y)-2,4,4);
 		graphics.endFill();
 	}
 }
@@ -196,13 +237,7 @@ rotate_tool.mousemove = function(evt) {
 		var start_off = world_mouse_start.subtract(center);
 		var end_off = world_mouse_end.subtract(center);
 		var rot_amount = end_off.angle() - start_off.angle();
-		for(let i=0; i<selection.length && rot_amount!=0; i++) {
-			var body = selection[i];
-			body.rotation += rot_amount;
-			if(rotate_tool_local.checked == false)
-				body.pos = body.pos.rotate_around(center, rot_amount);
-			body.aabb = calculate_aabb(body);
-		}
+		rotate_bodies(selection, rot_amount, rotate_tool_local.checked);
 	}
 }
 

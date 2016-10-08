@@ -168,6 +168,17 @@ function move_bodies(bodies, travel) {
 	}
 }
 
+function rotate_bodies(bodies, degrees, localize) {
+	var center = find_bodies_center(bodies);
+	for(let i=0; i<bodies.length && degrees!=0; i++) {
+		var body = bodies[i];
+		body.rotation += degrees;
+		if(localize !== true)
+			body.pos = body.pos.rotate_around(center, degrees);
+		body.aabb = calculate_aabb(body);
+	}
+}
+
 function scale_bodies(bodies, scale_vec, origin_vec) {
 	for(let i=0; i<bodies.length; i++) {
 		var body = bodies[i];

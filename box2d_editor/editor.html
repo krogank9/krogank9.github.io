@@ -84,6 +84,17 @@
 				margin: 2px;
 			}
 			
+			.short_textbox {
+				margin: 2px;
+				padding: 2px 2px;
+				width: 45px;
+			}
+			
+			.slim_form {
+				margin: 0;
+				padding: 0;
+			}
+			
 			input[type]:checked + .custom_label_button { 
 				background: linear-gradient(#ffffff,#68b3db) !important;
 				border: 1px solid #707070;
@@ -129,23 +140,35 @@
 				<div id="Select_options" class="tool_options_tab">
 				</div>
 				<div id="Move_options" class="tool_options_tab" style="display:none">
+					<form action="javascript:void(0)" class="slim_form">
+						<input type="text" id="move_input_x" class="short_textbox selectable"></input>
+						<input type="text" id="move_input_y" class="short_textbox selectable"></input>
+						<input type="submit" id="move_input_confirm" value="Move"></input>
+					</form>
 					<input type="checkbox" id="move_x_axis" checked></input>
 					<label for="move_x_axis" class="custom_label_button short_label">X</label>
 					<input type="checkbox" id="move_y_axis" checked></input>
 					<label for="move_y_axis" class="custom_label_button short_label">Y</label>
 				</div>
 				<div id="Rotate_options" class="tool_options_tab" style="display:none">
+					<form action="javascript:void(0)" class="slim_form">
+						<input type="text" id="rotate_input" class="short_textbox selectable"></input>
+						<input type="submit" id="rotate_input_confirm" value="Rotate"></input>
+					</form>
+					<br>
 					<input type="checkbox" id="localize_rotation" />
-					<label for="localize_rotation" class="custom_label_button long_label">Localize rotation</label>
+					<label for="localize_rotation" class="custom_label_button long_label">Localize</label>
 				</div>
 				<div id="Scale_options" class="tool_options_tab" style="display:none">
+					<form action="javascript:void(0)" class="slim_form">
+						<input type="text" id="scale_input_x" class="short_textbox selectable"></input>
+						<input type="text" id="scale_input_y" class="short_textbox selectable"></input>
+						<input type="submit" id="scale_input_confirm" value="Scale"></input>
+					</form>
 					<input type="checkbox" id="scale_x_axis" checked></input>
 					<label for="scale_x_axis" class="custom_label_button short_label">X</label>
 					<input type="checkbox" id="scale_y_axis" checked></input>
 					<label for="scale_y_axis" class="custom_label_button short_label">Y</label>
-					<br>
-					<input type="checkbox" id="localize_scale" />
-					<label for="localize_scale" class="custom_label_button long_label">Localize scale</label>
 				</div>
 				<div id="Box_options" class="tool_options_tab" style="display:none"></div>
 				<div id="Polygon_options" class="tool_options_tab" style="display:none"></div>
