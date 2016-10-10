@@ -129,12 +129,12 @@ function draw_axes(pos, scale) {
 	draw_arrow(pos, y_end, 0x00FF00);
 }
 
-// Draw grid lines every 5m
+// Draw grid lines every 1m
 function draw_grid(pos, zoom) {
-	graphics.lineStyle(1, 0x808080);
+	graphics.lineStyle(1, 0xbfbfbf);
 	graphics.beginFill(0,0);
 	
-	var line_spacing = 5*meters_to_px*zoom;
+	var line_spacing = 1*meters_to_px*zoom;
 	var startx = Math.round(viewport.pos.x)%line_spacing;
 	var starty = Math.round(viewport.pos.y)%line_spacing;
 

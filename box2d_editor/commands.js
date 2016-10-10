@@ -171,6 +171,11 @@ function duplicate_bodies(bodies) {
 	var travel = curpos.subtract(copypos);
 	// offset the position a bit so bodies don't overlap
 	travel = travel.add( new vec(0.1, 0.1) );
+	// dont offset if the movement is locked on an axis
+	if(move_tool.move_x_axis.checked == false)
+		travel.x = 0;
+	if(move_tool.move_y_axis.checked == false)
+		travel.y = 0;
 	move_bodies(copies, travel);
 	add_bodies(copies);
 }

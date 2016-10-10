@@ -56,8 +56,8 @@
 				box-shadow: inset 1px 1px 0px #fff, inset -1px -1px 0px #fff;
 			}
 			
-			.toolbox_section input[type="radio"] { display:none; }
-			#tooloptions input[type="checkbox"] { display:none; }
+			.toolbox_section input[type="radio"].customradio { display:none; }
+			input[type="checkbox"].customcheck { display:none; }
 
 			.custom_label_button.long_label {
 				display:inline-block;
@@ -89,6 +89,10 @@
 				padding: 2px 2px;
 				width: 45px;
 			}
+			.short_button {
+				margin: 2px;
+				width: 53px;
+			}
 			
 			.slim_form {
 				margin: 0;
@@ -117,22 +121,22 @@
 		<div id="toolbox">
 			<span class="toolbox_label">Tools</span>
 			<div id="tools" class="toolbox_section">
-				<input type="radio" id="select_tool" value="Select" name="tool_button" checked></input>
+				<input type="radio" class="customradio" id="select_tool" value="Select" name="tool_button" checked></input>
 				<label for="select_tool" class="custom_label_button long_label">Select</label>
-				<input type="radio" id="move_tool" value="Move" name="tool_button" />
+				<input type="radio" class="customradio" id="move_tool" value="Move" name="tool_button" />
 				<label for="move_tool" class="custom_label_button long_label">Move</label>
 				<br>
-				<input type="radio" id="rotate_tool" value="Rotate" name="tool_button" />
+				<input type="radio" class="customradio" id="rotate_tool" value="Rotate" name="tool_button" />
 				<label for="rotate_tool" class="custom_label_button long_label">Rotate</label>
-				<input type="radio" id="scale_tool" value="Scale" name="tool_button" />
+				<input type="radio" class="customradio" id="scale_tool" value="Scale" name="tool_button" />
 				<label for="scale_tool" class="custom_label_button long_label">Scale</label>
 				<br>
-				<input type="radio" id="box_tool" value="Box" name="tool_button" />
+				<input type="radio" class="customradio" id="box_tool" value="Box" name="tool_button" />
 				<label for="box_tool" class="custom_label_button long_label">Box</label>
-				<input type="radio" id="polygon_tool" value="Polygon" name="tool_button" />
+				<input type="radio" class="customradio" id="polygon_tool" value="Polygon" name="tool_button" />
 				<label for="polygon_tool" class="custom_label_button long_label">Polygon</label>
 				<br>
-				<input type="radio" id="joint_tool" value="Joint" name="tool_button" />
+				<input type="radio" class="customradio" id="joint_tool" value="Joint" name="tool_button" />
 				<label for="joint_tool" class="custom_label_button long_label">Joint</label>
 			</div>
 			<span id="tool_options_label" class="toolbox_label">Select Options</span>
@@ -140,35 +144,36 @@
 				<div id="Select_options" class="tool_options_tab">
 				</div>
 				<div id="Move_options" class="tool_options_tab" style="display:none">
-					<form action="javascript:void(0)" class="slim_form">
-						<input type="text" id="move_input_x" class="short_textbox selectable"></input>
-						<input type="text" id="move_input_y" class="short_textbox selectable"></input>
-						<input type="submit" id="move_input_confirm" value="Move"></input>
-					</form>
-					<input type="checkbox" id="move_x_axis" checked></input>
+					<input type="button" id="move_flip_x" class="short_button" value="Flip"></input>
+					<input type="button" id="move_flip_y" class="short_button" value="Flip"></input>
+					<br>
+					<input type="checkbox" class="customcheck" id="move_x_axis" checked></input>
 					<label for="move_x_axis" class="custom_label_button short_label">X</label>
-					<input type="checkbox" id="move_y_axis" checked></input>
+					<input type="checkbox" class="customcheck" id="move_y_axis" checked></input>
 					<label for="move_y_axis" class="custom_label_button short_label">Y</label>
+					<br>
+					<br>
+					<input type="checkbox" id="move_snap_grid">Snap to grid</input>
 				</div>
 				<div id="Rotate_options" class="tool_options_tab" style="display:none">
-					<form action="javascript:void(0)" class="slim_form">
-						<input type="text" id="rotate_input" class="short_textbox selectable"></input>
+					<form action="javascript:void(0)" id="rotate_input_form" class="slim_form">
+						<input type="number" id="rotate_input" class="short_textbox selectable" value="0"></input>
 						<input type="submit" id="rotate_input_confirm" value="Rotate"></input>
 					</form>
 					<br>
-					<input type="checkbox" id="localize_rotation" />
-					<label for="localize_rotation" class="custom_label_button long_label">Localize</label>
+					<input type="checkbox" id="localize_rotation">Localize rotation</input>
 				</div>
 				<div id="Scale_options" class="tool_options_tab" style="display:none">
-					<form action="javascript:void(0)" class="slim_form">
-						<input type="text" id="scale_input_x" class="short_textbox selectable"></input>
-						<input type="text" id="scale_input_y" class="short_textbox selectable"></input>
-						<input type="submit" id="scale_input_confirm" value="Scale"></input>
-					</form>
-					<input type="checkbox" id="scale_x_axis" checked></input>
+					<input type="button" id="scale_flip_x" class="short_button" value="Flip"></input>
+					<input type="button" id="scale_flip_y" class="short_button" value="Flip"></input>
+					<br>
+					<input type="checkbox" class="customcheck" id="scale_x_axis" checked></input>
 					<label for="scale_x_axis" class="custom_label_button short_label">X</label>
-					<input type="checkbox" id="scale_y_axis" checked></input>
+					<input type="checkbox" class="customcheck" id="scale_y_axis" checked></input>
 					<label for="scale_y_axis" class="custom_label_button short_label">Y</label>
+					<br>
+					<br>
+					<input type="checkbox" id="scale_maintain_ar">Maintain aspect ratio</input>
 				</div>
 				<div id="Box_options" class="tool_options_tab" style="display:none"></div>
 				<div id="Polygon_options" class="tool_options_tab" style="display:none"></div>

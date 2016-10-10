@@ -4,6 +4,7 @@ $("[name='tool_button']").change(function() {
 });
 $( document ).ready(function() {
 	document.getElementById("select_tool").checked = true;
+	set_current_tool("Select");
 });
 
 function set_current_tool(name) {
@@ -112,38 +113,34 @@ select_tool.draw = function() {
  * Move tool
  *
  *------------*/
- 
-move_tool.move_input_x = document.getElementById("move_input_x");
-move_tool.move_input_y = document.getElementById("move_input_y");
-move_tool.move_input_confirm = document.getElementById("move_input_confirm");
 
+move_tool.move_snap_grid = document.getElementById("move_snap_grid");
 move_tool.move_x_axis = document.getElementById("move_x_axis");
 move_tool.move_y_axis = document.getElementById("move_y_axis");
 
+move_tool.move_flip_x = document.getElementById("move_flip_x");
+move_tool.move_flip_y = document.getElementById("move_flip_y");
+move_tool.move_flip_x.onclick = function() {
+	if(viewport.selection.length == 0)
+		return;
+	var save_state = save_transforms(viewport.selection);
+	var cur_pos = find_bodies_center(viewport.selection);
+	var travel = new vec(cur_pos.x*-2, 0);
+	move_bodies(viewport.selection, travel);
+	commit_transform(save_state, save_transforms(viewport.selection));
+}
+move_tool.move_flip_y.onclick = function() {
+	if(viewport.selection.length == 0)
+		return;
+	var save_state = save_transforms(viewport.selection);
+	var cur_pos = find_bodies_center(viewport.selection);
+	var travel = new vec(0, cur_pos.y*-2);
+	move_bodies(viewport.selection, travel);
+	commit_transform(save_state, save_transforms(viewport.selection));
+}
+
 move_tool.save_state = null;
 move_tool.start_pos = new vec(0,0);
-
-
-this.move_input_confirm.onclick = function() {
-	var cur = find_bodies_center(viewport.selection);
-	var end = new vec(
-		parseFloat(move_tool.move_input_x.value),
-		parseFloat(move_tool.move_input_y.value)
-	);
-	var travel = end.subtract(cur);
-	move_bodies(viewport.selection, travel);
-	move_tool.update_input_pos();
-}
-
-move_tool.update_input_pos = function() {
-	var pos = find_bodies_center(viewport.selection);
-	this.move_input_x.value = float2str(pos.x,7);
-	this.move_input_y.value = float2str(pos.y,7);
-}
-
-move_tool.tool_selected = function() {
-	this.update_input_pos();
-}
 
 move_tool.mousedown = function(evt) {
 	if(viewport.selection.length > 0) {
@@ -163,8 +160,31 @@ move_tool.mousemove = function(evt) {
 		if(this.move_y_axis.checked == false)
 			travel.y = 0;
 		restore_transforms(this.save_state);
+		if( this.move_snap_grid.checked == true ) {
+			var cur_pos = find_bodies_center(viewport.selection);
+			var next_pos = cur_pos.add(travel);
+			var next_pos_rounded = copy_vec(next_pos.x, next_pos.y);
+			
+			// Round to the nearest 1m gridline. Just use Math.round,
+			// viewport coords are measured in meters
+			if(this.move_x_axis.checked == true)
+				next_pos_rounded.x = Math.round(next_pos.x)
+			if(this.move_y_axis.checked == true)
+				next_pos_rounded.y = Math.round(next_pos.y);
+				
+			var px_diff = next_pos_rounded.subtract(next_pos).abs();
+			px_diff = px_diff.scale(meters_to_px*viewport.zoom);
+			
+			// Snap to grid if within 10 pixels from the gridline
+			if(px_diff.x < 10 && this.move_x_axis.checked == true)
+				next_pos.x = next_pos_rounded.x;
+			if(px_diff.y < 10 && this.move_y_axis.checked == true)
+				next_pos.y = next_pos_rounded.y;
+			
+			var new_travel = next_pos.subtract(cur_pos);
+			travel = new_travel;
+		}
 		move_bodies(viewport.selection, travel);
-		this.update_input_pos();
 	}
 }
 
@@ -218,6 +238,18 @@ move_tool.draw = function() {
  *------------*/
 
 var rotate_tool_local = document.getElementById("localize_rotation");
+var rotate_input = document.getElementById("rotate_input");
+var rotate_input_confirm = document.getElementById("rotate_input_confirm");
+rotate_input_confirm.onclick = function() {
+	if(viewport.selection.length == 0)
+		return;
+	rotate_input.blur();
+	canvas.focus();
+	var save_state = save_transforms(viewport.selection);
+	var deg = parseFloat(rotate_input.value)*-1;
+	rotate_bodies(viewport.selection, deg, rotate_tool_local.checked==true);
+	commit_transform(save_state, save_transforms(viewport.selection));
+}
 rotate_tool.save_state = null;
 rotate_tool.start_pos = new vec(0,0);
 rotate_tool.mousedown = function(evt) {
@@ -275,9 +307,31 @@ rotate_tool.action_cancelled = function() {
  *
  *------------*/
 
+scale_tool.scale_flip_x = document.getElementById("scale_flip_x");
+scale_tool.scale_flip_y = document.getElementById("scale_flip_y");
+scale_tool.scale_flip_x.onclick = function() {
+	if(viewport.selection.length == 0)
+		return;
+	var save_state = save_transforms(viewport.selection);
+	var scale = new vec(-1.0, 1.0);
+	var center = find_bodies_center(viewport.selection);
+	scale_bodies(viewport.selection, scale, center);
+	commit_transform(save_state, save_transforms(viewport.selection));
+}
+scale_tool.scale_flip_y.onclick = function() {
+	if(viewport.selection.length == 0)
+		return;
+	var save_state = save_transforms(viewport.selection);
+	var scale = new vec(1.0, -1.0);
+	var center = find_bodies_center(viewport.selection);
+	scale_bodies(viewport.selection, scale, center);
+	commit_transform(save_state, save_transforms(viewport.selection));
+}
+
 scale_tool.scale_x_axis = document.getElementById("scale_x_axis");
 scale_tool.scale_y_axis = document.getElementById("scale_y_axis");
-var scale_tool_local = document.getElementById("localize_scale");
+scale_tool.scale_maintain_ar = document.getElementById("scale_maintain_ar");
+
 scale_tool.save_state = null;
 scale_tool.start_pos = new vec(0,0);
 scale_tool.mousedown = function(evt) {
@@ -316,6 +370,12 @@ scale_tool.mousemove = function(evt) {
 			1.0 + drag_size.x/this.start_size.x,
 			1.0 + drag_size.y/this.start_size.y
 		);
+		if( this.scale_maintain_ar.checked == true
+		&& this.scale_x_axis.checked == true
+		&& this.scale_y_axis.checked == true ) {
+			var avg = (rel_drag_size.x + rel_drag_size.y)/2;
+			rel_drag_size.x = rel_drag_size.y = avg;
+		}
 		scale_bodies(viewport.selection, rel_drag_size, anchor_pt);
 	}
 }

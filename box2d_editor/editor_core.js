@@ -27,9 +27,6 @@ for(char="A", count=0; count<=26; count++) {
 var DELETE_KEYCODE = 46;
 
 window.onkeydown = function(evt) {
-	// Shortcuts: Don't trigger shortcuts when typing
-	if(document.activeElement && document.activeElement.type == "text")
-		return;
 	switch(evt.keyCode) {
 		case key.A:
 			if(evt.ctrlKey) {
@@ -84,9 +81,6 @@ window.onkeydown = function(evt) {
 }
 
 canvas.onmousedown = function(evt) {
-	// Allow canvas clicks to take focus back from text fields
-	if(document.activeElement && document.activeElement.type == "text")
-		document.activeElement.blur();
 	var x = evt.pageX - this.offsetLeft
 	var y = evt.pageY - this.offsetTop
 	var pos = new vec(x,y)
