@@ -237,19 +237,32 @@ move_tool.draw = function() {
  *
  *------------*/
 
-var rotate_tool_local = document.getElementById("localize_rotation");
-var rotate_input = document.getElementById("rotate_input");
-var rotate_input_confirm = document.getElementById("rotate_input_confirm");
-rotate_input_confirm.onclick = function() {
+rotate_tool.localize_rotation = document.getElementById("localize_rotation");
+rotate_tool.rotate_45 = document.getElementById("rotate_45");
+rotate_tool.rotate_90 = document.getElementById("rotate_90");
+rotate_tool.rotate_180 = document.getElementById("rotate_180");
+rotate_tool.rotate_45.onclick = function() {
 	if(viewport.selection.length == 0)
 		return;
-	rotate_input.blur();
-	canvas.focus();
-	var save_state = save_transforms(viewport.selection);
-	var deg = parseFloat(rotate_input.value)*-1;
-	rotate_bodies(viewport.selection, deg, rotate_tool_local.checked==true);
-	commit_transform(save_state, save_transforms(viewport.selection));
+	var save = save_transforms(viewport.selection);
+	rotate_bodies(viewport.selection, -45, rotate_tool.localize_rotation.checked);
+	commit_transform(save, save_transforms(viewport.selection));
 }
+rotate_tool.rotate_90.onclick = function() {
+	if(viewport.selection.length == 0)
+		return;
+	var save = save_transforms(viewport.selection);
+	rotate_bodies(viewport.selection, -90, rotate_tool.localize_rotation.checked);
+	commit_transform(save, save_transforms(viewport.selection));
+}
+rotate_tool.rotate_180.onclick = function() {
+	if(viewport.selection.length == 0)
+		return;
+	var save = save_transforms(viewport.selection);
+	rotate_bodies(viewport.selection, -180, rotate_tool.localize_rotation.checked);
+	commit_transform(save, save_transforms(viewport.selection));
+}
+
 rotate_tool.save_state = null;
 rotate_tool.start_pos = new vec(0,0);
 rotate_tool.mousedown = function(evt) {
@@ -269,7 +282,7 @@ rotate_tool.mousemove = function(evt) {
 		var start_off = world_mouse_start.subtract(center);
 		var end_off = world_mouse_end.subtract(center);
 		var rot_amount = end_off.angle() - start_off.angle();
-		rotate_bodies(selection, rot_amount, rotate_tool_local.checked);
+		rotate_bodies(selection, rot_amount, this.localize_rotation.checked);
 	}
 }
 
@@ -483,3 +496,19 @@ box_tool.action_cancelled = function() {
 		world.bodies.pop();
 	this.cur_box = null;
 };
+
+
+/*-------------
+ * 
+ * Polygon tool
+ *
+ *------------*/
+
+polygon_tool.mousedown = function(evt) {
+}
+
+polygon_tool.mousemove = function(evt) {
+}
+
+polygon_tool.mouseup = function(evt) {
+}
