@@ -328,7 +328,7 @@ scale_tool.scale_flip_x.onclick = function() {
 	var save_state = save_transforms(viewport.selection);
 	var scale = new vec(-1.0, 1.0);
 	var center = find_bodies_center(viewport.selection);
-	scale_bodies(viewport.selection, scale, center);
+	scale_bodies(viewport.selection, scale, center, scale_tool.localize_scale.checked);
 	commit_transform(save_state, save_transforms(viewport.selection));
 }
 scale_tool.scale_flip_y.onclick = function() {
@@ -337,13 +337,14 @@ scale_tool.scale_flip_y.onclick = function() {
 	var save_state = save_transforms(viewport.selection);
 	var scale = new vec(1.0, -1.0);
 	var center = find_bodies_center(viewport.selection);
-	scale_bodies(viewport.selection, scale, center);
+	scale_bodies(viewport.selection, scale, center, scale_tool.localize_scale.checked);
 	commit_transform(save_state, save_transforms(viewport.selection));
 }
 
 scale_tool.scale_x_axis = document.getElementById("scale_x_axis");
 scale_tool.scale_y_axis = document.getElementById("scale_y_axis");
 scale_tool.scale_maintain_ar = document.getElementById("scale_maintain_ar");
+scale_tool.localize_scale = document.getElementById("localize_scale");
 
 scale_tool.save_state = null;
 scale_tool.start_pos = new vec(0,0);
@@ -389,7 +390,7 @@ scale_tool.mousemove = function(evt) {
 			var avg = (rel_drag_size.x + rel_drag_size.y)/2;
 			rel_drag_size.x = rel_drag_size.y = avg;
 		}
-		scale_bodies(viewport.selection, rel_drag_size, anchor_pt);
+		scale_bodies(viewport.selection, rel_drag_size, anchor_pt, this.localize_scale.checked);
 	}
 }
 

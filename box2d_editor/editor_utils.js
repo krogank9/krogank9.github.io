@@ -179,18 +179,21 @@ function rotate_bodies(bodies, degrees, localize) {
 	}
 }
 
-function scale_bodies(bodies, scale_vec, origin_vec) {
+function scale_bodies(bodies, scale_vec, origin_vec, localize) {
 	for(let i=0; i<bodies.length; i++) {
 		var body = bodies[i];
 		// Scale the body's position around the anchor
-		body.pos = body.pos.scale_around(origin_vec, scale_vec);
+		if(localize != true)
+			body.pos = body.pos.scale_around(origin_vec, scale_vec);
 		// Scale the body's vertices
 		for(let v=0; v<body.verts.length; v++) {
 			var vert = body.verts[v];
 			// Scale the vertices at their current rotated position
-			vert = vert.rotate_by(body.rotation);
+			if(localize != true)
+				vert = vert.rotate_by(body.rotation);
 			vert = vert.scale_by_vec(scale_vec);
-			vert = vert.rotate_by(body.rotation*-1);
+			if(localize != true)
+				vert = vert.rotate_by(body.rotation*-1);
 			body.verts[v] = vert;
 		}
 		body.aabb = calculate_aabb(body);
