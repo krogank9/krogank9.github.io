@@ -48,6 +48,18 @@ window.onkeydown = function(evt) {
 				break;
 			else if(evt.ctrlKey)
 				redo_one_command();
+			else if(current_tool == move_tool)
+				move_tool.move_y_axis.checked = !(move_tool.move_y_axis.checked);
+			else if(current_tool == scale_tool)
+				scale_tool.scale_y_axis.checked = !(scale_tool.scale_y_axis.checked);
+			break;
+		case key.X:
+			if(current_tool.edit_in_progress)
+				break;
+			if(current_tool == move_tool)
+				move_tool.move_x_axis.checked = !(move_tool.move_x_axis.checked);
+			else if(current_tool == scale_tool)
+				scale_tool.scale_x_axis.checked = !(scale_tool.scale_x_axis.checked);
 			break;
 		case DELETE_KEYCODE:
 			remove_bodies(bodies_to_indices(viewport.selection));

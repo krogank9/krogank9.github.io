@@ -501,15 +501,15 @@ box_tool.action_cancelled = function() {
 
 /*-------------
  * 
- * Polygon tool
+ * Joint tool
  *
  *------------*/
 
-polygon_tool.mousedown = function(evt) {
+joint_tool.mousedown = function(evt) {
 }
 
-polygon_tool.mousemove = function(evt) {
+joint_tool.mousemove = function(evt) {
 }
 
-polygon_tool.mouseup = function(evt) {
+joint_tool.mouseup = function(evt) {
 }
