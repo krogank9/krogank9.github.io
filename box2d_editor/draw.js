@@ -29,7 +29,7 @@ function animate() {
 	draw_grid( viewport.pos, viewport.zoom);
 	draw_axes( viewport.pos, viewport.zoom );
 	update_info_div();
-	draw_all_bodies();
+	draw_all_objects();
 	current_tool.draw()
 }
 
@@ -171,23 +171,93 @@ function draw_polygon(verts) {
 	graphics.endFill();
 }
 
-function draw_all_bodies() {
-	for(var i=0; i<world.bodies.length; i++) {
-		var body = world.bodies[i];
-		var verts = body_verts_to_canvas(body);
+function draw_joint(joint) {
+	var pos = viewport_to_canvas(joint.pos);
+	
+	// Draw arrows pointing to the attached bodies
+	if(viewport.selection.length == 1 && viewport.selection[0] === joint) {
+		var joint_pos = viewport_to_canvas(joint.pos);
+		if(joint.body_a != null) {
+			var body_pos = viewport_to_canvas(joint.body_a.pos);
+			var diff = body_pos.subtract(joint_pos);
+			var dist = diff.magnitude();
+			// Only draw the arrow if it is > 10 px away
+			if(dist > 10) {
+				// Draw an arrow 5 pixels long 5 away from the center
+				var offset = diff.normalize().scale(7);
+				var arrow = offset.scale(2);
+				var start = joint_pos.add(offset);
+				var end = joint_pos.add(offset).add(arrow);
+				draw_arrow(start,end,0x0000FF);
+			}
+		}
+		if(joint.body_b != null) {
+			var body_pos = viewport_to_canvas(joint.body_b.pos);
+			var diff = body_pos.subtract(joint_pos);
+			var dist = diff.magnitude();
+			// Only draw the arrow if it is > 10 px away
+			if(dist > 10) {
+				// Draw an arrow 5 pixels long 5 away from the center
+				var offset = diff.normalize().scale(7);
+				var arrow = offset.scale(2);
+				var start = joint_pos.add(offset);
+				var end = joint_pos.add(offset).add(arrow);
+				draw_arrow(start,end,0x0000FF);
+			}
+		}
+	}
+	
+	var color = 0x000000;
+	if( viewport.selection.some(function(sel) {return sel==joint}) )
+		color = 0xFF0000;
 		
-		draw_polygon(verts);
-
-		if( viewport.selection.some(function(sel) {return sel==body}) )
-			graphics.lineStyle(1, 0xFF0000);//red
-		else
-			graphics.lineStyle(1, 0x0000FF);//blue
-
-		if(body.aabb !== null && body.aabb !== 'undefined')
-			draw_aabb(body.aabb, true);
+	graphics.lineStyle(2, color);
+	graphics.beginFill(color,1);
+	
+	// draw an X for weld and revolute joints
+	if(joint.type == JOINT_TYPES.REVOLUTE || joint.type == JOINT_TYPES.WELD) {
+		graphics.moveTo(Math.round(pos.x - 5),Math.round(pos.y - 5));
+		graphics.lineTo(Math.round(pos.x + 5),Math.round(pos.y + 5));
+		
+		graphics.moveTo(Math.round(pos.x + 5),Math.round(pos.y - 5));
+		graphics.lineTo(Math.round(pos.x - 5),Math.round(pos.y + 5));
+		
+		graphics.endFill();
+		
+		// draw a circular arrow portraying joint angle limits
+		if(joint.type == JOINT_TYPES.REVOLUTE) {
+		}
 	}
 }
 
+function draw_body(body) {
+	var verts = body_verts_to_canvas(body);
+
+	draw_polygon(verts);
+
+	if( viewport.selection.some(function(sel) {return sel==body}) )
+		graphics.lineStyle(1, 0xFF0000);//red
+	else
+		graphics.lineStyle(1, 0x0000FF);//blue
+
+	if(body.aabb !== null
+	&& body.aabb !== 'undefined'
+	&& draw_aabbs.checked === true) {
+		draw_aabb(body.aabb, true);
+	}
+}
+
+function draw_all_objects() {
+	for(var i=0; i<world.objects.length; i++) {
+		var obj = world.objects[i];
+		if(obj.is_joint)
+			draw_joint(obj);
+		else
+			draw_body(obj);
+	}
+}
+
+var draw_aabbs = document.getElementById("draw_bounding_boxes");
 function draw_aabb(aabb, world_coords) {
 	graphics.beginFill(0,0);
 	var tmp = new AABB(aabb.min, aabb.max);

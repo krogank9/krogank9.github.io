@@ -59,8 +59,8 @@ function clear_redo_history() {
 // Base commands, these need undos:
 
 // Add an array of bodies to the world, with optional indices parameter
-// of where exactly to add them in the world.bodies array
-function add_bodies(bodies, opt_indices) {
+// of where exactly to add them in the world.objects array
+function add_objects(objects, opt_indices) {
 	clear_redo_history();
 	
 	var indices = [];
@@ -70,46 +70,50 @@ function add_bodies(bodies, opt_indices) {
 		has_indices = true;
 	}
 		
-	for(let i=0; i<bodies.length; i++) {
-		var body = bodies[i];
-		body.aabb = calculate_aabb(body);
+	for(let i=0; i<objects.length; i++) {
+		var obj = objects[i];
+		
+		if(obj.is_body == true)
+			obj.aabb = calculate_aabb(obj);
+			
 		var index;
 		if(has_indices) {
 			index = indices[i];
 		}
-		else {
-			// create index
-			index = world.bodies.length;
+		else { // object doesn't have a registered index, create one
+			index = world.objects.length;
 			indices.push(index);
 		}
-		world.bodies.splice(index, 0, body);
+		
+		world.objects.splice(index, 0, obj);
 	}
 	
 	var prev_selection = viewport.selection.slice();
-	viewport.selection = bodies;
+	viewport.selection = objects;
 	
 	var action = {
-		redo: function() { add_bodies(bodies, indices) },
+		redo: function() { add_objects(objects, indices) },
 		undo: function() {
-			remove_bodies(indices);
+			remove_objects(indices);
 			viewport.selection = prev_selection;
 		}
 	};
 	
 	undo_history.push(action);
 }
-function remove_bodies(indices) {
+function remove_objects(indices) {
 	clear_redo_history();
 	
-	var deleted_bodies = [];
-	// Filter bodies with matching indices to remove them
-	world.bodies = world.bodies.filter(function(body, index) {
+	var deleted_objects = [];
+	
+	// Filter bodies and remove the numbered indices listed
+	world.objects = world.objects.filter(function(obj, index) {
 		var to_filter = indices.some(function(elem) {
 			return index==elem;
 		});
 		
 		if(to_filter) {
-			deleted_bodies.push(body);
+			deleted_objects.push(obj);
 			return false;
 		} else {
 			return true;
@@ -120,9 +124,9 @@ function remove_bodies(indices) {
 	update_selection();
 	
 	var action = {
-		redo: function() { remove_bodies(indices) },
+		redo: function() { remove_objects(indices) },
 		undo: function() {
-			add_bodies(deleted_bodies, indices)
+			add_objects(deleted_objects, indices)
 			viewport.selection = prev_selection;
 		}
 	};
@@ -164,8 +168,8 @@ function set_selection(bodies) {
 
 // Some composite commands, no need for undoing because they are
 // made up of the base commands: 
-function duplicate_bodies(bodies) {
-	var copies = generate_duplicate_bodies(viewport.clipboard);
+function duplicate_objects(bodies) {
+	var copies = generate_duplicate_objects(viewport.clipboard);
 	var copypos = find_bodies_center(copies);
 	var curpos = find_bodies_center(viewport.selection);
 	var travel = curpos.subtract(copypos);
@@ -176,6 +180,6 @@ function duplicate_bodies(bodies) {
 		travel.x = 0;
 	if(move_tool.move_y_axis.checked == false)
 		travel.y = 0;
-	move_bodies(copies, travel);
-	add_bodies(copies);
+	move_objects(copies, travel);
+	add_objects(copies);
 }

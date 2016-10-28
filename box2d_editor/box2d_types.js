@@ -2,7 +2,7 @@ var world = {
 	gravity: -9.8,
 	velocity_iterations: 6,
 	position_iterations: 2,
-	bodies: [], joints: []
+	objects: []
 }
 
 var BODY_TYPES = { STATIC: 0, DYNAMIC: 1 }
@@ -13,6 +13,16 @@ function body(pos, rotation, verts) {
 	this.verts = verts;
 	this.density = 1.0;
 	this.friction = 0.3;
+	this.is_body = true;
+}
+
+var JOINT_TYPES = { REVOLUTE: 0, WELD: 1 }
+function joint(pos, type, body_a, body_b) {
+	this.pos = pos || new vec();
+	this.body_a = body_a || null;
+	this.body_b = body_b || null;
+	this.type = type || JOINT_TYPES.REVOLUTE;
+	this.is_joint = true;
 }
 
 function AABB(min, max) {
@@ -38,16 +48,21 @@ function calculate_aabb(body) {
 	return aabb;
 }
 
-function find_aabb_around(bodies) {
-	if(bodies.length == 0)
+function find_aabb_around(objects) {
+	if(objects.length == 0)
 		return null;
 	
-	var all_aabb = copy_aabb(bodies[0].aabb);
-
+	var all_aabb = new AABB(objects[0].pos, objects[0].pos);
+	
 	// enlarge the AABB to encompass all verts
-	bodies.forEach( function(body) {
-		all_aabb = all_aabb.expand(body.aabb.min);
-		all_aabb = all_aabb.expand(body.aabb.max);
+	objects.forEach( function(obj) {
+		if(obj.is_body) {
+			all_aabb = all_aabb.expand(obj.aabb.min);
+			all_aabb = all_aabb.expand(obj.aabb.max);
+		}
+		else if(obj.is_joint) {
+			all_aabb = all_aabb.expand(obj.pos);
+		}
 	});
 	
 	return all_aabb;

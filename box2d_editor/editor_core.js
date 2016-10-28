@@ -34,7 +34,7 @@ window.onkeydown = function(evt) {
 				if(evt.shiftKey)
 					set_selection([]);
 				else
-					set_selection(world.bodies);
+					set_selection(world.objects);
 			}
 			break;
 		case key.Z:
@@ -62,15 +62,15 @@ window.onkeydown = function(evt) {
 				scale_tool.scale_x_axis.checked = !(scale_tool.scale_x_axis.checked);
 			break;
 		case DELETE_KEYCODE:
-			remove_bodies(bodies_to_indices(viewport.selection));
+			remove_objects(bodies_to_indices(viewport.selection));
 			break;
 		case key.C:
 			if(evt.ctrlKey && viewport.selection.length > 0)
-				viewport.clipboard = generate_duplicate_bodies(viewport.selection);
+				viewport.clipboard = generate_duplicate_objects(viewport.selection);
 			break;
 		case key.V:
 			if(evt.ctrlKey && viewport.clipboard.length > 0) {
-				duplicate_bodies(viewport.clipboard);
+				duplicate_objects(viewport.clipboard);
 			}
 			break;
 		case key.S:
@@ -88,6 +88,9 @@ window.onkeydown = function(evt) {
 			break;
 		case key.B:
 			set_current_tool("Box");
+			break;
+		case key.J:
+			set_current_tool("Joint");
 			break;
 	}
 }

@@ -180,14 +180,27 @@
 					<br>
 					<input type="checkbox" id="localize_scale">Localize scale</input>
 				</div>
-				<div id="Box_options" class="tool_options_tab" style="display:none"></div>
+				<div id="Box_options" class="tool_options_tab" style="display:none">
+					<input type="radio" id="box_type_dynamic" name="box_type" checked>Dynamic</input>
+					<br>
+					<input type="radio" id="box_type_static" name="box_type">Static</input>
+				</div>
 				<div id="Polygon_options" class="tool_options_tab" style="display:none"></div>
-				<div id="Joint_options" class="tool_options_tab" style="display:none"></div>
+				<div id="Joint_options" class="tool_options_tab" style="display:none">
+					<div style="width: 200px">
+						Select two bodies and use the mouse to create a joint.
+					</div>
+					<br>
+					<select>
+						<option value="Revolute">Revolute</option>
+						<option value="Weld">Weld</option>
+					</select>
+				</div>
 			</div>
 		</div>
 		<div id="bottombar">
+			<input type="checkbox" id="draw_bounding_boxes" checked>Draw bounding boxes</input>
 			<span id="document_info">&nbsp;</span>
-			<input type="checkbox">Draw bounding boxes</input>
 		</div>
 		<canvas id="editor_canvas"></canvas>
 		

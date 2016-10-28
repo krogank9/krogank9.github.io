@@ -126,7 +126,7 @@ move_tool.move_flip_x.onclick = function() {
 	var save_state = save_transforms(viewport.selection);
 	var cur_pos = find_bodies_center(viewport.selection);
 	var travel = new vec(cur_pos.x*-2, 0);
-	move_bodies(viewport.selection, travel);
+	move_objects(viewport.selection, travel);
 	commit_transform(save_state, save_transforms(viewport.selection));
 }
 move_tool.move_flip_y.onclick = function() {
@@ -135,7 +135,7 @@ move_tool.move_flip_y.onclick = function() {
 	var save_state = save_transforms(viewport.selection);
 	var cur_pos = find_bodies_center(viewport.selection);
 	var travel = new vec(0, cur_pos.y*-2);
-	move_bodies(viewport.selection, travel);
+	move_objects(viewport.selection, travel);
 	commit_transform(save_state, save_transforms(viewport.selection));
 }
 
@@ -184,7 +184,7 @@ move_tool.mousemove = function(evt) {
 			var new_travel = next_pos.subtract(cur_pos);
 			travel = new_travel;
 		}
-		move_bodies(viewport.selection, travel);
+		move_objects(viewport.selection, travel);
 	}
 }
 
@@ -245,21 +245,21 @@ rotate_tool.rotate_45.onclick = function() {
 	if(viewport.selection.length == 0)
 		return;
 	var save = save_transforms(viewport.selection);
-	rotate_bodies(viewport.selection, -45, rotate_tool.localize_rotation.checked);
+	rotate_objects(viewport.selection, -45, rotate_tool.localize_rotation.checked);
 	commit_transform(save, save_transforms(viewport.selection));
 }
 rotate_tool.rotate_90.onclick = function() {
 	if(viewport.selection.length == 0)
 		return;
 	var save = save_transforms(viewport.selection);
-	rotate_bodies(viewport.selection, -90, rotate_tool.localize_rotation.checked);
+	rotate_objects(viewport.selection, -90, rotate_tool.localize_rotation.checked);
 	commit_transform(save, save_transforms(viewport.selection));
 }
 rotate_tool.rotate_180.onclick = function() {
 	if(viewport.selection.length == 0)
 		return;
 	var save = save_transforms(viewport.selection);
-	rotate_bodies(viewport.selection, -180, rotate_tool.localize_rotation.checked);
+	rotate_objects(viewport.selection, -180, rotate_tool.localize_rotation.checked);
 	commit_transform(save, save_transforms(viewport.selection));
 }
 
@@ -282,7 +282,7 @@ rotate_tool.mousemove = function(evt) {
 		var start_off = world_mouse_start.subtract(center);
 		var end_off = world_mouse_end.subtract(center);
 		var rot_amount = end_off.angle() - start_off.angle();
-		rotate_bodies(selection, rot_amount, this.localize_rotation.checked);
+		rotate_objects(selection, rot_amount, this.localize_rotation.checked);
 	}
 }
 
@@ -328,7 +328,7 @@ scale_tool.scale_flip_x.onclick = function() {
 	var save_state = save_transforms(viewport.selection);
 	var scale = new vec(-1.0, 1.0);
 	var center = find_bodies_center(viewport.selection);
-	scale_bodies(viewport.selection, scale, center, scale_tool.localize_scale.checked);
+	scale_objects(viewport.selection, scale, center, scale_tool.localize_scale.checked);
 	commit_transform(save_state, save_transforms(viewport.selection));
 }
 scale_tool.scale_flip_y.onclick = function() {
@@ -337,7 +337,7 @@ scale_tool.scale_flip_y.onclick = function() {
 	var save_state = save_transforms(viewport.selection);
 	var scale = new vec(1.0, -1.0);
 	var center = find_bodies_center(viewport.selection);
-	scale_bodies(viewport.selection, scale, center, scale_tool.localize_scale.checked);
+	scale_objects(viewport.selection, scale, center, scale_tool.localize_scale.checked);
 	commit_transform(save_state, save_transforms(viewport.selection));
 }
 
@@ -390,7 +390,7 @@ scale_tool.mousemove = function(evt) {
 			var avg = (rel_drag_size.x + rel_drag_size.y)/2;
 			rel_drag_size.x = rel_drag_size.y = avg;
 		}
-		scale_bodies(viewport.selection, rel_drag_size, anchor_pt, this.localize_scale.checked);
+		scale_objects(viewport.selection, rel_drag_size, anchor_pt, this.localize_scale.checked);
 	}
 }
 
@@ -452,7 +452,7 @@ box_tool.mousedown = function(evt) {
 	var pos = canvas_to_viewport(cur_mouse_pos);
 	this.cur_box = new body(pos, 0, verts);
 	this.cur_box.aabb = null;
-	world.bodies.push( this.cur_box );
+	world.objects.push( this.cur_box );
 	this.start_pos = copy_vec(cur_mouse_pos);
 };
 box_tool.mousemove = function(evt) {
@@ -485,16 +485,16 @@ box_tool.mouseup = function(evt) {
 	this.edit_in_progress = false;
 	if(this.cur_box == null)
 		return;
-	var new_box = world.bodies.pop();
+	var new_box = world.objects.pop();
 	var dist = cur_mouse_pos.subtract(this.start_pos).magnitude();
 	if(dist >= 10)
-		add_bodies([new_box]);
+		add_objects([new_box]);
 	this.cur_box = null;
 };
 box_tool.draw = function() {};
 box_tool.action_cancelled = function() {
 	if(this.cur_box != null)
-		world.bodies.pop();
+		world.objects.pop();
 	this.cur_box = null;
 };
 
@@ -506,6 +506,16 @@ box_tool.action_cancelled = function() {
  *------------*/
 
 joint_tool.mousedown = function(evt) {
+	if(viewport.selection.length !== 2)
+		return;
+	var b0 = viewport.selection[0];
+	var b1 = viewport.selection[1];
+	if(b0.is_body == false
+	|| b1.is_body == false)
+		return;
+	var pos = canvas_to_viewport(cur_mouse_pos);
+	var j = new joint(pos, JOINT_TYPES.REVOLUTE, b0, b1);
+	add_objects([j]);
 }
 
 joint_tool.mousemove = function(evt) {
