@@ -181,6 +181,9 @@
 					<input type="checkbox" id="localize_scale">Localize scale</input>
 				</div>
 				<div id="Box_options" class="tool_options_tab" style="display:none">
+					Density: 
+					<input type="number" id="box_density" value="1.0" step="0.1" style="width: 50px"></input>
+					<br>
 					<input type="radio" id="box_type_dynamic" name="box_type" checked>Dynamic</input>
 					<br>
 					<input type="radio" id="box_type_static" name="box_type">Static</input>
@@ -199,7 +202,6 @@
 			</div>
 		</div>
 		<div id="bottombar">
-			<input type="checkbox" id="draw_bounding_boxes" checked>Draw bounding boxes</input>
 			<span id="document_info">&nbsp;</span>
 		</div>
 		<canvas id="editor_canvas"></canvas>

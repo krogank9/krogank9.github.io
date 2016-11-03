@@ -35,19 +35,24 @@ window.onkeydown = function(evt) {
 					set_selection([]);
 				else
 					set_selection(world.objects);
+				evt.preventDefault();
 			}
 			break;
 		case key.Z:
 			if(undo_locked || current_tool.edit_in_progress)
 				break;
-			else if(evt.ctrlKey)
+			else if(evt.ctrlKey) {
 				undo_one_command();
+				evt.preventDefault();
+			}
 			break;
 		case key.Y:
-			if(current_tool.edit_in_progress)
+			if(undo_locked || current_tool.edit_in_progress)
 				break;
-			else if(evt.ctrlKey)
+			else if(evt.ctrlKey) {
 				redo_one_command();
+				evt.preventDefault();
+			}
 			else if(current_tool == move_tool)
 				move_tool.move_y_axis.checked = !(move_tool.move_y_axis.checked);
 			else if(current_tool == scale_tool)
@@ -63,14 +68,17 @@ window.onkeydown = function(evt) {
 			break;
 		case DELETE_KEYCODE:
 			remove_objects(bodies_to_indices(viewport.selection));
+			evt.preventDefault();
 			break;
 		case key.C:
 			if(evt.ctrlKey && viewport.selection.length > 0)
 				viewport.clipboard = generate_duplicate_objects(viewport.selection);
+				evt.preventDefault();
 			break;
 		case key.V:
 			if(evt.ctrlKey && viewport.clipboard.length > 0) {
 				duplicate_objects(viewport.clipboard);
+				evt.preventDefault();
 			}
 			break;
 		case key.S:

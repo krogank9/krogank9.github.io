@@ -479,6 +479,11 @@ box_tool.mousemove = function(evt) {
 	verts[3].x = -half_width;
 	verts[3].y = -half_height;//bottom left
 };
+
+var box_density = document.getElementById("box_density");
+var box_type_static = document.getElementById("box_type_static");
+var box_type_dynamic = document.getElementById("box_type_dynamic");
+
 box_tool.mouseup = function(evt) {
 	if(this.edit_in_progress == false)
 		return;
@@ -486,6 +491,8 @@ box_tool.mouseup = function(evt) {
 	if(this.cur_box == null)
 		return;
 	var new_box = world.objects.pop();
+	new_box.density = parseFloat(box_density.value) || 0;
+	new_box.type = box_type_static.checked === true ? 0 : 1; // 0 is static 1 is dynamic; enum
 	var dist = cur_mouse_pos.subtract(this.start_pos).magnitude();
 	if(dist >= 10)
 		add_objects([new_box]);

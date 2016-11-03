@@ -240,9 +240,7 @@ function draw_body(body) {
 	else
 		graphics.lineStyle(1, 0x0000FF);//blue
 
-	if(body.aabb !== null
-	&& body.aabb !== 'undefined'
-	&& draw_aabbs.checked === true) {
+	if(body.aabb !== null && body.aabb !== 'undefined') {
 		draw_aabb(body.aabb, true);
 	}
 }
@@ -257,7 +255,6 @@ function draw_all_objects() {
 	}
 }
 
-var draw_aabbs = document.getElementById("draw_bounding_boxes");
 function draw_aabb(aabb, world_coords) {
 	graphics.beginFill(0,0);
 	var tmp = new AABB(aabb.min, aabb.max);

@@ -214,24 +214,26 @@ function generate_duplicate_objects(objects) {
 	// Next, loop through and duplicate all joints and attach to the new bodies
 	var joints = filter_joints(objects);
 	for(let i=0; i<joints.length; i++) {
-		var joint = joints[i];
-		if(joint.body_a !== null) {
-			// Check if the joints body is in the original array
-			var index = search_arr(objects, joint.body_a);
-			if(index > -1) {
-				// If it is, attach it to the new body.
-				var new_body = duplicates[objects[index].new_index]
-				joint.body_a = new_body;
-			}
-		}
-		if(joint.body_b !== null) {
-			var index = search_arr(objects, joint.body_b);
+		var new_joint = copy_joint(joints[i]);
+		
+		// For each joint, check if either of the joint's bodies was in 
+		// the array of objects to be copied. If so, a new body was generated.
+		// So attach the joint to the new body.
+		if(new_joint.body_a !== null) {
+			var index = search_arr(objects, new_joint.body_a);
 			if(index > -1) {
 				var new_body = duplicates[objects[index].new_index]
-				joint.body_b = new_body;
+				new_joint.body_a = new_body;
 			}
 		}
-		duplicates.push( copy_joint(joint) );
+		if(new_joint.body_b !== null) {
+			var index = search_arr(objects, new_joint.body_b);
+			if(index > -1) {
+				var new_body = duplicates[objects[index].new_index]
+				new_joint.body_b = new_body;
+			}
+		}
+		duplicates.push( new_joint );
 	}
 	return duplicates;
 }
@@ -252,8 +254,10 @@ function rotate_objects(objects, degrees, localize) {
 		var obj = objects[i];
 		if(localize !== true)
 			obj.pos = obj.pos.rotate_around(center, degrees);
+		
+		obj.rotation += degrees;
+		
 		if(obj.is_body == true) {
-			obj.rotation += degrees;
 			obj.aabb = calculate_aabb(obj);
 		}
 	}
@@ -316,7 +320,7 @@ function filter_joints(objects) {
 	var filtered = [];
 	for(let i=0; i<objects.length; i++) {
 		var obj = objects[i];
-		if(obj.is_joint == true)
+		if(obj.is_joint === true)
 			filtered.push(obj);
 	}
 	return filtered;
@@ -326,7 +330,7 @@ function filter_bodies(objects) {
 	var filtered = [];
 	for(let i=0; i<objects.length; i++) {
 		var obj = objects[i];
-		if(obj.is_body == true)
+		if(obj.is_body === true)
 			filtered.push(obj);
 	}
 	return filtered;
