@@ -131,7 +131,8 @@ function indices_to_bodies(indices) {
 	}
 	return bodies;
 }
-function bodies_to_indices(bodies) {
+
+function objects_to_indices(bodies) {
 	var indices = [];
 	for(let i=0; i<bodies.length; i++) {
 		var body = bodies[i];

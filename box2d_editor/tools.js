@@ -2,14 +2,20 @@ $("[name='tool_button']").change(function() {
 	if(this.checked)
 		set_current_tool(this.value);
 });
+
+$("#joint_select").change(function() {
+	set_current_joint(this.value);
+});
+
 $( document ).ready(function() {
 	document.getElementById("select_tool").checked = true;
 	set_current_tool("Select");
+	set_current_joint("Revolute");
 });
 
 function set_current_tool(name) {
-	var radio = "#" + name.toLowerCase() + "_tool";
-	$(radio).prop('checked', true);
+	var radio_name = "#" + name.toLowerCase() + "_tool";
+	$(radio_name).prop('checked', true);
 	
 	$("#tool_options_label").html(name + " Options");
 	$(".tool_options_tab").css({display: "none"});
@@ -21,6 +27,17 @@ function set_current_tool(name) {
 	current_tool.tool_selected();
 	
 	current_tool.edit_in_progress = false;
+}
+
+function set_current_joint(name) {
+	$("#joint_select").val(name);
+	
+	$(".joint_options").css({display: "none"});
+	var current_joint_tab = "#" + name + "_options";
+	$(current_joint_tab).css({display: "block"});
+	
+	current_tool.action_cancelled();
+	current_joint = name;
 }
 
 function tool() {
@@ -50,6 +67,7 @@ var tools_list = {
 	"Joint": joint_tool
 };
 var current_tool = tools_list["Select"];
+var current_joint = "Revolute";
 
 /*-------------
  * 

@@ -41,7 +41,7 @@
 			}
 			.toolbox_label {
 				cursor: default;
-				background-color: inherit;
+				background-color: #f0f0f0;
 				padding-right:3px;
 				position: relative;
 				left:10px;
@@ -114,6 +114,14 @@
 			
 			.button_held_down {
 				background: "linear-gradient(#ffffff,#68b3db)";
+			}
+			
+			.div_hr_rule {
+				height: 0px;
+				margin-top: 10px;
+				margin-bottom: 10px;
+				border-top: 1px solid #d5dfe5;
+				border-bottom: 1px solid #ffffff;
 			}
 		</style>
 	</head>
@@ -194,10 +202,21 @@
 						Select two bodies and use the mouse to create a joint.
 					</div>
 					<br>
-					<select>
+					<select id="joint_select">
 						<option value="Revolute">Revolute</option>
 						<option value="Weld">Weld</option>
 					</select>
+					<div id="Revolute_options" class="joint_options">
+						<div class="div_hr_rule"></div>
+						
+						<input type="checkbox">Joint limit</input>
+						<div style="height:10px"></div>
+						<input type="number" value="0" step="1" style="width: 40px" min="0" max="360"> Lower Angle</input>
+						<div style="height:5px"></div>
+						<input type="number" value="360" step="1" style="width: 40px" min="0" max="360"> Upper Angle</input>
+					</div>
+					<div id="Weld_options" class="joint_options" style="display:none">
+					</div>
 				</div>
 			</div>
 		</div>

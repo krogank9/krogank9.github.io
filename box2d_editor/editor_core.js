@@ -67,7 +67,7 @@ window.onkeydown = function(evt) {
 				scale_tool.scale_x_axis.checked = !(scale_tool.scale_x_axis.checked);
 			break;
 		case DELETE_KEYCODE:
-			remove_objects(bodies_to_indices(viewport.selection));
+			remove_objects(objects_to_indices(viewport.selection));
 			evt.preventDefault();
 			break;
 		case key.C:

@@ -177,7 +177,8 @@ function draw_joint(joint) {
 	// Draw arrows pointing to the attached bodies
 	if(viewport.selection.length == 1 && viewport.selection[0] === joint) {
 		var joint_pos = viewport_to_canvas(joint.pos);
-		if(joint.body_a != null) {
+		if(joint.body_a != null
+		&& world.objects.some(function(elem){return elem===joint.body_a})) {
 			var body_pos = viewport_to_canvas(joint.body_a.pos);
 			var diff = body_pos.subtract(joint_pos);
 			var dist = diff.magnitude();
@@ -191,7 +192,8 @@ function draw_joint(joint) {
 				draw_arrow(start,end,0x0000FF);
 			}
 		}
-		if(joint.body_b != null) {
+		if(joint.body_b != null
+		&& world.objects.some(function(elem){return elem===joint.body_b})) {
 			var body_pos = viewport_to_canvas(joint.body_b.pos);
 			var diff = body_pos.subtract(joint_pos);
 			var dist = diff.magnitude();
