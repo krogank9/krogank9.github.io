@@ -16,7 +16,7 @@ function body(pos, rotation, verts) {
 	this.is_body = true;
 }
 
-var JOINT_TYPES = { REVOLUTE: 0, WELD: 1 }
+var JOINT_TYPES = { "Revolute": 0, "Weld": 1 }
 function joint(pos, type, body_a, body_b) {
 	this.pos = pos || new vec();
 	this.rotation = 0;
@@ -25,7 +25,7 @@ function joint(pos, type, body_a, body_b) {
 	this.upper_angle = 360;
 	this.body_a = body_a || null;
 	this.body_b = body_b || null;
-	this.type = type || JOINT_TYPES.REVOLUTE;
+	this.type = type || 0;
 	this.is_joint = true;
 }
 

@@ -174,8 +174,10 @@ function draw_polygon(verts) {
 function draw_joint(joint) {
 	var pos = viewport_to_canvas(joint.pos);
 	
+	var joint_selected = (viewport.selection.length == 1 && viewport.selection[0] === joint);
+	
 	// Draw arrows pointing to the attached bodies
-	if(viewport.selection.length == 1 && viewport.selection[0] === joint) {
+	if(joint_selected) {
 		var joint_pos = viewport_to_canvas(joint.pos);
 		if(joint.body_a != null
 		&& world.objects.some(function(elem){return elem===joint.body_a})) {
@@ -216,8 +218,9 @@ function draw_joint(joint) {
 	graphics.lineStyle(2, color);
 	graphics.beginFill(color,1);
 	
-	// draw an X for weld and revolute joints
-	if(joint.type == JOINT_TYPES.REVOLUTE || joint.type == JOINT_TYPES.WELD) {
+	// Draw the representation for a joint, all joints are represented with
+	// atleast an X
+	if(joint.type == JOINT_TYPES["Revolute"] || joint.type == JOINT_TYPES["Weld"]) {
 		graphics.moveTo(Math.round(pos.x - 5),Math.round(pos.y - 5));
 		graphics.lineTo(Math.round(pos.x + 5),Math.round(pos.y + 5));
 		
@@ -226,8 +229,16 @@ function draw_joint(joint) {
 		
 		graphics.endFill();
 		
-		// draw a circular arrow portraying joint angle limits
-		if(joint.type == JOINT_TYPES.REVOLUTE) {
+		// draw a circle portraying joint angle limits
+		if(joint.type === JOINT_TYPES["Revolute"] && joint_selected) {
+			graphics.beginFill(0,0);
+			graphics.lineStyle(1, 0);
+			var radius = 20;
+			graphics.moveTo(pos.x,pos.y);
+			graphics.arc(pos.x, pos.y, radius,
+				(joint.lower_angle-joint.rotation)/rad2deg,
+				(joint.upper_angle-joint.rotation)/rad2deg
+			);
 		}
 	}
 }

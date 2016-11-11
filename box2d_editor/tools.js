@@ -530,17 +530,33 @@ box_tool.action_cancelled = function() {
  *
  *------------*/
 
+var enable_joint_limit = document.getElementById("enable_joint_limit");
+var lower_joint_limit = document.getElementById("lower_joint_limit");
+var upper_joint_limit = document.getElementById("upper_joint_limit");
+
 joint_tool.mousedown = function(evt) {
 	if(viewport.selection.length !== 2)
 		return;
 	var b0 = viewport.selection[0];
 	var b1 = viewport.selection[1];
-	if(b0.is_body == false
-	|| b1.is_body == false)
+	if(b0.is_body == false || b1.is_body == false)
 		return;
 	var pos = canvas_to_viewport(cur_mouse_pos);
-	var j = new joint(pos, JOINT_TYPES.REVOLUTE, b0, b1);
-	add_objects([j]);
+	switch(current_joint) {
+		case "Revolute":
+			var j = new joint(pos, JOINT_TYPES["Revolute"], b0, b1);
+			if(enable_joint_limit.checked === true) {
+				j.enable_limit = true;
+				j.lower_angle = parseFloat(lower_joint_limit.value) || 0;
+				j.upper_angle = parseFloat(upper_joint_limit.value) || 0;
+			}
+			add_objects([j]);
+			break;
+		case "Weld":
+			var j = new joint(pos, JOINT_TYPES["Weld"], b0, b1);
+			add_objects([j]);
+			break;
+	}
 }
 
 joint_tool.mousemove = function(evt) {

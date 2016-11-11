@@ -167,6 +167,7 @@ function save_transforms(objects) {
 			obj_info.rotation = object.rotation;
 		} else if(object.is_joint) {
 			obj_info.joint = object;
+			obj_info.rotation = object.rotation;
 		}
 		save_state.push(obj_info);
 	}
@@ -186,6 +187,7 @@ function restore_transforms(save_state) {
 		else if(save.is_joint == true) {
 			var joint = save.joint;
 			joint.pos = copy_vec(save.pos);
+			joint.rotation = save.rotation; 
 		}
 	}
 }

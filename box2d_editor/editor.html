@@ -209,11 +209,11 @@
 					<div id="Revolute_options" class="joint_options">
 						<div class="div_hr_rule"></div>
 						
-						<input type="checkbox">Joint limit</input>
+						<input type="checkbox" id="enable_joint_limit">Joint limit</input>
 						<div style="height:10px"></div>
-						<input type="number" value="0" step="1" style="width: 40px" min="0" max="360"> Lower Angle</input>
+						<input id="lower_joint_limit" type="number" value="0" step="1" style="width: 40px" min="0" max="360"> Lower Angle</input>
 						<div style="height:5px"></div>
-						<input type="number" value="360" step="1" style="width: 40px" min="0" max="360"> Upper Angle</input>
+						<input id="upper_joint_limit" type="number" value="360" step="1" style="width: 40px" min="0" max="360"> Upper Angle</input>
 					</div>
 					<div id="Weld_options" class="joint_options" style="display:none">
 					</div>
