@@ -234,11 +234,22 @@ function draw_joint(joint) {
 			graphics.beginFill(0,0);
 			graphics.lineStyle(1, 0);
 			var radius = 20;
-			graphics.moveTo(pos.x,pos.y);
+			var circle_start = new vec(radius-0.1,0);
+			circle_start = circle_start.rotate_by(joint.lower_angle+joint.rotation*-1);
+			graphics.moveTo(pos.x+circle_start.x,pos.y+circle_start.y);
 			graphics.arc(pos.x, pos.y, radius,
 				(joint.lower_angle-joint.rotation)/rad2deg,
 				(joint.upper_angle-joint.rotation)/rad2deg
 			);
+			if(joint.enable_limit === true) {
+				var c_start = new vec(radius, 0);
+				c_start = c_start.rotate_by(joint.lower_angle - joint.rotation);
+				var c_end = new vec(radius, 0);
+				c_end = c_end.rotate_by(joint.upper_angle - joint.rotation);
+				graphics.beginFill(1,1);
+				graphics.drawCircle(pos.x+c_start.x, pos.y+c_start.y, 2);
+				graphics.drawCircle(pos.x+c_end.x, pos.y+c_end.y, 2);
+			}
 		}
 	}
 }

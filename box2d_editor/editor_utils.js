@@ -168,6 +168,8 @@ function save_transforms(objects) {
 		} else if(object.is_joint) {
 			obj_info.joint = object;
 			obj_info.rotation = object.rotation;
+			obj_info.lower_angle = object.lower_angle;
+			obj_info.upper_angle = object.upper_angle;
 		}
 		save_state.push(obj_info);
 	}
@@ -187,7 +189,9 @@ function restore_transforms(save_state) {
 		else if(save.is_joint == true) {
 			var joint = save.joint;
 			joint.pos = copy_vec(save.pos);
-			joint.rotation = save.rotation; 
+			joint.rotation = save.rotation;
+			joint.lower_angle = save.lower_angle;
+			joint.upper_angle = save.upper_angle;
 		}
 	}
 }
@@ -283,8 +287,23 @@ function scale_objects(objects, scale_vec, origin_vec, localize) {
 				vert = vert.rotate_by(obj.rotation*-1);
 			obj.verts[v] = vert;
 		}
-		if(obj.is_body == true)
+		if(obj.is_body == true) {
 			obj.aabb = calculate_aabb(obj);
+		}
+		else if(obj.is_joint == true && obj.enable_limit === true) {
+			if(scale_vec.x < 0) {
+				//obj.rotation = mirror_angle_h(obj.rotation);
+				obj.lower_angle = mirror_angle_h(obj.lower_angle); 
+				obj.upper_angle = mirror_angle_h(obj.upper_angle); 
+				swap_joint_angle_limits(obj);
+			}
+			if(scale_vec.y < 0) {
+				//obj.rotation = mirror_angle_v(obj.rotation);
+				obj.lower_angle = mirror_angle_v(obj.lower_angle); 
+				obj.upper_angle = mirror_angle_v(obj.upper_angle); 
+				swap_joint_angle_limits(obj);
+			}
+		}
 	}
 }
 
@@ -337,4 +356,10 @@ function filter_bodies(objects) {
 			filtered.push(obj);
 	}
 	return filtered;
+}
+
+function swap_joint_angle_limits(joint) {
+	var tmp = joint.lower_angle;
+	joint.lower_angle = joint.upper_angle;
+	joint.upper_angle = tmp;
 }
