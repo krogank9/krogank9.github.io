@@ -203,6 +203,10 @@ function copy_body(b) {
 }
 function copy_joint(j) {
 	var copy = new joint(copy_vec(j.pos), j.type, j.body_a, j.body_b);
+	copy.lower_angle = j.lower_angle;
+	copy.upper_angle = j.upper_angle;
+	copy.enable_limit = j.enable_limit
+	copy.rotation = j.rotation;
 	return copy;
 }
 

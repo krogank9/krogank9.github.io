@@ -152,6 +152,42 @@ function draw_grid(pos, zoom) {
 	graphics.endFill();
 }
 
+function draw_letter_a(pos) {
+	graphics.lineStyle(2, 0);
+	var top = pos.y-12;
+	var bottom = pos.y+12;
+	var left = pos.x-7;
+	var right = pos.x+7;
+	
+	var midline_y = (top+bottom)/2;
+	var midline_x1 = (pos.x+left)/2;
+	var midline_x2 = (pos.x+right)/2;
+
+	graphics.moveTo(left, bottom);
+	graphics.lineTo(pos.x, top);
+	graphics.lineTo(right, bottom);
+	
+	graphics.moveTo(midline_x1, midline_y);
+	graphics.lineTo(midline_x2, midline_y);
+}
+
+function draw_letter_b(pos) {
+	graphics.lineStyle(2, 0);
+	var top = pos.y-12;
+	var bottom = pos.y+12;
+	var left_side = pos.x-7;
+	var midpoint = (top+bottom)/2;
+	var upper_hoop = (midpoint+top)/2;
+	var lower_hoop = (midpoint+bottom)/2;
+	
+	graphics.moveTo(pos.x, top);
+	graphics.lineTo(pos.x, bottom);
+	
+	var radius = (bottom-top)/4;
+	graphics.arc(pos.x, upper_hoop, radius, -90/rad2deg, 90/rad2deg);
+	graphics.arc(pos.x, lower_hoop, radius, -90/rad2deg, 90/rad2deg);
+}
+
 function draw_selection_box(aabb) {
 	graphics.lineStyle(1, 0x0000FF);
 	draw_aabb(aabb);
@@ -193,6 +229,8 @@ function draw_joint(joint) {
 				var end = joint_pos.add(offset).add(arrow);
 				draw_arrow(start,end,0x0000FF);
 			}
+			
+			draw_letter_a(body_pos);
 		}
 		if(joint.body_b != null
 		&& world.objects.some(function(elem){return elem===joint.body_b})) {
@@ -208,6 +246,8 @@ function draw_joint(joint) {
 				var end = joint_pos.add(offset).add(arrow);
 				draw_arrow(start,end,0x0000FF);
 			}
+			
+			draw_letter_b(body_pos);
 		}
 	}
 	
@@ -233,7 +273,7 @@ function draw_joint(joint) {
 		if(joint.type === JOINT_TYPES["Revolute"] && joint_selected) {
 			graphics.beginFill(0,0);
 			graphics.lineStyle(1, 0);
-			var radius = 20;
+			var radius = 35;
 			var circle_start = new vec(radius-0.1,0);
 			circle_start = circle_start.rotate_by(joint.lower_angle+joint.rotation*-1);
 			graphics.moveTo(pos.x+circle_start.x,pos.y+circle_start.y);
