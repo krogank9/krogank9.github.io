@@ -106,6 +106,11 @@ function remove_objects(indices) {
 	
 	var deleted_objects = [];
 	
+	var objects = indices_to_objects(indices);
+	// Delete joints when deleting the bodies they are attached to
+	objects = add_joints_to_objects(objects);
+	indices = objects_to_indices(objects);
+	
 	// Filter bodies and remove the numbered indices listed
 	world.objects = world.objects.filter(function(obj, index) {
 		var to_filter = indices.some(function(elem) {

@@ -124,19 +124,19 @@ function find_object_index(obj) {
 	return -1;
 }
 
-function indices_to_bodies(indices) {
-	var bodies = [];
+function indices_to_objects(indices) {
+	var objects = [];
 	for(let i=0; i<indices.length; i++) {
-		bodies.push( indices[i] );
+		objects.push( world.objects[indices[i]] );
 	}
-	return bodies;
+	return objects;
 }
 
-function objects_to_indices(bodies) {
+function objects_to_indices(objects) {
 	var indices = [];
-	for(let i=0; i<bodies.length; i++) {
-		var body = bodies[i];
-		var index = find_object_index(body);
+	for(let i=0; i<objects.length; i++) {
+		var obj = objects[i];
+		var index = find_object_index(obj);
 		if(index != -1)
 			indices.push( index );
 	}
@@ -362,4 +362,54 @@ function swap_joint_angle_limits(joint) {
 	var tmp = joint.lower_angle;
 	joint.lower_angle = joint.upper_angle;
 	joint.upper_angle = tmp;
+}
+
+function filter_arr_duplicates(a) {
+    var seen = {};
+    var out = [];
+    var len = a.length;
+    var j = 0;
+    for(var i = 0; i < len; i++) {
+         var item = a[i];
+         if(seen[item] !== 1) {
+               seen[item] = 1;
+               out[j++] = item;
+         }
+    }
+    return out;
+}
+
+function arr_filter_duplicates(arr) {
+	var out = [];
+	for(let i=0; i<arr.length; i++) {
+		var elem = arr[i];
+		if(search_arr(out, elem) === -1)
+			out.push(elem);
+	}
+	return out;
+}
+
+function get_attached_joints(body) {
+	if(body === null || body.is_body !== true)
+		return [];
+	var joints = [];
+	for(let i=0; i<world.objects.length; i++) {
+		var obj = world.objects[i];
+		if(obj.is_joint) {
+			if(obj.body_a === body || obj.body_b === body)
+				joints.push(obj);
+		}
+	}
+	return joints;
+}
+
+function add_joints_to_objects(objects) {
+	var joints = [];
+	for(let i=0; i<objects.length; i++) {
+		if(objects[i].is_body === true) {
+			var body = objects[i];
+			joints = joints.concat( get_attached_joints(body) );
+		}
+	}
+	return objects.concat(joints);
 }
