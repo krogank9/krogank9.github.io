@@ -530,6 +530,7 @@ box_tool.action_cancelled = function() {
  *
  *------------*/
 
+var joint_collide_connected = document.getElementById("joint_collide_connected");
 var enable_joint_limit = document.getElementById("enable_joint_limit");
 var lower_joint_limit = document.getElementById("lower_joint_limit");
 var upper_joint_limit = document.getElementById("upper_joint_limit");
@@ -545,6 +546,7 @@ joint_tool.mousedown = function(evt) {
 	switch(current_joint) {
 		case "Revolute":
 			var j = new joint(pos, JOINT_TYPES["Revolute"], b0, b1);
+			j.collide_connected = joint_collide_connected.checked===true;
 			if(enable_joint_limit.checked === true) {
 				j.enable_limit = true;
 				j.lower_angle = parseFloat(lower_joint_limit.value) || 0;

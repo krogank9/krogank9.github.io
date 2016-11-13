@@ -23,6 +23,7 @@ function joint(pos, type, body_a, body_b) {
 	this.enable_limit = false;
 	this.lower_angle = 0;
 	this.upper_angle = 360;
+	this.collide_connected = false;
 	this.body_a = body_a || null;
 	this.body_b = body_b || null;
 	this.type = type || 0;

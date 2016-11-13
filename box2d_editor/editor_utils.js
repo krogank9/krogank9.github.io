@@ -97,10 +97,10 @@ function merge_selections(cur_selection, add_selection, allow_deselect) {
 
 // Remove deleted bodies from selection
 function update_selection() {
-	var selection = viewport.selection.filter(function(s_body) {
+	var selection = viewport.selection.filter(function(select_obj) {
 		// Make sure each selection body exists in world's list of bodies too
-		return world.objects.some(function(w_body) {
-			return s_body==w_body;
+		return world.objects.some(function(world_obj) {
+			return select_obj==world_obj;
 		});
 	});
 	

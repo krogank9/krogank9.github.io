@@ -101,6 +101,7 @@ function add_objects(objects, opt_indices) {
 	
 	undo_history.push(action);
 }
+
 function remove_objects(indices) {
 	clear_redo_history();
 	
@@ -125,14 +126,14 @@ function remove_objects(indices) {
 		}
 	});
 	
-	var prev_selection = viewport.selection.slice();
 	update_selection();
+	var saved_selection = viewport.selection.slice();
 	
 	var action = {
 		redo: function() { remove_objects(indices) },
 		undo: function() {
 			add_objects(deleted_objects, indices)
-			viewport.selection = prev_selection;
+			viewport.selection = saved_selection;
 		}
 	};
 	
@@ -155,14 +156,20 @@ function commit_transform(save_state, new_state) {
 	undo_history.push(action);
 }
 
-
-function set_selection(bodies) {
-	if(viewport.selection.length == 0 && bodies.length == 0)
+function set_selection(objects) {
+	// No need to perform command if the selection doesn't change
+	if(viewport.selection.length === 0 && objects.length === 0)
 		return;
+	if(viewport.selection.length === objects.length === 1
+	&& objects[0] === viewport.selection[0])
+		return;
+	
 	clear_redo_history();
-	var new_selection = bodies.slice();
+	
 	var old_selection = viewport.selection.slice();
-	viewport.selection = bodies;
+	viewport.selection = objects;
+	var new_selection = viewport.selection.slice();
+	
 	var action = {
 		redo: function() { set_selection(new_selection); },
 		undo: function() { set_selection(old_selection); }

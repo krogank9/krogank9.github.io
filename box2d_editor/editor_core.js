@@ -34,7 +34,7 @@ window.onkeydown = function(evt) {
 				if(evt.shiftKey)
 					set_selection([]);
 				else
-					set_selection(world.objects);
+					set_selection(world.objects.slice());
 				evt.preventDefault();
 			}
 			break;
