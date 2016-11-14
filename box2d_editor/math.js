@@ -111,14 +111,9 @@ function float2str(num, num_places) {
 
 //Mirror an angle vertically
 function mirror_angle_v(ang) {
-	return 360-ang;
+	return -ang + 180;
 }
 //Mirror an angle horizontally
 function mirror_angle_h(ang) {
-	// get the angle relative to the y axis
-	var ang_rel_to_y = ang-90;
-	// flip it
-	ang_rel_to_y = 360-ang_rel_to_y;
-	// get the angle relative to the x axis like back to normal
-	return ang_rel_to_y+90;
+	return -ang;
 }

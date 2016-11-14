@@ -123,6 +123,10 @@
 				border-top: 1px solid #d5dfe5;
 				border-bottom: 1px solid #ffffff;
 			}
+			
+			.no-close .ui-dialog-titlebar-close {
+				display: none;
+			}
 		</style>
 	</head>
 	<body>
@@ -153,7 +157,14 @@
 				<div id="Select_options" class="tool_options_tab">
 					<br>
 					<div style="width: 220px">
-						Click and drag with the mouse to make a selection.
+						Use the left mouse button to make a selection.
+					</div>
+					<br>
+					<input type="button" id="selection_properties_button" value="Set object properties" disabled></input>
+					<div id="selection_properties_dialog" style="display: none">
+						<input type="text"></input> Name
+						<div style="height:5px"></div>
+						<input type="number"></input> Density
 					</div>
 				</div>
 				<div id="Move_options" class="tool_options_tab" style="display:none">
@@ -235,6 +246,8 @@
 		
 		<script src="jquery-3.1.0.min.js"></script>
 		<script src="pixi.min.js"></script>
+		<link rel="stylesheet" href="jquery_ui/jquery-ui.css">
+		<script src="jquery_ui/jquery-ui.js"></script>
 		
 		<script src="math.js"></script>
 		<script src="draw.js"></script>

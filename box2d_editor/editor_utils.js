@@ -95,16 +95,21 @@ function merge_selections(cur_selection, add_selection, allow_deselect) {
 	return cur_filtered.concat(add_filtered);
 }
 
-// Remove deleted bodies from selection
+// Called when the selection is changed, or to change the selection and
+// remove deleted bodies
 function update_selection() {
+	// Remove deleted bodies
 	var selection = viewport.selection.filter(function(select_obj) {
 		// Make sure each selection body exists in world's list of bodies too
 		return world.objects.some(function(world_obj) {
-			return select_obj==world_obj;
+			return select_obj===world_obj;
 		});
 	});
 	
 	viewport.selection = selection;
+	
+	// Update change selection properties elements
+	selection_properties_button.disabled = (viewport.selection.length === 0);
 }
 
 function search_arr(arr, elem) {
@@ -296,16 +301,14 @@ function scale_objects(objects, scale_vec, origin_vec, localize) {
 		}
 		else if(obj.is_joint == true && obj.enable_limit === true) {
 			if(scale_vec.x < 0) {
-				//obj.rotation = mirror_angle_h(obj.rotation);
-				obj.lower_angle = mirror_angle_h(obj.lower_angle); 
-				obj.upper_angle = mirror_angle_h(obj.upper_angle); 
-				swap_joint_angle_limits(obj);
+				var rot = get_joint_direction(obj);
+				var rot_amount = mirror_angle_h(rot) - rot;
+				obj.rotation += rot_amount;
 			}
 			if(scale_vec.y < 0) {
-				//obj.rotation = mirror_angle_v(obj.rotation);
-				obj.lower_angle = mirror_angle_v(obj.lower_angle); 
-				obj.upper_angle = mirror_angle_v(obj.upper_angle); 
-				swap_joint_angle_limits(obj);
+				var rot = get_joint_direction(obj);
+				var rot_amount = mirror_angle_v(rot) - rot;
+				obj.rotation += rot_amount;
 			}
 		}
 	}
@@ -366,6 +369,13 @@ function swap_joint_angle_limits(joint) {
 	var tmp = joint.lower_angle;
 	joint.lower_angle = joint.upper_angle;
 	joint.upper_angle = tmp;
+}
+
+function get_joint_direction(joint) {
+	if(joint.enable_limit === true)
+		return (joint.upper_angle+joint.lower_angle)/2 + joint.rotation;
+	else
+		return 0;
 }
 
 function filter_arr_duplicates(a) {

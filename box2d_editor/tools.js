@@ -75,6 +75,23 @@ var current_joint = "Revolute";
  *
  *------------*/
 
+$("#selection_properties_dialog").dialog({
+	autoOpen: false,
+	modal: true,
+	buttons: {
+		"Confirm": function() {
+			$( this ).dialog("close");
+		},
+		"Cancel": function() {
+			$( this ).dialog("close");
+		}
+	}
+});
+selection_properties_button = document.getElementById("selection_properties_button");
+selection_properties_button.onclick = function() {
+	$("#selection_properties_dialog").dialog("open");
+};
+
 select_tool.min_drag_distance = 0;
 select_tool.start_pos = new vec(0,0);
 select_tool.mousedown = function() {

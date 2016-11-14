@@ -26,7 +26,14 @@ for(char="A", count=0; count<=26; count++) {
 }
 var DELETE_KEYCODE = 46;
 
+// Hotkeys
 window.onkeydown = function(evt) {
+	
+	// If a dialog is open, don't allow hotkeys to be pressed
+	if( $('#selection_properties_dialog').dialog('isOpen') === true ) {
+		return;
+	}
+	
 	switch(evt.keyCode) {
 		case key.A:
 			if(evt.ctrlKey) {

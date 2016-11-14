@@ -90,6 +90,7 @@ function add_objects(objects, opt_indices) {
 	
 	var prev_selection = viewport.selection.slice();
 	viewport.selection = objects;
+	update_selection();
 	
 	var action = {
 		redo: function() { add_objects(objects, indices) },
@@ -169,6 +170,8 @@ function set_selection(objects) {
 	var old_selection = viewport.selection.slice();
 	viewport.selection = objects;
 	var new_selection = viewport.selection.slice();
+	
+	update_selection();
 	
 	var action = {
 		redo: function() { set_selection(new_selection); },

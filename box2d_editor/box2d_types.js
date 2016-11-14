@@ -13,6 +13,7 @@ function body(pos, rotation, verts) {
 	this.verts = verts;
 	this.density = 1.0;
 	this.friction = 0.3;
+	this.name = "body";
 	this.is_body = true;
 }
 
@@ -27,6 +28,7 @@ function joint(pos, type, body_a, body_b) {
 	this.body_a = body_a || null;
 	this.body_b = body_b || null;
 	this.type = type || 0;
+	this.name = "joint";
 	this.is_joint = true;
 }
 
