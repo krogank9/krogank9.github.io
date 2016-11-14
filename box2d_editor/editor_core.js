@@ -107,6 +107,15 @@ window.onkeydown = function(evt) {
 		case key.J:
 			set_current_tool("Joint");
 			break;
+		case key.G:
+			move_tool.move_snap_grid.checked = !(move_tool.move_snap_grid.checked);
+			break;
+		case key.P:
+			if(viewport.selection.length > 0) {
+				evt.preventDefault();
+				$("#selection_properties_dialog").dialog("open");
+			}
+			break;
 	}
 }
 

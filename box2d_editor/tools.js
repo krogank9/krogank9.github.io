@@ -80,13 +80,47 @@ $("#selection_properties_dialog").dialog({
 	modal: true,
 	buttons: {
 		"Confirm": function() {
+			var sel = viewport.selection;
+			var sel_empty = (sel.length === 0);
+			var sel_all_bodies = (sel.length === filter_bodies(sel).length) && !sel_empty;
+			var sel_all_joints = (sel.length === filter_joints(sel).length) && !sel_empty;
+			if(sel_all_bodies) {
+				if(selection_properties_static.checked === true) {
+					sel.forEach(function(el){el.type=BODY_TYPES.STATIC});
+				}
+				else if(selection_properties_dynamic.checked === true) {
+					sel.forEach(function(el){el.type=BODY_TYPES.DYNAMIC});
+				}
+				
+				sel.forEach(function(el){el.density=parseFloat(selection_properties_density.value)});
+			}
+			else if(sel_all_joints) {
+				sel.forEach(function(el){el.collide_connected=selection_collide_connected.checked;});
+			}
+			
+			if(selection_properties_name.value.length > 0) {
+				sel.forEach(function(el){el.name=selection_properties_name.value});
+			}
 			$( this ).dialog("close");
 		},
 		"Cancel": function() {
 			$( this ).dialog("close");
 		}
+	},
+	open: function() {
+		update_selection();
 	}
 });
+
+selection_properties_dynamic = document.getElementById("selection_properties_dynamic");
+selection_properties_static = document.getElementById("selection_properties_static");
+selection_properties_density = document.getElementById("selection_properties_density");
+selection_properties_name = document.getElementById("selection_properties_name");
+selection_collide_connected = document.getElementById("selection_collide_connected");
+
+selection_joint_properties = document.getElementById("selection_joint_properties");
+selection_body_properties = document.getElementById("selection_body_properties");
+
 selection_properties_button = document.getElementById("selection_properties_button");
 selection_properties_button.onclick = function() {
 	$("#selection_properties_dialog").dialog("open");

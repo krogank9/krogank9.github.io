@@ -161,10 +161,18 @@
 					</div>
 					<br>
 					<input type="button" id="selection_properties_button" value="Set object properties" disabled></input>
-					<div id="selection_properties_dialog" style="display: none">
-						<input type="text"></input> Name
+					<div id="selection_properties_dialog" style="display: none" title="Set properties">
+						<input type="text" id="selection_properties_name"></input> Name
 						<div style="height:5px"></div>
-						<input type="number"></input> Density
+						<span id="selection_joint_properties">
+							<input type="checkbox" id="selection_collide_connected">Collide connected</input>
+						</span>
+						<span id="selection_body_properties">
+							<input type="number" id="selection_properties_density"></input> Density
+							<div style="height:5px"></div>
+							<input type="radio" id="selection_properties_dynamic" name="p_static_dynamic">Dynamic</input>
+							<input type="radio" id="selection_properties_static" name="p_static_dynamic">Static</input>
+						</span>
 					</div>
 				</div>
 				<div id="Move_options" class="tool_options_tab" style="display:none">
@@ -206,7 +214,7 @@
 				<div id="Box_options" class="tool_options_tab" style="display:none">
 					Density: 
 					<input type="number" id="box_density" value="1.0" step="0.1" style="width: 50px"></input>
-					<br>
+					<div style="height:5px"></div>
 					<input type="radio" id="box_type_dynamic" name="box_type" checked>Dynamic</input>
 					<br>
 					<input type="radio" id="box_type_static" name="box_type">Static</input>
