@@ -30,7 +30,8 @@ var DELETE_KEYCODE = 46;
 window.onkeydown = function(evt) {
 	
 	// If a dialog is open, don't allow hotkeys to be pressed
-	if( $('#selection_properties_dialog').dialog('isOpen') === true ) {
+	if( $('#selection_properties_dialog').dialog('isOpen') === true
+	|| $('#save_dialog').dialog('isOpen') === true ) {
 		return;
 	}
 	
@@ -206,7 +207,5 @@ function update_info_div() {
 	document_info.innerHTML = "";
 	
 	var m = canvas_to_viewport(cur_mouse_pos);
-	document_info.innerHTML += "Mouse position: ("+float2str(m.x,2)+","+float2str(m.y,2)+") ";
-	
-	document_info.innerHTML += "untitled.qbe";
+	document_info.innerHTML += "Mouse position: ("+float2str(m.x,2)+","+float2str(m.y,2)+")";
 }
