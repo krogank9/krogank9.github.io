@@ -567,7 +567,7 @@ box_tool.mouseup = function(evt) {
 		add_objects([new_box]);
 	this.cur_box = null;
 };
-box_tool.draw = function() {};
+
 box_tool.action_cancelled = function() {
 	if(this.cur_box != null)
 		world.objects.pop();

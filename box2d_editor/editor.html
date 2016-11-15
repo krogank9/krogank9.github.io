@@ -127,9 +127,24 @@
 			.no-close .ui-dialog-titlebar-close {
 				display: none;
 			}
+			
+			#save_load_icons {
+				position: absolute;
+				z-index: 10;
+				top: 0;
+				left: 0;
+			}
+			
+			#open_button, #save_button {
+				outline: none;
+			}
 		</style>
 	</head>
 	<body>
+		<div id="save_load_icons">
+			<input type="image" id="open_button" src="open_icon.png"></input>
+			<input type="image" id="save_button" src="save_icon.png"></input>
+		</div>
 		<div id="toolbox">
 			<span class="toolbox_label">Tools</span>
 			<div id="tools" class="toolbox_section">
