@@ -135,18 +135,19 @@
 				left: 0;
 			}
 			
-			#open_button, #save_butto, #play_button {
+			#open_button, #save_button, #play_button {
 				outline: none;
 			}
 		</style>
 	</head>
 	<body>
 		<div id="save_load_div">
-			<input type="image" id="open_button" src="open_icon.png"></input>
+			<input type="file" id="open_file" style="display: none"></input>
+			<input type="image" id="open_button" onclick="$('#open_file').click();" src="open_icon.png"></input>
 			<input type="image" id="save_button" onclick="$('#save_dialog').dialog('open');" src="save_icon.png"></input>
-			<input type="image" id="play_button" src="play_icon.png"></input>
+			<!-- <input type="image" id="play_button" src="play_icon.png"></input> -->
 			<div id="save_dialog" style="display: none" title="Save as">
-				Name: <input type="text" value="untitled.qbe"></input>
+				Name: <input type="text" id="save_as_input" value="untitled.qbe"></input>
 			</div>
 		</div>
 		<div id="toolbox">
@@ -275,6 +276,7 @@
 		<script src="pixi.min.js"></script>
 		<link rel="stylesheet" href="jquery_ui/jquery-ui.css">
 		<script src="jquery_ui/jquery-ui.js"></script>
+		<script src="FileSaver.js"></script>
 		
 		<script src="math.js"></script>
 		<script src="draw.js"></script>

@@ -2,7 +2,8 @@ var world = {
 	gravity: -9.8,
 	velocity_iterations: 6,
 	position_iterations: 2,
-	objects: []
+	objects: [],
+	is_world: true
 }
 
 var BODY_TYPES = { STATIC: 0, DYNAMIC: 1 }
@@ -13,6 +14,7 @@ function body(pos, rotation, verts) {
 	this.verts = verts;
 	this.density = 1.0;
 	this.friction = 0.3;
+	this.aabb = null;
 	this.name = "body";
 	this.is_body = true;
 }
