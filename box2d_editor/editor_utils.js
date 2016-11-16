@@ -237,6 +237,7 @@ function restore_transforms(save_state) {
 function copy_body(b) {
 	var copy = new body(copy_vec(b.pos), b.rotation, copy_vert_array(b.verts));
 	copy.aabb = calculate_aabb(b);
+	copy.name = b.name;
 	return copy;
 }
 function copy_joint(j) {
@@ -245,6 +246,7 @@ function copy_joint(j) {
 	copy.upper_angle = j.upper_angle;
 	copy.enable_limit = j.enable_limit
 	copy.rotation = j.rotation;
+	copy.name = j.name;
 	return copy;
 }
 
