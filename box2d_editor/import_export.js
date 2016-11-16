@@ -46,6 +46,7 @@ open_file.onchange = function() {
 			}
 			catch(err) {
 				alert("Error loading file");
+				this.value = null;
 				return;
 			}
 			
@@ -61,6 +62,7 @@ open_file.onchange = function() {
 		}
 		reader.readAsText(file);
 	}
+	this.value = null;
 }
 
 function remake_vec(v) {
