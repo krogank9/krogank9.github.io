@@ -41,12 +41,22 @@ open_file.onchange = function() {
 			var text = evt.target.result;
 
 			// Check if it's a file compatible with the editor:
-			var test = JSON.parse(text);			
+			try {
+				var test = JSON.parse(text);
+			}
+			catch(err) {
+				alert("Error loading file");
+				return;
+			}
+			
 			if(test.is_world === true) {
 				world = import_world(text);
 				update_selection();
 				undo_history = [];
 				redo_history = [];
+			}
+			else {
+				alert("Wrong file type");
 			}
 		}
 		reader.readAsText(file);
@@ -68,14 +78,14 @@ function export_joint(joint) {
 	joint.body_b = body_b_index;
 }
 
-function import_joint(joint) {
+function import_joint(joint, world) {
 	if(joint.body_a !== -1)
-		joint.body_a = world.objects[joint.body_a]
+		joint.body_a = world.objects[joint.body_a];
 	else
 		joint.body_a = null;
 		
 	if(joint.body_b !== -1)
-		joint.body_b = world.objects[joint.body_b]
+		joint.body_b = world.objects[joint.body_b];
 	else
 		joint.body_b = null;
 	
@@ -102,11 +112,11 @@ function export_world(world) {
 
 function import_world(json) {
 	var world = JSON.parse(json);
-	world.objects.forEach(function(elem) {
-		if(elem.is_body === true)
-			import_body(elem);
-		else if(elem.is_joint === true)
-			import_joint(elem);
+	filter_bodies(world.objects).forEach(function(elem) {
+		import_body(elem);
+	});
+	filter_joints(world.objects).forEach(function(elem) {
+		import_joint(elem, world);
 	});
 	return world;
 }
