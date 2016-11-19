@@ -117,3 +117,9 @@ function mirror_angle_v(ang) {
 function mirror_angle_h(ang) {
 	return -ang;
 }
+
+function normalize_ang(ang) {
+	while(ang < 0)
+		ang += 360;
+	return ang%360;
+}

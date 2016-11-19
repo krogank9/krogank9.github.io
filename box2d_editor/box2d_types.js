@@ -1,12 +1,12 @@
 var world = {
-	gravity: -9.8,
+	gravity: new vec(0,-9.8),
 	velocity_iterations: 6,
 	position_iterations: 2,
 	objects: [],
 	is_world: true
 }
 
-var BODY_TYPES = { STATIC: 0, DYNAMIC: 1 }
+var BODY_TYPES = { STATIC: 0, KINEMATIC: 1, DYNAMIC: 2 }
 function body(pos, rotation, verts) {
 	this.pos = pos || new vec();
 	this.type =  BODY_TYPES.DYNAMIC;
@@ -14,6 +14,7 @@ function body(pos, rotation, verts) {
 	this.verts = verts;
 	this.density = 1.0;
 	this.friction = 0.3;
+	this.restitution = 0.1;
 	this.aabb = null;
 	this.name = "body";
 	this.is_body = true;

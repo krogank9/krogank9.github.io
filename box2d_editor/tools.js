@@ -75,6 +75,7 @@ var current_joint = "Revolute";
  *
  *------------*/
 
+// Dialog to allow changing the properties of selected objects
 $("#selection_properties_dialog").dialog({
 	autoOpen: false,
 	modal: true,
@@ -90,6 +91,9 @@ $("#selection_properties_dialog").dialog({
 				}
 				else if(selection_properties_dynamic.checked === true) {
 					sel.forEach(function(el){el.type=BODY_TYPES.DYNAMIC});
+				}
+				else if(selection_properties_kinematic.checked === true) {
+					sel.forEach(function(el){el.type=BODY_TYPES.KINEMATIC});
 				}
 				
 				sel.forEach(function(el){el.density=parseFloat(selection_properties_density.value)});
@@ -109,6 +113,32 @@ $("#selection_properties_dialog").dialog({
 	},
 	open: function() {
 		update_selection();
+		
+		var selection = viewport.selection;
+		var selection_empty = (selection.length === 0);
+		selection_properties_button.disabled = selection_empty;
+		
+		// If the selection is only bodies or only joints, you can display 
+		// options pertaining to bodies or joints 
+		var selection_all_bodies = (selection.length === filter_bodies(selection).length) && !selection_empty;
+		var selection_all_joints = (selection.length === filter_joints(selection).length) && !selection_empty;
+		
+		var bodies_css = selection_all_bodies? "initial" : "none";
+		var joints_css = selection_all_joints? "initial" : "none";
+		
+		selection_joint_properties.style.display = selection_all_joints? "initial" : "none";
+		selection_body_properties.style.display = selection_all_bodies? "initial" : "none";
+		
+		selection_properties_name.value = selection.length === 1 ? selection[0].name : "";
+		
+		if(selection_all_bodies) {
+			selection_properties_density.value = selection[0].density;
+			selection_properties_static.checked = selection.every(function(b){return b.type==BODY_TYPES.STATIC});
+			selection_properties_dynamic.checked = selection.every(function(b){return b.type==BODY_TYPES.DYNAMIC});
+			selection_properties_kinematic.checked = selection.every(function(b){return b.type==BODY_TYPES.KINEMATIC});
+		} else if(selection_all_joints) {
+			selection_collide_connected.checked = selection[0].collide_connected;
+		}
 	}
 });
 
@@ -552,6 +582,7 @@ box_tool.mousemove = function(evt) {
 var box_density = document.getElementById("box_density");
 var box_type_static = document.getElementById("box_type_static");
 var box_type_dynamic = document.getElementById("box_type_dynamic");
+var box_type_kinematic = document.getElementById("box_type_kinematic");
 
 box_tool.mouseup = function(evt) {
 	if(this.edit_in_progress == false)
@@ -561,7 +592,15 @@ box_tool.mouseup = function(evt) {
 		return;
 	var new_box = world.objects.pop();
 	new_box.density = parseFloat(box_density.value) || 0;
-	new_box.type = box_type_static.checked === true ? 0 : 1; // 0 is static 1 is dynamic; enum
+	new_box.type = 0;
+
+	if(box_type_static.checked === true)
+		new_box.type = BODY_TYPES.STATIC;
+	else if(box_type_dynamic.checked === true)
+		new_box.type = BODY_TYPES.DYNAMIC;
+	else
+		new_box.type = BODY_TYPES.KINEMATIC;
+		
 	var dist = cur_mouse_pos.subtract(this.start_pos).magnitude();
 	if(dist >= 10)
 		add_objects([new_box]);

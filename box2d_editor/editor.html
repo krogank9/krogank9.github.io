@@ -130,7 +130,7 @@
 				display: none;
 			}
 			
-			#save_load_div {
+			#load_save_play_div {
 				position: absolute;
 				z-index: 10;
 				top: 0;
@@ -143,13 +143,23 @@
 		</style>
 	</head>
 	<body>
-		<div id="save_load_div">
+		<div id="load_save_play_div">
 			<input type="file" id="open_file" style="display: none"></input>
 			<input type="image" id="open_button" onclick="$('#open_file').click();" src="open_icon.png"></input>
 			<input type="image" id="save_button" onclick="$('#save_dialog').dialog('open');" src="save_icon.png"></input>
-			<!-- <input type="image" id="play_button" src="play_icon.png"></input> -->
+			<input type="image" id="play_button" onclick="$('#player_dialog').dialog('open');" src="play_icon.png"></input>
+			
 			<div id="save_dialog" style="display: none" title="Save as">
 				Name: <input type="text" id="save_as_input" value="untitled.qbe"></input>
+				<div style="height:5px"></div>
+				<div style="text-align: center;">
+					<input type="radio" id="qbe_format" name="file_format" checked>Save</input>
+					<input type="radio" id="rube_format" name="file_format" >Export</input>
+				</div>
+			</div>
+			
+			<div id="player_dialog" style="display: none" title="Box2D Web Player">
+				<canvas id="box2d_player" width="600" height="400" style="background-color:#333333;"></canvas>
 			</div>
 		</div>
 		<div id="toolbox">
@@ -192,8 +202,9 @@
 						<span id="selection_body_properties">
 							<input type="number" id="selection_properties_density"></input> Density
 							<div style="height:5px"></div>
-							<input type="radio" id="selection_properties_dynamic" name="p_static_dynamic">Dynamic</input>
-							<input type="radio" id="selection_properties_static" name="p_static_dynamic">Static</input>
+							<input type="radio" id="selection_properties_dynamic" name="p_body_type">Dynamic</input>
+							<input type="radio" id="selection_properties_static" name="p_body_type">Static</input>
+							<input type="radio" id="selection_properties_kinematic" name="p_body_type">Kinematic</input>
 						</span>
 					</div>
 				</div>
@@ -240,6 +251,8 @@
 					<input type="radio" id="box_type_dynamic" name="box_type" checked>Dynamic</input>
 					<br>
 					<input type="radio" id="box_type_static" name="box_type">Static</input>
+					<br>
+					<input type="radio" id="box_type_kinematic" name="box_type">Kinematic</input>
 				</div>
 				<div id="Polygon_options" class="tool_options_tab" style="display:none"></div>
 				<div id="Joint_options" class="tool_options_tab" style="display:none">
@@ -279,8 +292,9 @@
 		<link rel="stylesheet" href="jquery_ui/jquery-ui.css">
 		<script src="jquery_ui/jquery-ui.js"></script>
 		<script src="FileSaver.js"></script>
-		
+
 		<script src="math.js"></script>
+
 		<script src="draw.js"></script>
 		<script src="box2d_types.js"></script>
 		<script src="commands.js"></script>
@@ -288,5 +302,9 @@
 		<script src="editor_utils.js"></script>
 		<script src="editor_core.js"></script>
 		<script src="import_export.js"></script>
+		
+		<script src="player/Box2d.min.js"></script>
+		<script src="player/loadrube.js"></script>
+		<script src="player/player.js"></script>
 	</body>
 </html>

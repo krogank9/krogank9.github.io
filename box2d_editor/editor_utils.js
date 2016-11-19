@@ -107,42 +107,6 @@ function update_selection() {
 	});
 	
 	viewport.selection = selection;
-	
-	// Update change selection properties elements
-	var selection_empty = (selection.length === 0);
-	selection_properties_button.disabled = selection_empty;
-	
-	// If the selection is only bodies or only joints, you can display 
-	// options pertaining to bodies or joints 
-	var selection_all_bodies = (selection.length === filter_bodies(selection).length) && !selection_empty;
-	var selection_all_joints = (selection.length === filter_joints(selection).length) && !selection_empty;
-	
-	var bodies_css = selection_all_bodies? "initial" : "none";
-	var joints_css = selection_all_joints? "initial" : "none";
-	
-	selection_joint_properties.style.display = selection_all_joints? "initial" : "none";
-	selection_body_properties.style.display = selection_all_bodies? "initial" : "none";
-	
-	selection_properties_name.value = selection.length === 1 ? selection[0].name : "";
-	
-	if(selection_all_bodies) {
-		selection_properties_density.value = selection[0].density;
-		
-		if( selection.every(function(el){return el.type==BODY_TYPES.STATIC}) ) {
-			selection_properties_static.checked = true;
-			selection_properties_dynamic.checked = false;
-		}
-		else if( selection.every(function(el){return el.type==BODY_TYPES.DYNAMIC}) ) {
-			selection_properties_dynamic.checked = true;
-			selection_properties_static.checked = false;
-		}
-		else {
-			selection_properties_dynamic.checked = false;
-			selection_properties_static.checked = false;
-		}
-	} else if(selection_all_joints) {
-		selection_collide_connected.checked = selection[0].collide_connected;
-	}
 }
 
 function search_arr(arr, elem) {
@@ -247,6 +211,25 @@ function copy_joint(j) {
 	copy.enable_limit = j.enable_limit
 	copy.rotation = j.rotation;
 	copy.name = j.name;
+	return copy;
+}
+function copy_world(w) {
+	var copy = {
+		gravity: copy_vec(w.gravity),
+		velocity_iterations: w.velocity_iterations,
+		position_iterations: w.position_iterations,
+		objects: [],
+		is_world: true
+	};
+	for(let i=0; i<w.objects.length; i++) {
+		var obj = w.objects[i];
+		
+		if(obj.is_body)
+			copy.objects.push( copy_body(obj) );
+		else if(obj.is_joint)
+			copy.objects.push( copy_joint(obj) );
+	}
+	
 	return copy;
 }
 
