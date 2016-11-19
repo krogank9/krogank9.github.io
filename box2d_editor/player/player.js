@@ -11,6 +11,7 @@ $("#player_dialog").dialog({
 	open: function() {
 		//export the current world
 		var jso = JSON.parse( export_world_rube(world) );
+		//console.log(export_world_rube(world));
 		b2d_world = loadWorldFromRUBE(jso);
 		console.log(b2d_world);
 		b2d_world.SetDebugDraw(debugDraw);
@@ -42,8 +43,8 @@ function populate_random(world) {
 				Math.random() + 0.1 //radius
 			);
 		}
-		bodyDef.position.x = Math.random() * 10;
-		bodyDef.position.y = Math.random() * 10;
+		bodyDef.position.x = 10;
+		bodyDef.position.y = 10;
 		world.CreateBody(bodyDef).CreateFixture(fixDef);
 	}
 }

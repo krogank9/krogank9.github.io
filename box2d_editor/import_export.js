@@ -203,7 +203,7 @@ function export_world_rube(world_to_export) {
 	
 	for(let i=0; i<bodies.length; i++) {
 		var b = bodies[i];
-		b2d_world.body.push({
+		var new_body = {
 			name: b.name,
 			type: b.type,
 			angle: b.rotation/rad2deg,
@@ -229,11 +229,17 @@ function export_world_rube(world_to_export) {
 				sensor: false,
 				customProperties: [],
 				polygon: {
-					vertices: copy_vert_array(b.verts)
+					vertices: {x: [], y: []}
 				}
 			},
 			customProperties: []
-		});
+		}
+		// Convert array of verts to x/y array, different format
+		for(let j=0; j<b.verts.length; j++) {
+			new_body.fixture.polygon.vertices.x.push(b.verts[j].x);
+			new_body.fixture.polygon.vertices.y.push(b.verts[j].y);
+		}
+		b2d_world.body.push(new_body);
 	}
 	
 	return JSON.stringify(b2d_world);
