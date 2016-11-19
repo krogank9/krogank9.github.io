@@ -6,9 +6,11 @@ $("#save_dialog").dialog({
 		"Save": function() {
 			var file_name = $( "#save_as_input" ).val();
 			if(file_name.length === 0)
-				file_name = "untitled.qbe"
+				file_name = qbe_format.checked===true? "untitled.qbe" : "untitled.json";
+			
+			var file_contents = qbe_format.checked===true? save_world(world) : export_world_rube(world);
 				
-			var blob = new Blob([save_world(world)], {type: "text/plain;charset=utf-8"});
+			var blob = new Blob([file_contents], {type: "text/plain;charset=utf-8"});
 			saveAs(blob, file_name);
 
 			$( this ).dialog("close");
