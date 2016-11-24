@@ -201,43 +201,36 @@ function export_world_rube(world_to_export) {
 		joints.push(copy);
 	});
 	
+	var fixture_count = 0;
+	
 	for(let i=0; i<bodies.length; i++) {
 		var b = bodies[i];
 		var new_body = {
 			name: b.name,
 			type: b.type,
 			angle: b.rotation/rad2deg,
-			angularDamping: 0,
 			angularVelocity: 0,
 			awake: true,
-			bullet: false,
-			fixedRotation: false,
-			linearDamping: 0,
 			linearVelocity: new vec(0,0),
 			"massData-mass": 1,
-			"massData-center": new vec(0,0),
+			"massData-center": b.pos,
 			"massData-I": 1,
-			position: body.pos,
-			fixture: {
-				name: "fixture",
-				density: b.density,
-				"filter-categoryBits": 1,
-				"filter-maskBits": 1,
-				"filter-groupIndex": 1,
-				friction: b.friction,
-				restitution: b.restitution,
-				sensor: false,
-				customProperties: [],
-				polygon: {
-					vertices: {x: [], y: []}
+			position: b.pos,
+			fixture: [
+				{
+					name: "fixture" + (++fixture_count),
+					density: b.density,
+					friction: b.friction,
+					polygon: {
+						vertices: {x: [], y: []}
+					}
 				}
-			},
-			customProperties: []
+			]
 		}
 		// Convert array of verts to x/y array, different format
 		for(let j=0; j<b.verts.length; j++) {
-			new_body.fixture.polygon.vertices.x.push(b.verts[j].x);
-			new_body.fixture.polygon.vertices.y.push(b.verts[j].y);
+			new_body.fixture[0].polygon.vertices.x.push(b.verts[j].x);
+			new_body.fixture[0].polygon.vertices.y.push(b.verts[j].y);
 		}
 		b2d_world.body.push(new_body);
 	}
