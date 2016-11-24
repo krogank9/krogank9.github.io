@@ -205,6 +205,7 @@ function export_world_rube(world_to_export) {
 	
 	for(let i=0; i<bodies.length; i++) {
 		var b = bodies[i];
+		console.log(b.type);
 		var new_body = {
 			name: b.name,
 			type: b.type,

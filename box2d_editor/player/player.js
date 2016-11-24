@@ -129,7 +129,7 @@ var b2d_world;
 
 var debugDraw = new b2DebugDraw();
 debugDraw.SetSprite(player_canvas.getContext("2d"));
-debugDraw.SetDrawScale(20.0);
+debugDraw.SetDrawScale(50.0);
 debugDraw.SetFillAlpha(0.5);
 debugDraw.SetLineThickness(1.0);
 debugDraw.SetFlags(b2DebugDraw.e_shapeBit /*| b2DebugDraw.e_jointBit*/);

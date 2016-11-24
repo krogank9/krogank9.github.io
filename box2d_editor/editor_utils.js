@@ -202,6 +202,7 @@ function copy_body(b) {
 	var copy = new body(copy_vec(b.pos), b.rotation, copy_vert_array(b.verts));
 	copy.aabb = calculate_aabb(b);
 	copy.name = b.name;
+	copy.type = b.type;
 	return copy;
 }
 function copy_joint(j) {

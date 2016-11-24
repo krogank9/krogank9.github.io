@@ -9,7 +9,7 @@ var world = {
 var BODY_TYPES = { STATIC: 0, KINEMATIC: 1, DYNAMIC: 2 }
 function body(pos, rotation, verts) {
 	this.pos = pos || new vec();
-	this.type =  BODY_TYPES.DYNAMIC;
+	this.type = BODY_TYPES.DYNAMIC;
 	this.rotation = rotation || 0.0;
 	this.verts = verts;
 	this.density = 1.0;
