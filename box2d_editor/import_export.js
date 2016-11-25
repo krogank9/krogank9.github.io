@@ -107,14 +107,43 @@ function remake_aabb(aabb) {
 	return new AABB(aabb.min, aabb.max);
 }
 
-function export_joint(joint) {
+function save_joint(joint, world) {
 	var body_a_index = search_arr(world.objects, joint.body_a);
 	var body_b_index = search_arr(world.objects, joint.body_b);
 	joint.body_a = body_a_index;
 	joint.body_b = body_b_index;
 }
 
-function import_joint(joint, world) {
+// Make a position relative to a body
+function make_pos_relative(pos, body) {
+	var rel = pos.subtract(body.pos);
+	return rel.rotate_by(body.rotation*-1);
+}
+
+function export_joint(joint, world) {
+	//change into RUBE format
+	var converted = {
+		name: joint.name,
+		bodyA: search_arr(world.objects, joint.body_a),
+		bodyB: search_arr(world.objects, joint.body_b),
+		anchorA: make_pos_relative(joint.pos, joint.body_a),
+		anchorB: make_pos_relative(joint.pos, joint.body_b),
+		refAngle: 0,
+		type: invert(JOINT_TYPES)[joint.type].toLowerCase()
+	};
+	if(joint.type == JOINT_TYPES.Revolute) {
+		converted.enableLimit = joint.enable_limit;
+		converted.lowerLimit = (joint.lower_angle+joint.rotation)/rad2deg;
+		converted.upperLimit = (joint.upper_angle+joint.rotation)/rad2deg;
+		converted.enableMotor = false;
+		converted.maxMotorTorque = 0;
+		converted.motorSpeed = 0;
+	}
+	
+	return converted;
+}
+
+function load_joint(joint, world) {
 	if(joint.body_a !== -1)
 		joint.body_a = world.objects[joint.body_a];
 	else
@@ -128,7 +157,7 @@ function import_joint(joint, world) {
 	joint.pos = remake_vec(joint.pos);
 }
 
-function import_body(body) {
+function load_body(body) {
 	if(body.aabb !== null && body.aabb !== 'undefined')
 		body.aabb = remake_aabb(body.aabb);
 	
@@ -143,7 +172,7 @@ function save_world(world_to_save) {
 	var world = copy_world(world_to_save);
 	
 	filter_joints(world.objects).forEach(function(elem) {
-		export_joint(elem);
+		save_joint(elem, world);
 	});
 
 	filter_bodies(world.objects).forEach(function(body) {
@@ -157,10 +186,10 @@ function save_world(world_to_save) {
 function load_world(json) {
 	var world = JSON.parse(json);
 	filter_bodies(world.objects).forEach(function(elem) {
-		import_body(elem);
+		load_body(elem);
 	});
 	filter_joints(world.objects).forEach(function(elem) {
-		import_joint(elem, world);
+		load_joint(elem, world);
 	});
 	return world;
 }
@@ -192,20 +221,11 @@ function export_world_rube(world_to_export) {
 	
 	var bodies = filter_bodies(world.objects);
 	var joints = [];
-	// Convert the references to body a & b affected by each joint to
-	// indices, how the RUBE format expects it
-	filter_joints(world.objects).forEach(function(joint) {
-		var copy = copy_joint(joint);
-		copy.body_a = search_arr(bodies, copy.body_a);
-		copy.body_b = search_arr(bodies, copy.body_b);
-		joints.push(copy);
-	});
 	
 	var fixture_count = 0;
 	
 	for(let i=0; i<bodies.length; i++) {
 		var b = bodies[i];
-		console.log(b.type);
 		var new_body = {
 			name: b.name,
 			type: b.type,
@@ -235,6 +255,11 @@ function export_world_rube(world_to_export) {
 		}
 		b2d_world.body.push(new_body);
 	}
+	
+	filter_joints(world.objects).forEach(function(joint) {
+		var exported = export_joint(copy_joint(joint), world);
+		b2d_world.joint.push(exported);
+	});
 	
 	return JSON.stringify(b2d_world);
 }
