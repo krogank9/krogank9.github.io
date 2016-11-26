@@ -10,7 +10,6 @@ $("#player_dialog").dialog({
 	},
 	open: function() {
 		//export the current world
-		var jso = JSON.parse( export_world_rube(world) );
 		b2d_world = loadWorldFromRUBE(JSON.parse(export_world_rube(world)));
 		b2d_world.SetDebugDraw(debugDraw);
 

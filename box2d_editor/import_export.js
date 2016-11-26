@@ -107,7 +107,7 @@ function remake_aabb(aabb) {
 	return new AABB(aabb.min, aabb.max);
 }
 
-function save_joint(joint, world) {
+function save_joint(joint) {
 	var body_a_index = search_arr(world.objects, joint.body_a);
 	var body_b_index = search_arr(world.objects, joint.body_b);
 	joint.body_a = body_a_index;
@@ -120,7 +120,10 @@ function make_pos_relative(pos, body) {
 	return rel.rotate_by(body.rotation*-1);
 }
 
-function export_joint(joint, world) {
+function export_joint(joint) {
+	console.log(search_arr(world.objects, joint.body_a));
+	console.log(search_arr(world.objects, joint.body_b));
+	console.log(world.objects);
 	//change into RUBE format
 	var converted = {
 		name: joint.name,
@@ -131,7 +134,7 @@ function export_joint(joint, world) {
 		refAngle: 0,
 		type: invert(JOINT_TYPES)[joint.type].toLowerCase()
 	};
-	if(joint.type == JOINT_TYPES.Revolute) {
+	if(joint.type == JOINT_TYPES["Revolute"]) {
 		converted.enableLimit = joint.enable_limit;
 		converted.lowerLimit = (joint.lower_angle+joint.rotation)/rad2deg;
 		converted.upperLimit = (joint.upper_angle+joint.rotation)/rad2deg;
@@ -172,7 +175,7 @@ function save_world(world_to_save) {
 	var world = copy_world(world_to_save);
 	
 	filter_joints(world.objects).forEach(function(elem) {
-		save_joint(elem, world);
+		save_joint(elem);
 	});
 
 	filter_bodies(world.objects).forEach(function(body) {
@@ -222,8 +225,6 @@ function export_world_rube(world_to_export) {
 	var bodies = filter_bodies(world.objects);
 	var joints = [];
 	
-	var fixture_count = 0;
-	
 	for(let i=0; i<bodies.length; i++) {
 		var b = bodies[i];
 		var new_body = {
@@ -239,7 +240,7 @@ function export_world_rube(world_to_export) {
 			position: b.pos,
 			fixture: [
 				{
-					name: "fixture" + (++fixture_count),
+					name: "fixture",
 					density: b.density,
 					friction: b.friction,
 					polygon: {
@@ -257,7 +258,7 @@ function export_world_rube(world_to_export) {
 	}
 	
 	filter_joints(world.objects).forEach(function(joint) {
-		var exported = export_joint(copy_joint(joint), world);
+		var exported = export_joint(copy_joint(joint));
 		b2d_world.joint.push(exported);
 	});
 	

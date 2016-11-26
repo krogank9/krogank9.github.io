@@ -107,6 +107,10 @@ function update_selection() {
 	});
 	
 	viewport.selection = selection;
+	
+	var selection = viewport.selection;
+	var selection_empty = (selection.length === 0);
+	selection_properties_button.disabled = selection_empty;
 }
 
 function search_arr(arr, elem) {
