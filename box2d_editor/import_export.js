@@ -120,15 +120,12 @@ function make_pos_relative(pos, body) {
 	return rel.rotate_by(body.rotation*-1);
 }
 
-function export_joint(joint) {
-	console.log(search_arr(world.objects, joint.body_a));
-	console.log(search_arr(world.objects, joint.body_b));
-	console.log(world.objects);
+function export_joint(joint, bodies_list) {
 	//change into RUBE format
 	var converted = {
 		name: joint.name,
-		bodyA: search_arr(world.objects, joint.body_a),
-		bodyB: search_arr(world.objects, joint.body_b),
+		bodyA: search_arr(bodies_list, joint.body_a),
+		bodyB: search_arr(bodies_list, joint.body_b),
 		anchorA: make_pos_relative(joint.pos, joint.body_a),
 		anchorB: make_pos_relative(joint.pos, joint.body_b),
 		refAngle: 0,
@@ -136,8 +133,8 @@ function export_joint(joint) {
 	};
 	if(joint.type == JOINT_TYPES["Revolute"]) {
 		converted.enableLimit = joint.enable_limit;
-		converted.lowerLimit = (joint.lower_angle+joint.rotation)/rad2deg;
-		converted.upperLimit = (joint.upper_angle+joint.rotation)/rad2deg;
+		converted.lowerLimit = (joint.lower_angle-joint.rotation-90)/rad2deg;
+		converted.upperLimit = (joint.upper_angle-joint.rotation-90)/rad2deg;
 		converted.enableMotor = false;
 		converted.maxMotorTorque = 0;
 		converted.motorSpeed = 0;
@@ -199,9 +196,9 @@ function load_world(json) {
 
 // Export the world into RUBE's json format
 function export_world_rube(world_to_export) {
-	var world = copy_world(world_to_export);
+	var bodies = filter_bodies(world.objects);
 	
-	filter_bodies(world.objects).forEach(function(body) {
+	bodies.forEach(function(body) {
 		// Make sure verts are specified in counter clockwise order, for Box2D
 		if(check_clockwise(body.verts))
 			body.verts = body.verts.reverse();
@@ -221,9 +218,6 @@ function export_world_rube(world_to_export) {
 		joint: [],
 		image: []
 	};
-	
-	var bodies = filter_bodies(world.objects);
-	var joints = [];
 	
 	for(let i=0; i<bodies.length; i++) {
 		var b = bodies[i];
@@ -258,7 +252,7 @@ function export_world_rube(world_to_export) {
 	}
 	
 	filter_joints(world.objects).forEach(function(joint) {
-		var exported = export_joint(copy_joint(joint));
+		var exported = export_joint(copy_joint(joint), bodies);
 		b2d_world.joint.push(exported);
 	});
 	

@@ -302,6 +302,17 @@ function rotate_objects(objects, degrees, localize) {
 	}
 }
 
+function flip_joint_x(joint) {
+	var rot = get_joint_direction(joint);
+	var rot_amount = mirror_angle_h(rot) - rot;
+	joint.rotation += rot_amount;
+}
+function flip_joint_y(joint) {
+	var rot = get_joint_direction(joint);
+	var rot_amount = mirror_angle_v(rot) - rot;
+	joint.rotation += rot_amount;
+}
+
 function scale_objects(objects, scale_vec, origin_vec, localize) {
 	for(let i=0; i<objects.length; i++) {
 		var obj = objects[i];
