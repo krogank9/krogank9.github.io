@@ -10,7 +10,11 @@ $("#player_dialog").dialog({
 	},
 	open: function() {
 		//export the current world
-		b2d_world = loadWorldFromRUBE(JSON.parse(export_world_rube(world)));
+		var json = export_world_rube(world);
+		b2d_world = loadWorldFromRUBE(JSON.parse(json));
+		player_offset.set_equal_to(convert_offset(viewport.pos));
+		var newzoom = viewport.zoom * player_canvas.width/canvas.width;
+		debugDraw.SetDrawScale(1.0 * meters_to_px * newzoom);
 		b2d_world.SetDebugDraw(debugDraw);
 
 		world_pause = false;
@@ -20,6 +24,15 @@ $("#player_dialog").dialog({
 		world_pause = true;
 	}
 });
+
+// Convert viewport position on bigger window to smaller window
+function convert_offset(pos) {
+	var percent_x = pos.x/canvas.width;
+	var percent_y = pos.y/canvas.height;
+	var x = percent_x*player_canvas.width;
+	var y = percent_y*player_canvas.height;
+	return new vec(x,y-player_canvas.height);
+}
 
 var	b2CircleShape = Box2D.Collision.Shapes.b2CircleShape,
 	b2EdgeChainDef = Box2D.Collision.Shapes.b2EdgeChainDef,
@@ -126,22 +139,24 @@ var b2d_world;
 
 var debugDraw = new b2DebugDraw();
 debugDraw.SetSprite(player_canvas.getContext("2d"));
-debugDraw.SetDrawScale(50.0);
+debugDraw.SetDrawScale(1.0 * meters_to_px * viewport.zoom);
 debugDraw.SetFillAlpha(0.5);
 debugDraw.SetLineThickness(1.0);
 debugDraw.SetFlags(b2DebugDraw.e_shapeBit /*| b2DebugDraw.e_jointBit*/);
 
 var world_pause = true;
+var player_offset = new vec(0,0);
 function update_world() {
 	b2d_world.Step(1 / 60, 10, 10);
 	
 	//black background
 	player_context.fillStyle = 'rgb(0,0,0)';
-	player_context.fillRect( 0, 0, player_canvas.width, player_canvas.height );
+	player_context.clearRect( 0, 0, player_canvas.width, player_canvas.height );
 	
 	player_context.save();
 	player_context.scale(1,-1);
 	player_context.translate(0,-player_canvas.height);
+	player_context.translate(player_offset.x,-player_offset.y);
 	b2d_world.DrawDebugData();
 	player_context.restore();
 	
@@ -151,4 +166,4 @@ function update_world() {
 		return;
 	else
 		requestAnimationFrame(update_world);
-}; 
+};

@@ -5,6 +5,25 @@ var world = {
 	objects: [],
 	is_world: true
 }
+function copy_world(w) {
+	var copy = {
+		gravity: copy_vec(w.gravity),
+		velocity_iterations: w.velocity_iterations,
+		position_iterations: w.position_iterations,
+		objects: [],
+		is_world: true
+	};
+	for(let i=0; i<w.objects.length; i++) {
+		var obj = w.objects[i];
+		
+		if(obj.is_body)
+			copy.objects.push( copy_body(obj) );
+		else if(obj.is_joint)
+			copy.objects.push( copy_joint(obj) );
+	}
+	
+	return copy;
+}
 
 var BODY_TYPES = { STATIC: 0, KINEMATIC: 1, DYNAMIC: 2 }
 function body(pos, rotation, verts) {
@@ -18,6 +37,21 @@ function body(pos, rotation, verts) {
 	this.aabb = null;
 	this.name = "body";
 	this.is_body = true;
+}
+function copy_body(b) {
+	var copy = new body();
+	
+	copy.pos = copy_vec(b.pos);
+	copy.type = b.type;
+	copy.rotation = b.rotation;
+	copy.verts = copy_vert_array(b.verts);
+	copy.density = b.density;
+	copy.friction = b.friction;
+	copy.restitution = b.restitution;
+	copy.aabb = calculate_aabb(b);
+	copy.name = (' '+b.name).slice(1);
+	
+	return copy;
 }
 
 var JOINT_TYPES = { "Revolute": 0, "Weld": 1 }
@@ -33,6 +67,22 @@ function joint(pos, type, body_a, body_b) {
 	this.type = type || 0;
 	this.name = "joint";
 	this.is_joint = true;
+}
+function copy_joint(j) {
+	var copy = new joint();
+	
+	copy.pos = copy_vec(j.pos);
+	copy.rotation = j.rotation;
+	copy.enable_limit = j.enable_limit;
+	copy.lower_angle = j.lower_angle;
+	copy.upper_angle = j.upper_angle;
+	copy.collide_connected = j.collide_connected;
+	copy.body_a = j.body_a;
+	copy.body_b = j.body_b;
+	copy.type = j.type;
+	copy.name = (' '+j.name).slice(1);
+	
+	return copy;
 }
 
 function AABB(min, max) {

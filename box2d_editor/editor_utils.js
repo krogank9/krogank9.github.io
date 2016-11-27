@@ -202,42 +202,6 @@ function restore_transforms(save_state) {
 	}
 }
 
-function copy_body(b) {
-	var copy = new body(copy_vec(b.pos), b.rotation, copy_vert_array(b.verts));
-	copy.aabb = calculate_aabb(b);
-	copy.name = b.name;
-	copy.type = b.type;
-	return copy;
-}
-function copy_joint(j) {
-	var copy = new joint(copy_vec(j.pos), j.type, j.body_a, j.body_b);
-	copy.lower_angle = j.lower_angle;
-	copy.upper_angle = j.upper_angle;
-	copy.enable_limit = j.enable_limit
-	copy.rotation = j.rotation;
-	copy.name = j.name;
-	return copy;
-}
-function copy_world(w) {
-	var copy = {
-		gravity: copy_vec(w.gravity),
-		velocity_iterations: w.velocity_iterations,
-		position_iterations: w.position_iterations,
-		objects: [],
-		is_world: true
-	};
-	for(let i=0; i<w.objects.length; i++) {
-		var obj = w.objects[i];
-		
-		if(obj.is_body)
-			copy.objects.push( copy_body(obj) );
-		else if(obj.is_joint)
-			copy.objects.push( copy_joint(obj) );
-	}
-	
-	return copy;
-}
-
 // Duplicate bodies & joints. If duplicating a joint and its corresponding
 // bodies, update the joints body_a and body_b to the newly duplicated ones.
 function generate_duplicate_objects(objects) {

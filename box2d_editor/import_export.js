@@ -129,7 +129,8 @@ function export_joint(joint, bodies_list) {
 		anchorA: make_pos_relative(joint.pos, joint.body_a),
 		anchorB: make_pos_relative(joint.pos, joint.body_b),
 		refAngle: 0,
-		type: invert(JOINT_TYPES)[joint.type].toLowerCase()
+		type: invert(JOINT_TYPES)[joint.type].toLowerCase(),
+		collideConnected: joint.collide_connected
 	};
 	if(joint.type == JOINT_TYPES["Revolute"]) {
 		converted.enableLimit = joint.enable_limit;
@@ -201,7 +202,7 @@ function export_world_rube(world_to_export) {
 	bodies.forEach(function(body) {
 		// Make sure verts are specified in counter clockwise order, for Box2D
 		if(check_clockwise(body.verts))
-			body.verts = body.verts.reverse();
+			body.verts.reverse();
 	});
 	
 	var b2d_world = {
@@ -252,7 +253,7 @@ function export_world_rube(world_to_export) {
 	}
 	
 	filter_joints(world.objects).forEach(function(joint) {
-		var exported = export_joint(copy_joint(joint), bodies);
+		var exported = export_joint(joint, bodies);
 		b2d_world.joint.push(exported);
 	});
 	
