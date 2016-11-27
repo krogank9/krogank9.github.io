@@ -89,6 +89,10 @@ open_file.onchange = function() {
 	this.value = null;
 }
 
+// Bug:
+// make a static floor, and a box
+// rotate the box a bit above 45 degrees and flip it horizontally
+// box falls through floor
 function check_clockwise(verts) {
 	if(verts.length < 3)
 		return false;
@@ -96,7 +100,9 @@ function check_clockwise(verts) {
 	var ang1 = normalize_ang( verts[0].angle() );
 	var ang2 = normalize_ang( verts[1].angle() );
 	
-	return ang2 < ang1;
+	var diff = find_angle_difference(ang2, ang1);
+	
+	return diff < 0;
 }
 
 function remake_vec(v) {
@@ -201,8 +207,10 @@ function export_world_rube(world_to_export) {
 	
 	bodies.forEach(function(body) {
 		// Make sure verts are specified in counter clockwise order, for Box2D
-		if(check_clockwise(body.verts))
+		if(check_clockwise(body.verts)) {
+			//console.log(search_arr(world.objects,body)+"'s verts reversed");
 			body.verts.reverse();
+		}
 	});
 	
 	var b2d_world = {

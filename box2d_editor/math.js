@@ -123,3 +123,22 @@ function normalize_ang(ang) {
 		ang += 360;
 	return ang%360;
 }
+
+// Find the smallest possible distance between 2 angles
+function find_angle_difference(to, from) {
+	to = normalize_ang(to);
+	from = normalize_ang(from);
+	
+	// simply take to-from, this will be correct, unless something like
+	// to=359 from=0 to-from = 359, we want -1
+	var dist1 = to-from;
+	
+	if(to>from)
+		from += 360;
+	else if(from>to)
+		to += 360;
+		
+	var dist2 = to-from;
+	
+	return Math.abs(dist2) < Math.abs(dist1) ? dist2 : dist1;
+}
