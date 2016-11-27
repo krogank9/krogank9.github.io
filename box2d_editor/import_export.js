@@ -140,8 +140,8 @@ function export_joint(joint, bodies_list) {
 	};
 	if(joint.type == JOINT_TYPES["Revolute"]) {
 		converted.enableLimit = joint.enable_limit;
-		converted.lowerLimit = (joint.lower_angle-joint.rotation-90)/rad2deg;
-		converted.upperLimit = (joint.upper_angle-joint.rotation-90)/rad2deg;
+		converted.lowerLimit = (joint.lower_angle-joint.rotation)/rad2deg;
+		converted.upperLimit = (joint.upper_angle-joint.rotation)/rad2deg;
 		converted.enableMotor = false;
 		converted.maxMotorTorque = 0;
 		converted.motorSpeed = 0;

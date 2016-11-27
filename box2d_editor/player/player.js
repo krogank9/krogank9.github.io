@@ -12,9 +12,14 @@ $("#player_dialog").dialog({
 		//export the current world
 		var json = export_world_rube(world);
 		b2d_world = loadWorldFromRUBE(JSON.parse(json));
+		mouse_joint_ground_body = b2d_world.CreateBody( new b2BodyDef() );
+		
 		player_offset.set_equal_to(convert_offset(viewport.pos));
+		
 		var newzoom = viewport.zoom * player_canvas.width/canvas.width;
-		debugDraw.SetDrawScale(1.0 * meters_to_px * newzoom);
+		player_scale = meters_to_px * newzoom;
+		
+		debugDraw.SetDrawScale(player_scale);
 		b2d_world.SetDebugDraw(debugDraw);
 
 		world_pause = false;
@@ -146,6 +151,7 @@ debugDraw.SetFlags(b2DebugDraw.e_shapeBit /*| b2DebugDraw.e_jointBit*/);
 
 var world_pause = true;
 var player_offset = new vec(0,0);
+var player_scale = 1.0;
 function update_world() {
 	b2d_world.Step(1 / 60, 10, 10);
 	
@@ -167,3 +173,81 @@ function update_world() {
 	else
 		requestAnimationFrame(update_world);
 };
+
+
+var mouse_joint = null;
+var mouse_joint_ground_body = null;
+var mouse_pos_world = new vec(0,0);
+function pixel_to_world(x,y) {
+	var pos = new vec(x + player_offset.x,player_canvas.height - y - player_offset.y);
+	pos = pos.scale(1/player_scale);
+	return pos;
+}
+
+var MouseDownQueryCallback = function() {
+	this.m_fixture = null;
+	this.m_point = new b2Vec2();
+}
+MouseDownQueryCallback.prototype.ReportFixture = function(fixture) {
+	console.log('aaa');
+	if(fixture.GetBody().GetType() == 2) { //dynamic bodies only
+		if ( fixture.TestPoint(this.m_point) ) {
+			this.m_fixture = fixture;
+			console.log('hhh');
+			return false;
+		}
+	}
+	return true;
+};
+var mouseDownQueryCallback = new MouseDownQueryCallback();
+
+function create_mouse_joint() {
+	if( mouse_joint !== null )
+		return;
+		
+	// Make a small box.
+	var aabb = new b2AABB();
+	var d = 0.001;            
+	aabb.lowerBound.Set(mouse_pos_world.x - d, mouse_pos_world.y - d);
+	aabb.upperBound.Set(mouse_pos_world.x + d, mouse_pos_world.y + d);
+
+	// Query the world for overlapping shapes.
+	mouseDownQueryCallback.m_fixture = null;
+	mouseDownQueryCallback.m_point.Set(mouse_pos_world.x, mouse_pos_world.y);
+	b2d_world.QueryAABB(mouseDownQueryCallback, aabb);
+	if (mouseDownQueryCallback.m_fixture)
+	{
+		var body = mouseDownQueryCallback.m_fixture.GetBody();
+		
+		var md = new b2MouseJointDef();
+		md.bodyA = mouse_joint_ground_body;
+		md.bodyB = body;
+		md.target.Set(mouse_pos_world.x, mouse_pos_world.y);
+		md.maxForce = 1000 * body.GetMass();
+		md.collideConnected = true;
+
+		mouse_joint = b2d_world.CreateJoint(md);
+		body.SetAwake(true);
+	}
+}
+function destroy_mouse_joint() {
+	if( mouse_joint === null )
+		return;
+		
+	b2d_world.DestroyJoint(mouse_joint);
+	mouse_joint = null;
+}
+
+player_canvas.onmousedown = function() { create_mouse_joint(); }
+player_canvas.onmouseup = function() { destroy_mouse_joint(); }
+player_canvas.onmouseout = function() { destroy_mouse_joint(); }
+player_canvas.blur = function() { destroy_mouse_joint(); }
+player_canvas.onmousemove = function(evt) {
+	var x = evt.pageX - this.offsetLeft
+	var y = evt.pageY - this.offsetTop
+	mouse_pos_world = pixel_to_world(x,y);
+	
+	if ( mouse_joint != null ) {
+		mouse_joint.SetTarget( new b2Vec2(mouse_pos_world.x, mouse_pos_world.y) );
+	}
+}
