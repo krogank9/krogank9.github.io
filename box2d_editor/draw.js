@@ -274,21 +274,38 @@ function draw_joint(joint) {
 			graphics.beginFill(0,0);
 			graphics.lineStyle(1, 0);
 			var radius = 35;
-			var circle_start = new vec(radius-0.1,0);
-			circle_start = circle_start.rotate_by(joint.lower_angle+joint.rotation*-1);
-			graphics.moveTo(pos.x+circle_start.x,pos.y+circle_start.y);
-			graphics.arc(pos.x, pos.y, radius,
-				(joint.lower_angle-joint.rotation)/rad2deg,
-				(joint.upper_angle-joint.rotation)/rad2deg
-			);
 			if(joint.enable_limit === true) {
+				// NOTE: since these coordinates are already in canvas form,
+				// for rotations, positive is now clockwise as opposed to counter clockwise
+				// as it is everywhere else in the program.
+				// So I multiply all by -1 and flip the joint limits
+				
+				var lower_angle = joint.upper_angle;
+				var upper_angle = joint.lower_angle;
+				var rotation = joint.rotation;
+				
+				// move to the lower angle start position to begin the arc
+				var arc_start = new vec(radius-0.1,0);
+				arc_start = arc_start.rotate_by((lower_angle+rotation)*-1);
+				graphics.moveTo(pos.x+arc_start.x,pos.y+arc_start.y);
+				
+				// draw the arc
+				graphics.arc(pos.x, pos.y, radius,
+					(lower_angle+rotation)*-1/rad2deg,
+					(upper_angle+rotation)*-1/rad2deg
+				);
+				
+				// draw small circles on the 2 endpoints of the arc
 				var c_start = new vec(radius, 0);
-				c_start = c_start.rotate_by(joint.lower_angle - joint.rotation);
+				c_start = c_start.rotate_by((lower_angle + rotation)*-1);
 				var c_end = new vec(radius, 0);
-				c_end = c_end.rotate_by(joint.upper_angle - joint.rotation);
+				c_end = c_end.rotate_by((upper_angle + rotation)*-1);
 				graphics.beginFill(1,1);
 				graphics.drawCircle(pos.x+c_start.x, pos.y+c_start.y, 2);
 				graphics.drawCircle(pos.x+c_end.x, pos.y+c_end.y, 2);
+			}
+			else {
+				graphics.drawCircle(pos.x, pos.y, radius);
 			}
 		}
 	}

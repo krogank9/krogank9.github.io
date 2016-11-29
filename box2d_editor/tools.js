@@ -344,21 +344,21 @@ rotate_tool.rotate_45.onclick = function() {
 	if(viewport.selection.length == 0)
 		return;
 	var save = save_transforms(viewport.selection);
-	rotate_objects(viewport.selection, -45, rotate_tool.localize_rotation.checked);
+	rotate_objects(viewport.selection, 45, rotate_tool.localize_rotation.checked);
 	commit_transform(save, save_transforms(viewport.selection));
 }
 rotate_tool.rotate_90.onclick = function() {
 	if(viewport.selection.length == 0)
 		return;
 	var save = save_transforms(viewport.selection);
-	rotate_objects(viewport.selection, -90, rotate_tool.localize_rotation.checked);
+	rotate_objects(viewport.selection, 90, rotate_tool.localize_rotation.checked);
 	commit_transform(save, save_transforms(viewport.selection));
 }
 rotate_tool.rotate_180.onclick = function() {
 	if(viewport.selection.length == 0)
 		return;
 	var save = save_transforms(viewport.selection);
-	rotate_objects(viewport.selection, -180, rotate_tool.localize_rotation.checked);
+	rotate_objects(viewport.selection, 180, rotate_tool.localize_rotation.checked);
 	commit_transform(save, save_transforms(viewport.selection));
 }
 

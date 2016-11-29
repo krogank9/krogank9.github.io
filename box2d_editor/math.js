@@ -111,11 +111,11 @@ function float2str(num, num_places) {
 
 //Mirror an angle vertically
 function mirror_angle_v(ang) {
-	return -ang + 180;
+	return -ang;
 }
 //Mirror an angle horizontally
 function mirror_angle_h(ang) {
-	return -ang;
+	return -ang + 180;
 }
 
 function normalize_ang(ang) {

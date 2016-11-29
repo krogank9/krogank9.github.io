@@ -1,0 +1,11 @@
+right now I need to fix the revolute and weld joints so they export properly, after that it's pretty much done, the rest is extra. revolute joint cant export joint limits properly to rube format. the weld joint doesn't keep orientation, it just makes bodies that same rotation, might just be a problem with the rube loader for javascript not the exporter
+
+1. clean up code in general, variable function names etc. it's pretty messy in a lot of places
+2. add more tools. needs polygon tool
+3. add more joints such as rope and distance joints until all joints are supported
+4. find a new webgl renderer other than pixi.js, or make it run more efficiently, it's slow.
+5. make the box2d player more functional. need to be able to grab and throw bodies around.
+6. add support for images like RUBE does
+7. add a circle tool
+8. add support for editing fixtures, vertices, groups
+9. maybe a properties window like RUBE for more precise positioning and editing various properties

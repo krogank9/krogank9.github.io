@@ -10,7 +10,7 @@ $("#save_dialog").dialog({
 			
 			var file_contents = qbe_format.checked===true? save_world(world) : export_world_rube(world);
 				
-			var blob = new Blob([file_contents], {type: "text/plain;charset=utf-8"});
+			var blob = new Blob([file_contents], {type: "text/plain;charset=ascii"});
 			saveAs(blob, file_name);
 
 			$( this ).dialog("close");
@@ -89,10 +89,6 @@ open_file.onchange = function() {
 	this.value = null;
 }
 
-// Bug:
-// make a static floor, and a box
-// rotate the box a bit above 45 degrees and flip it horizontally
-// box falls through floor
 function check_clockwise(verts) {
 	if(verts.length < 3)
 		return false;
@@ -140,8 +136,11 @@ function export_joint(joint, bodies_list) {
 	};
 	if(joint.type == JOINT_TYPES["Revolute"]) {
 		converted.enableLimit = joint.enable_limit;
-		converted.lowerLimit = (joint.lower_angle-joint.rotation)/rad2deg;
-		converted.upperLimit = (joint.upper_angle-joint.rotation)/rad2deg;
+		converted.lowerLimit = (joint.lower_angle%360)/rad2deg;
+		converted.upperLimit = (joint.upper_angle%360)/rad2deg;
+		var ang = joint.body_b.pos.subtract(joint.pos).angle() - joint.rotation;
+		converted.refAngle = (ang%360)/rad2deg;
+		console.log("refAngle:"+ang+", lowerLimit:"+joint.lower_angle+", upperLimit:"+joint.upper_angle);
 		converted.enableMotor = false;
 		converted.maxMotorTorque = 0;
 		converted.motorSpeed = 0;
@@ -187,7 +186,7 @@ function save_world(world_to_save) {
 		if(check_clockwise(body.verts))
 			body.verts = body.verts.reverse();
 	});
-	return JSON.stringify(world);
+	return JSON.stringify(world, null, 2);
 }
 
 function load_world(json) {
@@ -199,6 +198,45 @@ function load_world(json) {
 		load_joint(elem, world);
 	});
 	return world;
+}
+
+// Get area and moment of intertia from triangle
+function get_triangle_data(verts) {
+	var base_ang = verts[1].subtract(verts[0]).angle();
+	// rotate all to the axis of the base of the triangle
+	var rotated = [
+		verts[0].rotate_by(-base_ang),
+		verts[1].rotate_by(-base_ang),
+		verts[2].rotate_by(-base_ang)
+	];
+	var b = Math.abs(rotated[1].x - rotated[0].x); // base
+	var h = Math.abs(rotated[2].y - rotated[0].y); // height
+	var area = b*h/2;
+	
+	var a = Math.abs(rotated[2].x - rotated[0].x); // dist from side of base to tip for MoI formula:
+	var MoI = Math.pow(b,3)*h - Math.pow(b,2)*h*a + b*h*Math.pow(a,2) + b*Math.pow(h,3);
+	MoI /= 36;
+	return {area:area, MoI:MoI};
+}
+
+// Most box2d loaders won't calculate mass, inertia, and mass center for you.
+// Need to calculate it yourself or it's set to default values like 1 or 0
+function calculate_massdata(body) {
+	var area = 0;
+	var MoI = 0;
+	var verts = body.verts;
+	var length = verts.length;
+	for(let i=0; i<length; i++) {
+		var data = get_triangle_data([new vec(0,0), verts[i], verts[(i+1)%length]]);
+		area += data.area;
+		MoI += data.MoI;
+	}
+	var massData = {
+		"massData-mass": area*body.density,
+		"massData-center": new vec(0,0), // not supporting offcenter masses for now, just boxes
+		"massData-I": MoI,
+	}
+	return massData;
 }
 
 // Export the world into RUBE's json format
@@ -237,9 +275,6 @@ function export_world_rube(world_to_export) {
 			angularVelocity: 0,
 			awake: true,
 			linearVelocity: new vec(0,0),
-			"massData-mass": 1,
-			"massData-center": b.pos,
-			"massData-I": 1,
 			position: b.pos,
 			fixture: [
 				{
@@ -252,6 +287,14 @@ function export_world_rube(world_to_export) {
 				}
 			]
 		}
+		
+		if(b.type !== BODY_TYPES.STATIC) {
+			var massData = calculate_massdata(b);
+			new_body["massData-mass"] = massData["massData-mass"];
+			new_body["massData-I"] = massData["massData-I"];
+			new_body["massData-center"] = massData["massData-center"];
+		}
+		
 		// Convert array of verts to x/y array, different format
 		for(let j=0; j<b.verts.length; j++) {
 			new_body.fixture[0].polygon.vertices.x.push(b.verts[j].x);
@@ -265,5 +308,5 @@ function export_world_rube(world_to_export) {
 		b2d_world.joint.push(exported);
 	});
 	
-	return JSON.stringify(b2d_world);
+	return JSON.stringify(b2d_world, null, 2);
 }
