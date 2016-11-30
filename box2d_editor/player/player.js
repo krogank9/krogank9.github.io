@@ -178,8 +178,8 @@ function update_world() {
 var mouse_joint = null;
 var mouse_joint_ground_body = null;
 var mouse_pos_world = new vec(0,0);
-function pixel_to_world(x,y) {
-	var pos = new vec(x,y);
+function pixel_to_world(pos) {
+	var pos = copy_vec(pos);
 	
 	// flip the y because in box2d 0 is at the bottom not the top like canvas
 	pos.y *= -1;
@@ -189,6 +189,20 @@ function pixel_to_world(x,y) {
 	pos.y += player_offset.y;
 	
 	pos = pos.scale(1/player_scale);
+	return pos;
+}
+
+function world_to_pixel(pos) {
+	var pos = copy_vec(pos);
+	
+	pos = pos.scale(player_scale);
+	
+	pos.x += player_offset.x;
+	pos.y -= player_offset.y;
+	
+	pos.y *= -1;
+	pos.y += player_canvas.height;
+
 	return pos;
 }
 
@@ -268,13 +282,14 @@ player_canvas.onmouseup = function(evt) {
     
 	if(evt.button == 2) {
 		this.r_mb = false;
+		this.style.cursor = "default";
 	} else if(evt.button ==0) {
 		this.l_mb = false;
 		destroy_mouse_joint();
 	}
 }
-player_canvas.onmouseout = function(evt) { destroy_mouse_joint(); this.r_mb = false; }
-player_canvas.blur = function(evt) { destroy_mouse_joint(); this.r_mb = false; }
+player_canvas.onmouseout = function(evt) { destroy_mouse_joint(); this.r_mb = false; this.style.cursor = "default"; }
+player_canvas.blur = function(evt) { destroy_mouse_joint(); this.r_mb = false; this.style.cursor = "default"; }
 player_canvas.onmousemove = function(evt) {
 	var rect = player_canvas.getBoundingClientRect(), root = document.documentElement;
     var x = evt.clientX - rect.left - root.scrollLeft;
@@ -283,7 +298,7 @@ player_canvas.onmousemove = function(evt) {
     var pos = new vec(x,y);
     var pos_change = pos.subtract(this.cur_mouse_pos);
     
-	mouse_pos_world = pixel_to_world(x,y);
+	mouse_pos_world = pixel_to_world(pos);
 	
 	if ( mouse_joint != null ) {
 		mouse_joint.SetTarget( new b2Vec2(mouse_pos_world.x, mouse_pos_world.y) );
@@ -291,9 +306,37 @@ player_canvas.onmousemove = function(evt) {
 	
 	if( this.r_mb ) {
 		player_offset = player_offset.add(pos_change);
+		this.style.cursor = "move";
 	}
 	
 	this.cur_mouse_pos = pos;
 }
 player_canvas.oncontextmenu = function() { return false }
 player_canvas.ondragstart = function() { return false }
+player_canvas.onwheel = function(evt) {
+	var pre_middle = new vec(player_canvas.width/2, player_canvas.height/2);
+	pre_middle = pixel_to_world(pre_middle);
+
+	player_scale -= evt.deltaY;
+	
+	var min_scale = 10.0;
+	var max_scale = 1000.0;
+	var step = (max_scale - min_scale)/50;
+	
+	if(evt.deltaY > 0)
+		player_scale += step;
+	else if(evt.deltaY < 0)
+		player_scale -= step;
+		
+	if(player_scale < min_scale)
+		player_scale = min_scale;
+	else if(player_scale > max_scale)
+		player_scale = max_scale;
+	
+	debugDraw.SetDrawScale(player_scale);
+	
+	pre_middle = world_to_pixel(pre_middle);
+	var post_middle = new vec(player_canvas.width/2, player_canvas.height/2);
+	var change = post_middle.subtract(pre_middle);
+	player_offset = player_offset.add(change);
+}
