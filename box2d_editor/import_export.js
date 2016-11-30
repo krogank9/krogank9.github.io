@@ -159,10 +159,9 @@ function export_joint(joint, bodies_list) {
 		converted.refAngle = ref/rad2deg;
 	} else if(joint.type == JOINT_TYPES["Weld"]) {
 		// setting the reference angle is done a bit differently for the weld
-		var diff = find_angle_difference(joint.body_b.rotation, joint.body_a.rotation);
-		// no need to account for the weld joints rotation or positioning of body relative to the joint
-		var ref = make_ang_small(diff);
-		converted.refAngle = ref/rad2deg;
+		// just need to set it so they maintain the same rotation, no joint limits to account for
+		var diff = joint.body_b.rotation - joint.body_a.rotation;
+		converted.refAngle = diff/rad2deg;
 	}
 	
 	return converted;

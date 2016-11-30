@@ -1,5 +1,8 @@
-right now I need to fix the revolute and weld joints so they export properly, after that it's pretty much done, the rest is extra. revolute joint cant export joint limits properly to rube format. the weld joint doesn't keep orientation, it just makes bodies that same rotation, might just be a problem with the rube loader for javascript not the exporter
+To complete the program:
+1. Make the player interactive, pan+zoom & mouse joint
+2. Add collision filtering
 
+Extras:
 1. clean up code in general, variable function names etc. it's pretty messy in a lot of places
 2. add more tools. needs polygon tool
 3. add more joints such as rope and distance joints until all joints are supported

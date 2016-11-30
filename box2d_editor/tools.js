@@ -240,6 +240,8 @@ move_tool.save_state = null;
 move_tool.start_pos = new vec(0,0);
 
 move_tool.mousedown = function(evt) {
+	if(this.edit_in_progress === true)
+		return;
 	if(viewport.selection.length > 0) {
 		this.edit_in_progress = true;
 		this.save_state = save_transforms(viewport.selection);
@@ -366,6 +368,8 @@ rotate_tool.rotate_180.onclick = function() {
 rotate_tool.save_state = null;
 rotate_tool.start_pos = new vec(0,0);
 rotate_tool.mousedown = function(evt) {
+	if(this.edit_in_progress === true)
+		return;
 	this.edit_in_progress = true;
 	this.save_state = save_transforms(viewport.selection);
 	this.start_pos = copy_vec(cur_mouse_pos);
