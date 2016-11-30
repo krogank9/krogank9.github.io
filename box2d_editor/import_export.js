@@ -138,9 +138,16 @@ function export_joint(joint, bodies_list) {
 		converted.enableLimit = joint.enable_limit;
 		converted.lowerLimit = (joint.lower_angle%360)/rad2deg;
 		converted.upperLimit = (joint.upper_angle%360)/rad2deg;
-		var ang = joint.body_b.pos.subtract(joint.pos).angle() - joint.rotation;
+		// Reference angle is that angle between the 2 bodies that will be considered 0
+		// to glitch: make ang_between > 180 and it goes negative causing a glitch
+		var ang_between = normalize_ang(joint.body_b.pos.subtract(joint.pos).angle());
+		console.clear();
+		console.log("Angle between the two bodies: " + ang_between);
+		console.log("Joint angle: " + joint.rotation);
+		console.log("body - joint Should stay near -35:" + (joint.rotation-ang_between)%360);
+		var ang = (ang_between - (joint.rotation%360))*-1;
 		converted.refAngle = (ang%360)/rad2deg;
-		console.log("refAngle:"+ang+", lowerLimit:"+joint.lower_angle+", upperLimit:"+joint.upper_angle);
+		//console.log("refAngle:"+ang+", jointAngle:"+joint.rotation+", lowerLimit:"+joint.lower_angle+", upperLimit:"+joint.upper_angle);
 		converted.enableMotor = false;
 		converted.maxMotorTorque = 0;
 		converted.motorSpeed = 0;
