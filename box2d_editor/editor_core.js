@@ -26,6 +26,13 @@ for(char="A", count=0; count<=26; count++) {
 }
 var DELETE_KEYCODE = 46;
 
+// prevent zooming
+$(window).bind('mousewheel DOMMouseScroll', function (event) {
+	if (event.ctrlKey == true) {
+		event.preventDefault();
+	}
+});
+
 // Hotkeys
 window.onkeydown = function(evt) {
 	
@@ -33,6 +40,11 @@ window.onkeydown = function(evt) {
 	if( $('#selection_properties_dialog').dialog('isOpen') === true
 	|| $('#save_dialog').dialog('isOpen') === true ) {
 		return;
+	}
+	
+	// prevent zooming
+	if (evt.ctrlKey==true && (evt.which == '61' || evt.which == '107' || evt.which == '173' || evt.which == '109'  || evt.which == '187'  || evt.which == '189'  ) ) {
+		evt.preventDefault();
 	}
 	
 	switch(evt.keyCode) {
@@ -154,8 +166,9 @@ canvas.onmouseup = function(evt) {
 	cur_mouse_pos.set_equal_to(pos);
 }
 canvas.onmousemove = function(evt) {
-	var x = evt.pageX - this.offsetLeft
-	var y = evt.pageY - this.offsetTop
+	var rect = player_canvas.getBoundingClientRect(), root = document.documentElement;
+    var x = evt.clientX - rect.left - root.scrollLeft;
+    var y = evt.clientY - rect.top - root.scrollTop;
 	var pos = new vec(x,y);
 	var pos_change = pos.subtract(cur_mouse_pos);
 	

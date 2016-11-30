@@ -179,7 +179,15 @@ var mouse_joint = null;
 var mouse_joint_ground_body = null;
 var mouse_pos_world = new vec(0,0);
 function pixel_to_world(x,y) {
-	var pos = new vec(x + player_offset.x,player_canvas.height - y - player_offset.y);
+	var pos = new vec(x,y);
+	
+	// flip the y because in box2d 0 is at the bottom not the top like canvas
+	pos.y *= -1;
+	pos.y += player_canvas.height;
+	
+	pos.x -= player_offset.x;
+	pos.y += player_offset.y;
+	
 	pos = pos.scale(1/player_scale);
 	return pos;
 }
@@ -243,8 +251,10 @@ player_canvas.onmouseup = function() { destroy_mouse_joint(); }
 player_canvas.onmouseout = function() { destroy_mouse_joint(); }
 player_canvas.blur = function() { destroy_mouse_joint(); }
 player_canvas.onmousemove = function(evt) {
-	var x = evt.pageX - this.offsetLeft
-	var y = evt.pageY - this.offsetTop
+	var rect = player_canvas.getBoundingClientRect(), root = document.documentElement;
+    var x = evt.clientX - rect.left - root.scrollLeft;
+    var y = evt.clientY - rect.top - root.scrollTop;
+    //console.log("x:"+x+", y:"+y);
 	mouse_pos_world = pixel_to_world(x,y);
 	
 	if ( mouse_joint != null ) {
