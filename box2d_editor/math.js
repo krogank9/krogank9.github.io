@@ -62,6 +62,9 @@ function vec(x,y) {
 		this.x = other_vec.x;
 		this.y = other_vec.y;
 	}
+	this.dist = function(other_vec) {
+		return this.subtract(other_vec).magnitude();
+	}
 }
 
 function copy_vec(v) {

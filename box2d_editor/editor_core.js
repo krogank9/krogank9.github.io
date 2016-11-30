@@ -144,10 +144,7 @@ canvas.onmouseup = function(evt) {
 	var pos = new vec(x,y);
 	
 	if(evt.button == 0) {
-		if(start_mouse_pos.subtract(pos).magnitude() >= current_tool.min_drag_distance)
-			current_tool.mouseup(evt);
-		else
-			current_tool.action_cancelled();
+		current_tool.mouseup(evt);
 		left_mouse_down = false;
 	}
 	else if(evt.button == 2) {

@@ -47,7 +47,6 @@ function tool() {
 	this.tool_selected = function () {};
 	this.action_cancelled = function() {};
 	this.draw = function() {};
-	this.min_drag_distance = 1;
 	this.edit_in_progress = false;
 }
 var select_tool = new tool();
@@ -156,7 +155,6 @@ selection_properties_button.onclick = function() {
 	$("#selection_properties_dialog").dialog("open");
 };
 
-select_tool.min_drag_distance = 0;
 select_tool.start_pos = new vec(0,0);
 select_tool.mousedown = function() {
 	if(this.edit_in_progress == false) {
@@ -288,8 +286,11 @@ move_tool.mousemove = function(evt) {
 }
 
 move_tool.mouseup = function(evt) {
-	if(this.edit_in_progress == false)
+	if(this.edit_in_progress == false || this.start_pos.dist(cur_mouse_pos) === 0) {
+		this.action_cancelled();
 		return;
+	}
+	
 	if(this.save_state.length > 0)
 		commit_transform(this.save_state, save_transforms(viewport.selection));
 	this.save_state = null;
@@ -386,8 +387,11 @@ rotate_tool.mousemove = function(evt) {
 }
 
 rotate_tool.mouseup = function(evt) {
-	if(this.edit_in_progress == false)
+	if(this.edit_in_progress == false || this.start_pos.dist(cur_mouse_pos) === 0) {
+		this.action_cancelled();
 		return;
+	}
+	
 	this.edit_in_progress = false;
 	commit_transform(this.save_state, save_transforms(viewport.selection));
 	this.save_state = null;
@@ -494,8 +498,10 @@ scale_tool.mousemove = function(evt) {
 }
 
 scale_tool.mouseup = function(evt) {
-	if(this.edit_in_progress == false)
+	if(this.edit_in_progress == false || this.start_pos.dist(cur_mouse_pos) === 0) {
+		this.action_cancelled();
 		return;
+	}
 	this.edit_in_progress = false;
 	commit_transform(this.save_state, save_transforms(viewport.selection));
 	this.save_state = null;
@@ -542,8 +548,11 @@ scale_tool.draw = function() {
 
 box_tool.cur_box = null;
 box_tool.start_pos = new vec(0,0);
-box_tool.min_drag_distance = 5;
+
 box_tool.mousedown = function(evt) {
+	if(this.edit_in_progress === true)
+		return;
+		
 	this.edit_in_progress = true;
 	if(this.cur_box !== null)
 		return;
@@ -585,8 +594,11 @@ var box_type_dynamic = document.getElementById("box_type_dynamic");
 var box_type_kinematic = document.getElementById("box_type_kinematic");
 
 box_tool.mouseup = function(evt) {
-	if(this.edit_in_progress == false)
+	if(this.edit_in_progress === false || cur_mouse_pos.dist(this.start_pos) < 5) {
+		this.action_cancelled();
 		return;
+	}
+
 	this.edit_in_progress = false;
 	if(this.cur_box == null)
 		return;
@@ -601,9 +613,7 @@ box_tool.mouseup = function(evt) {
 	else
 		new_box.type = BODY_TYPES.KINEMATIC;
 		
-	var dist = cur_mouse_pos.subtract(this.start_pos).magnitude();
-	if(dist >= 10)
-		add_objects([new_box]);
+	add_objects([new_box]);
 	this.cur_box = null;
 };
 
@@ -611,6 +621,7 @@ box_tool.action_cancelled = function() {
 	if(this.cur_box != null)
 		world.objects.pop();
 	this.cur_box = null;
+	this.edit_in_progress = false;
 };
 
 
