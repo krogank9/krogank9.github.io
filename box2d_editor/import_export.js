@@ -134,29 +134,35 @@ function export_joint(joint, bodies_list) {
 		type: invert(JOINT_TYPES)[joint.type].toLowerCase(),
 		collideConnected: joint.collide_connected
 	};
+	
 	if(joint.type == JOINT_TYPES["Revolute"]) {
 		converted.enableLimit = joint.enable_limit;
 		// remember, -30 and +330 are not the same for joint limits. do not normalize angle to positive or %360
 		// you can have it rotate multiple times forward i.e. lower limit 0 upper limit 1080 or -1080
 		converted.lowerLimit = joint.lower_angle/rad2deg;
 		converted.upperLimit = joint.upper_angle/rad2deg;
+		converted.enableMotor = false;
+		converted.maxMotorTorque = 0;
+		converted.motorSpeed = 0;
+		
 		// If you set refAngle to -45, getJointAngle() will return 0 when
 		// body b's rotation is -45 (in relation to a)
 		// so it will also return 45 when body b's rotation is 0
 		//
 		// Reference angle is what you want body_b.rotation - body_a.rotation to be when the joint is at 0
-		
 		var diff = find_angle_difference(joint.body_b.rotation, joint.body_a.rotation);
 		var joint_rel = joint.body_b.pos.subtract(joint.pos).angle();
 		// this is the formula for a reference angle currently,
 		// subtract the angle relative to the joint so that you can position
 		// the body within the joint limits how you want it
 		var ref = make_ang_small(diff+joint.rotation-joint_rel);
-		//console.log("diff:"+diff+"joint_rel:"+joint_rel+", ref:"+ref);
 		converted.refAngle = ref/rad2deg;
-		converted.enableMotor = false;
-		converted.maxMotorTorque = 0;
-		converted.motorSpeed = 0;
+	} else if(joint.type == JOINT_TYPES["Weld"]) {
+		// setting the reference angle is done a bit differently for the weld
+		var diff = find_angle_difference(joint.body_b.rotation, joint.body_a.rotation);
+		// no need to account for the weld joints rotation or positioning of body relative to the joint
+		var ref = make_ang_small(diff);
+		converted.refAngle = ref/rad2deg;
 	}
 	
 	return converted;
