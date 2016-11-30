@@ -197,11 +197,9 @@ var MouseDownQueryCallback = function() {
 	this.m_point = new b2Vec2();
 }
 MouseDownQueryCallback.prototype.ReportFixture = function(fixture) {
-	console.log('aaa');
 	if(fixture.GetBody().GetType() == 2) { //dynamic bodies only
 		if ( fixture.TestPoint(this.m_point) ) {
 			this.m_fixture = fixture;
-			console.log('hhh');
 			return false;
 		}
 	}
@@ -246,18 +244,56 @@ function destroy_mouse_joint() {
 	mouse_joint = null;
 }
 
-player_canvas.onmousedown = function() { create_mouse_joint(); }
-player_canvas.onmouseup = function() { destroy_mouse_joint(); }
-player_canvas.onmouseout = function() { destroy_mouse_joint(); }
-player_canvas.blur = function() { destroy_mouse_joint(); }
+player_canvas.cur_mouse_pos = new vec(0,0);
+player_canvas.l_mb = false;
+player_canvas.r_mb = false;
+player_canvas.onmousedown = function(evt) {
+	var rect = player_canvas.getBoundingClientRect(), root = document.documentElement;
+    var x = evt.clientX - rect.left - root.scrollLeft;
+    var y = evt.clientY - rect.top - root.scrollTop;
+    this.cur_mouse_pos = new vec(x,y);
+    
+	if(evt.button == 2) {
+		this.r_mb = true;
+	} else if(evt.button ==0) {
+		this.l_mb = true;
+		create_mouse_joint();
+	}
+}
+player_canvas.onmouseup = function(evt) {
+	var rect = player_canvas.getBoundingClientRect(), root = document.documentElement;
+    var x = evt.clientX - rect.left - root.scrollLeft;
+    var y = evt.clientY - rect.top - root.scrollTop;
+    this.cur_mouse_pos = new vec(x,y);
+    
+	if(evt.button == 2) {
+		this.r_mb = false;
+	} else if(evt.button ==0) {
+		this.l_mb = false;
+		destroy_mouse_joint();
+	}
+}
+player_canvas.onmouseout = function(evt) { destroy_mouse_joint(); this.r_mb = false; }
+player_canvas.blur = function(evt) { destroy_mouse_joint(); this.r_mb = false; }
 player_canvas.onmousemove = function(evt) {
 	var rect = player_canvas.getBoundingClientRect(), root = document.documentElement;
     var x = evt.clientX - rect.left - root.scrollLeft;
     var y = evt.clientY - rect.top - root.scrollTop;
-    //console.log("x:"+x+", y:"+y);
+    
+    var pos = new vec(x,y);
+    var pos_change = pos.subtract(this.cur_mouse_pos);
+    
 	mouse_pos_world = pixel_to_world(x,y);
 	
 	if ( mouse_joint != null ) {
 		mouse_joint.SetTarget( new b2Vec2(mouse_pos_world.x, mouse_pos_world.y) );
 	}
+	
+	if( this.r_mb ) {
+		player_offset = player_offset.add(pos_change);
+	}
+	
+	this.cur_mouse_pos = pos;
 }
+player_canvas.oncontextmenu = function() { return false }
+player_canvas.ondragstart = function() { return false }
