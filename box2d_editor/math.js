@@ -124,6 +124,13 @@ function normalize_ang(ang) {
 	return ang%360;
 }
 
+function make_ang_small(ang) {
+	ang = normalize_ang(ang);
+	if(ang > 180)
+		ang = ang-360;
+	return ang;
+}
+
 // Find the smallest possible distance between 2 angles
 function find_angle_difference(to, from) {
 	to = normalize_ang(to);
