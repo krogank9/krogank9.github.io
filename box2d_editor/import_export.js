@@ -146,9 +146,11 @@ function export_joint(joint, bodies_list) {
 		//
 		// Reference angle is what you want body_b.rotation - body_a.rotation to be when the joint is at 0
 		
-		//difference between body_a and body_b's rotation at setup
 		var diff = find_angle_difference(joint.body_b.rotation, joint.body_a.rotation);
 		var joint_rel = joint.body_b.pos.subtract(joint.pos).angle();
+		// this is the formula for a reference angle currently,
+		// subtract the angle relative to the joint so that you can position
+		// the body within the joint limits how you want it
 		var ref = make_ang_small(diff+joint.rotation-joint_rel);
 		//console.log("diff:"+diff+"joint_rel:"+joint_rel+", ref:"+ref);
 		converted.refAngle = ref/rad2deg;
