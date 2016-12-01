@@ -152,6 +152,7 @@ debugDraw.SetFlags(b2DebugDraw.e_shapeBit /*| b2DebugDraw.e_jointBit*/);
 var world_pause = true;
 var player_offset = new vec(0,0);
 var player_scale = 1.0;
+var context_scale = 1.0;
 function update_world() {
 	b2d_world.Step(1 / 60, 10, 10);
 	
@@ -316,24 +317,16 @@ player_canvas.ondragstart = function() { return false }
 player_canvas.onwheel = function(evt) {
 	var pre_middle = new vec(player_canvas.width/2, player_canvas.height/2);
 	pre_middle = pixel_to_world(pre_middle);
+	
+	var min_scale = 5.0;
 
-	player_scale -= evt.deltaY;
-	
-	var min_scale = 10.0;
-	var max_scale = 1000.0;
-	var scale_constant = 1.1;
-	
-	var percent_zoomed = (player_scale-min_scale)/(max_scale-min_scale);
-	
 	if(evt.deltaY > 0)
-		player_scale *= 1.0 + 0.1*percent_zoomed;
+		player_scale /= 1.1;
 	else if(evt.deltaY < 0)
-		player_scale /= 1.0 + 0.1*percent_zoomed;
+		player_scale *= 1.1;
 		
 	if(player_scale < min_scale)
 		player_scale = min_scale;
-	else if(player_scale > max_scale)
-		player_scale = max_scale;
 	
 	debugDraw.SetDrawScale(player_scale);
 	

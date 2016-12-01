@@ -10,7 +10,7 @@ $("#save_dialog").dialog({
 			
 			var file_contents = qbe_format.checked===true? save_world(world) : export_world_rube(world);
 				
-			var blob = new Blob([file_contents], file_name, {type: "text/plain;charset=ascii"});
+			var blob = new Blob([file_contents], {type: "text/plain;charset=ascii"});
 			saveAs(blob, file_name);
 
 			$( this ).dialog("close");
@@ -152,11 +152,14 @@ function export_joint(joint, bodies_list) {
 		// Reference angle is what you want body_b.rotation - body_a.rotation to be when the joint is at 0
 		var diff = find_angle_difference(joint.body_b.rotation, joint.body_a.rotation);
 		var joint_rel = joint.body_b.pos.subtract(joint.pos).angle();
-		// this is the formula for a reference angle currently,
-		// subtract the angle relative to the joint so that you can position
 		// the body within the joint limits how you want it
-		var ref = make_ang_small(diff+joint.rotation-joint_rel);
+		// to the bodies angle relative to each other, add
+		// the joints rotation and offset from the body. 
+		// i do make_ang_small on that to combine the offset into one angle... it's a bit confusing but this seemingly works:
+		console.log(diff);
+		var ref = diff+make_ang_small(joint.rotation-joint_rel);
 		converted.refAngle = ref/rad2deg;
+		
 	} else if(joint.type == JOINT_TYPES["Weld"]) {
 		// setting the reference angle is done a bit differently for the weld
 		// just need to set it so they maintain the same rotation, no joint limits to account for
@@ -267,6 +270,8 @@ function export_world_rube(world_to_export) {
 			//console.log(search_arr(world.objects,body)+"'s verts reversed");
 			body.verts.reverse();
 		}
+		
+		body.rotation = normalize_ang(body.rotation);
 	});
 	
 	var b2d_world = {
@@ -322,6 +327,7 @@ function export_world_rube(world_to_export) {
 	}
 	
 	filter_joints(world.objects).forEach(function(joint) {
+		joint.rotation = normalize_ang(joint.rotation);
 		var exported = export_joint(joint, bodies);
 		b2d_world.joint.push(exported);
 	});

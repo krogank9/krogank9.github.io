@@ -21,16 +21,22 @@ $( document ).ready(function() {
 });
 
 function animate() {
-	renderer.render(stage);
 	requestAnimationFrame(animate);
-
+	// If a dialog is open, don't allow hotkeys to be pressed
+	if( $('#selection_properties_dialog').dialog('isOpen') === true
+	|| $('#save_dialog').dialog('isOpen') === true
+	|| $("#player_dialog").dialog('isOpen') === true ) {
+		return;
+	}
+	
 	graphics.clear();
 	
 	draw_grid( viewport.pos, viewport.zoom);
 	draw_axes( viewport.pos, viewport.zoom );
 	update_info_div();
 	draw_all_objects();
-	current_tool.draw()
+	current_tool.draw();
+	renderer.render(stage);
 }
 
 function resize_canvas_dpi() {

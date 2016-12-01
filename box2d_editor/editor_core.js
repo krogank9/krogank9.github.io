@@ -38,7 +38,8 @@ window.onkeydown = function(evt) {
 	
 	// If a dialog is open, don't allow hotkeys to be pressed
 	if( $('#selection_properties_dialog').dialog('isOpen') === true
-	|| $('#save_dialog').dialog('isOpen') === true ) {
+	|| $('#save_dialog').dialog('isOpen') === true
+	|| $("#player_dialog").dialog('isOpen') === true ) {
 		return;
 	}
 	
