@@ -97,6 +97,7 @@ function add_objects(objects, opt_indices) {
 		undo: function() {
 			remove_objects(indices);
 			viewport.selection = prev_selection;
+			update_selection();
 		}
 	};
 	
@@ -135,6 +136,7 @@ function remove_objects(indices) {
 		undo: function() {
 			add_objects(deleted_objects, indices)
 			viewport.selection = saved_selection;
+			update_selection();
 		}
 	};
 	
