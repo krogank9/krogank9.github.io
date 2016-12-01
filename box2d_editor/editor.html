@@ -20,6 +20,11 @@
 				-khtml-user-select: none;    /* Konqueror */
 				-moz-user-select: none;      /* Firefox */
 				-ms-user-select: none;       /* Internet Explorer/Edge */
+				-webkit-user-drag: none;
+				-khtml-user-drag: none;
+				-moz-user-drag: none;
+				-o-user-drag: none;
+				user-drag: none;
 			}
 			#bottombar {
 				position: absolute;
@@ -145,7 +150,7 @@
 	<body>
 		<div id="load_save_play_div">
 			<input type="file" id="open_file" style="display: none"></input>
-			<input type="image" id="open_button" onclick="$('#open_file').click();" src="open_icon.png"></input>
+			<input type="image" id="open_button" onclick="$('#open_file').click();" src="open_icon.png" draggable="false"></input>
 			<input type="image" id="save_button" onclick="$('#save_dialog').dialog('open');" src="save_icon.png"></input>
 			<input type="image" id="play_button" onclick="$('#player_dialog').dialog('open');" src="play_icon.png"></input>
 			
