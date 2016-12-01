@@ -321,12 +321,14 @@ player_canvas.onwheel = function(evt) {
 	
 	var min_scale = 10.0;
 	var max_scale = 1000.0;
-	var step = (max_scale - min_scale)/50;
+	var scale_constant = 1.1;
+	
+	var percent_zoomed = (player_scale-min_scale)/(max_scale-min_scale);
 	
 	if(evt.deltaY > 0)
-		player_scale += step;
+		player_scale *= 1.0 + 0.1*percent_zoomed;
 	else if(evt.deltaY < 0)
-		player_scale -= step;
+		player_scale /= 1.0 + 0.1*percent_zoomed;
 		
 	if(player_scale < min_scale)
 		player_scale = min_scale;

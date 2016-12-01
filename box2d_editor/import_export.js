@@ -10,7 +10,7 @@ $("#save_dialog").dialog({
 			
 			var file_contents = qbe_format.checked===true? save_world(world) : export_world_rube(world);
 				
-			var blob = new Blob([file_contents], {type: "text/plain;charset=ascii"});
+			var blob = new Blob([file_contents], file_name, {type: "text/plain;charset=ascii"});
 			saveAs(blob, file_name);
 
 			$( this ).dialog("close");

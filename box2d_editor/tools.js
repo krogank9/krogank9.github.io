@@ -155,6 +155,11 @@ selection_properties_button.onclick = function() {
 	$("#selection_properties_dialog").dialog("open");
 };
 
+selection_delete_button = document.getElementById("selection_delete_button");
+selection_delete_button.onclick = function() {
+	remove_objects(objects_to_indices(viewport.selection));
+};
+
 select_tool.start_pos = new vec(0,0);
 select_tool.mousedown = function() {
 	if(this.edit_in_progress == false) {
