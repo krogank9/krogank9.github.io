@@ -128,8 +128,8 @@ function remove_objects(indices) {
 		}
 	});
 	
-	update_selection();
 	var saved_selection = viewport.selection.slice();
+	update_selection();
 	
 	var action = {
 		redo: function() { remove_objects(indices) },
