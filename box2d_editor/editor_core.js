@@ -176,25 +176,11 @@ canvas.onmousemove = function(evt) {
 	if(left_mouse_down) {
 		current_tool.mousemove(evt);
 	}
-	else if(right_mouse_down && !evt.ctrlKey)
+	else if(right_mouse_down)
 	{
 		// pan with right mouse
 		canvas.style.cursor = "move";
 		viewport.pos = viewport.pos.add(pos_change);
-	}
-	else if(right_mouse_down && evt.ctrlKey) {
-		// zoom with right mouse & ctrl, using middle of screen as anchor
-		var pre_middle = new vec(canvas.width/2, canvas.height/2);
-		pre_middle = canvas_to_viewport(pre_middle);
-		var zoom_change = pos_change.y/canvas.height;
-		var new_zoom = viewport.zoom - zoom_change;
-		if(new_zoom >= 0.2 && new_zoom <= 3.0) {
-			viewport.zoom = new_zoom;
-			pre_middle = viewport_to_canvas(pre_middle);
-			var post_middle = new vec(canvas.width/2, canvas.height/2);
-			var change = post_middle.subtract(pre_middle);
-			viewport.pos = viewport.pos.add(change);
-		}
 	}
 	
 	if(start_mouse_pos.subtract(pos).magnitude >= 5) {
@@ -202,6 +188,28 @@ canvas.onmousemove = function(evt) {
 	}
 	
 	cur_mouse_pos.set_equal_to(pos);
+}
+canvas.onwheel = function(evt) {
+	var pre_middle = new vec(canvas.width/2, canvas.height/2);
+	pre_middle = canvas_to_viewport(pre_middle);
+	
+	var min_zoom = 0.1;
+	var max_zoom = 10;
+
+	if(evt.deltaY > 0)
+		viewport.zoom /= 1.1;
+	else if(evt.deltaY < 0)
+		viewport.zoom *= 1.1;
+		
+	if(viewport.zoom < min_zoom)
+		viewport.zoom = min_zoom;
+	else if(viewport.zoom > max_zoom)
+		viewport.zoom = max_zoom;
+	
+	pre_middle = viewport_to_canvas(pre_middle);
+	var post_middle = new vec(canvas.width/2, canvas.height/2);
+	var change = post_middle.subtract(pre_middle);
+	viewport.pos = viewport.pos.add(change);
 }
 window.onblur = function() {
 	canvas.style.cursor = "default";
