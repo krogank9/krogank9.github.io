@@ -73,6 +73,26 @@ var current_joint = "Revolute";
  * Select tool
  *
  *------------*/
+ 
+// Called when the selection is changed, or to change the selection and
+// remove deleted bodies, or to update the selection properties dialog when needed
+function update_selection() {
+	// Remove deleted bodies
+	var selection = viewport.selection.filter(function(select_obj) {
+		// Make sure each selection body exists in world's list of bodies too
+		return world.objects.some(function(world_obj) {
+			return select_obj===world_obj;
+		});
+	});
+	
+	viewport.selection = selection;
+	
+	var selection = viewport.selection;
+	var selection_empty = (selection.length === 0);
+	selection_properties_button.disabled = selection_empty;
+	selection_delete_button.disabled = selection_empty;
+	selection_duplicate_button.disabled = selection_empty;
+}
 
 // Dialog to allow changing the properties of selected objects
 $("#selection_properties_dialog").dialog({
@@ -111,6 +131,7 @@ $("#selection_properties_dialog").dialog({
 		}
 	},
 	open: function() {
+		current_tool.action_cancelled();
 		update_selection();
 		
 		var selection = viewport.selection;
@@ -158,6 +179,11 @@ selection_properties_button.onclick = function() {
 selection_delete_button = document.getElementById("selection_delete_button");
 selection_delete_button.onclick = function() {
 	remove_objects(objects_to_indices(viewport.selection));
+};
+
+selection_duplicate_button = document.getElementById("selection_duplicate_button");
+selection_duplicate_button.onclick = function() {
+	duplicate_objects(viewport.selection);
 };
 
 select_tool.start_pos = new vec(0,0);

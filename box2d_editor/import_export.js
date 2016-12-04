@@ -20,7 +20,7 @@ $("#save_dialog").dialog({
 		}
 	},
 	open: function() {
-		update_selection();
+		current_tool.action_cancelled();
 	}
 });
 

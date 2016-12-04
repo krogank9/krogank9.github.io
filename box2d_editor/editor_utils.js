@@ -95,25 +95,6 @@ function merge_selections(cur_selection, add_selection, allow_deselect) {
 	return cur_filtered.concat(add_filtered);
 }
 
-// Called when the selection is changed, or to change the selection and
-// remove deleted bodies, or to update the selection properties dialog when needed
-function update_selection() {
-	// Remove deleted bodies
-	var selection = viewport.selection.filter(function(select_obj) {
-		// Make sure each selection body exists in world's list of bodies too
-		return world.objects.some(function(world_obj) {
-			return select_obj===world_obj;
-		});
-	});
-	
-	viewport.selection = selection;
-	
-	var selection = viewport.selection;
-	var selection_empty = (selection.length === 0);
-	selection_properties_button.disabled = selection_empty;
-	selection_delete_button.disabled = selection_empty;
-}
-
 function search_arr(arr, elem) {
 	for(let i=0; i<arr.length; i++)
 	{

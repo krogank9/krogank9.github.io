@@ -9,6 +9,8 @@ $("#player_dialog").dialog({
 		}
 	},
 	open: function() {
+		current_tool.action_cancelled();
+		
 		//export the current world
 		var json = export_world_rube(world);
 		b2d_world = loadWorldFromRUBE(JSON.parse(json));

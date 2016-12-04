@@ -186,9 +186,9 @@ function set_selection(objects) {
 // Some composite commands, no need for undoing because they are
 // made up of the base commands: 
 function duplicate_objects(bodies) {
-	var copies = generate_duplicate_objects(viewport.clipboard);
+	var copies = generate_duplicate_objects(bodies);
 	var copypos = find_bodies_center(copies);
-	var curpos = find_bodies_center(viewport.selection);
+	var curpos = find_bodies_center(bodies);
 	var travel = curpos.subtract(copypos);
 	// offset the position a bit so bodies don't overlap
 	travel = travel.add( new vec(0.1, 0.1) );
