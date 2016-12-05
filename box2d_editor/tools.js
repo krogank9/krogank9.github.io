@@ -98,6 +98,7 @@ function update_selection() {
 $("#selection_properties_dialog").dialog({
 	autoOpen: false,
 	modal: true,
+	width: 'auto',
 	buttons: {
 		"Confirm": function() {
 			var sel = viewport.selection;

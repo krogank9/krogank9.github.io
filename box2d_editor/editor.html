@@ -205,19 +205,24 @@
 					<div style="height:5px"></div>
 					<input type="button" id="selection_delete_button" value="Delete objects" disabled></input>
 					
-					<div id="selection_properties_dialog" style="display: none" title="Set properties">
+					<div id="selection_properties_dialog" style="display: none; line-height:1.7" title="Set properties">
 						<input type="text" id="selection_properties_name"></input> Name
-						<div style="height:5px"></div>
-						<span id="selection_joint_properties">
+						<br>
+						<div id="selection_joint_properties">
 							<input type="checkbox" id="selection_collide_connected">Collide connected</input>
-						</span>
-						<span id="selection_body_properties">
+						</div>
+						<div id="selection_body_properties">
 							<input type="number" id="selection_properties_density"></input> Density
-							<div style="height:5px"></div>
+							<br>
 							<input type="radio" id="selection_properties_dynamic" name="p_body_type">Dynamic</input>
 							<input type="radio" id="selection_properties_static" name="p_body_type">Static</input>
 							<input type="radio" id="selection_properties_kinematic" name="p_body_type">Kinematic</input>
-						</span>
+						</div>
+						<br>
+						Category Bits:<br>
+						<div class="bit-input" id="category_bit_input" size="16"></div>
+						Mask Bits:<br>
+						<div class="bit-input" id="mask_bit_input" size="16"></div>
 					</div>
 				</div>
 				<div id="Move_options" class="tool_options_tab" style="display:none">
@@ -304,6 +309,7 @@
 		<link rel="stylesheet" href="jquery_ui/jquery-ui.css">
 		<script src="jquery_ui/jquery-ui.js"></script>
 		<script src="FileSaver.js"></script>
+		<script src="bit-input.js"></script>
 
 		<script src="math.js"></script>
 
