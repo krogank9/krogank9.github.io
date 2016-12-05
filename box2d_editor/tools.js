@@ -593,7 +593,7 @@ box_tool.mousedown = function(evt) {
 		return;
 	var verts = [new vec(0,0), new vec(0,0), new vec(0,0), new vec(0,0)];
 	var pos = canvas_to_viewport(cur_mouse_pos);
-	this.cur_box = new body(pos, 0, verts);
+	this.cur_box = new body({pos:pos, verts:verts});
 	this.cur_box.aabb = null;
 	world.objects.push( this.cur_box );
 	this.start_pos = copy_vec(cur_mouse_pos);

@@ -68,7 +68,7 @@ function vec(x,y) {
 }
 
 function copy_vec(v) {
-	return new vec(v.x, v.y);
+	return new vec(v.x||0, v.y||0);
 }
 
 function ang2normal(ang) {

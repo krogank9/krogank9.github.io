@@ -194,12 +194,12 @@ function generate_duplicate_objects(objects) {
 		var old_body = bodies[i];
 		// Save which index the body is placed in for the joints
 		old_body.new_index = duplicates.length;
-		duplicates.push( copy_body(old_body) );
+		duplicates.push( new body(old_body) );
 	}
 	// Next, loop through and duplicate all joints and attach to the new bodies
 	var joints = filter_joints(objects);
 	for(let i=0; i<joints.length; i++) {
-		var new_joint = copy_joint(joints[i]);
+		var new_joint = new joint(joints[i]);
 		
 		// For each joint, check if either of the joint's bodies was in 
 		// the array of objects to be copied. If so, a new body was generated.
@@ -408,6 +408,10 @@ function add_joints_to_objects(objects) {
 	return objects.concat(joints);
 }
 
+/*
+ * probably should put the follow in a misc functions file, not really for the editor just general functions
+ */
+
 function invert (obj) {
 	var new_obj = {};
 
@@ -419,3 +423,7 @@ function invert (obj) {
 
 	return new_obj;
 };
+
+function copy_string(str) {
+	return (' ' + str).slice(1);
+}

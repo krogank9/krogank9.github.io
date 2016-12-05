@@ -156,7 +156,6 @@ function export_joint(joint, bodies_list) {
 		// to the bodies angle relative to each other, add
 		// the joints rotation and offset from the body. 
 		// i do make_ang_small on that to combine the offset into one angle... it's a bit confusing but this seemingly works:
-		console.log(diff);
 		var ref = diff+make_ang_small(joint.rotation-joint_rel);
 		converted.refAngle = ref/rad2deg;
 		
@@ -170,29 +169,16 @@ function export_joint(joint, bodies_list) {
 	return converted;
 }
 
-function load_joint(joint, world) {
+function load_joint(joint, objects_list) {
 	if(joint.body_a !== -1)
-		joint.body_a = world.objects[joint.body_a];
+		joint.body_a = objects_list[joint.body_a];
 	else
 		joint.body_a = null;
 		
 	if(joint.body_b !== -1)
-		joint.body_b = world.objects[joint.body_b];
+		joint.body_b = objects_list[joint.body_b];
 	else
 		joint.body_b = null;
-	
-	joint.pos = remake_vec(joint.pos);
-}
-
-function load_body(body) {
-	if(body.aabb !== null && body.aabb !== 'undefined')
-		body.aabb = remake_aabb(body.aabb);
-	
-	body.pos = remake_vec(body.pos);
-	
-	for(let i=0; i<body.verts.length; i++) {
-		body.verts[i] = remake_vec(body.verts[i]);
-	}
 }
 
 function save_world(world_to_save) {
@@ -212,12 +198,28 @@ function save_world(world_to_save) {
 
 function load_world(json) {
 	var world = JSON.parse(json);
-	filter_bodies(world.objects).forEach(function(elem) {
-		load_body(elem);
+	var objects = world.objects;
+	
+	// Remake all the objects from the JSON so they have their functions.
+	// i.e. vec's have .magnitude() and isn't just an object with x&y properties
+	var remade_objects_arr = [];
+	for(let i=0; i<objects.length; i++) {
+		var obj = objects[i];
+		
+		if(obj.is_body)
+			remade_objects_arr.push( new body(obj) );
+		else if(obj.is_joint)
+			remade_objects_arr.push( new joint(obj) );
+	}
+	
+	// When saved, the joint's body a and b are set to the indexes of bodies,
+	// set them back to the actual objects
+	filter_joints(remade_objects_arr).forEach(function(elem) {
+		load_joint(elem, remade_objects_arr);
 	});
-	filter_joints(world.objects).forEach(function(elem) {
-		load_joint(elem, world);
-	});
+	
+	world.objects = remade_objects_arr;
+	
 	return world;
 }
 
@@ -267,7 +269,6 @@ function export_world_rube(world_to_export) {
 	bodies.forEach(function(body) {
 		// Make sure verts are specified in counter clockwise order, for Box2D
 		if(check_clockwise(body.verts)) {
-			//console.log(search_arr(world.objects,body)+"'s verts reversed");
 			body.verts.reverse();
 		}
 		

@@ -17,72 +17,48 @@ function copy_world(w) {
 		var obj = w.objects[i];
 		
 		if(obj.is_body)
-			copy.objects.push( copy_body(obj) );
+			copy.objects.push( new body(obj) );
 		else if(obj.is_joint)
-			copy.objects.push( copy_joint(obj) );
+			copy.objects.push( new joint(obj) );
 	}
 	
 	return copy;
 }
 
 var BODY_TYPES = { STATIC: 0, KINEMATIC: 1, DYNAMIC: 2 }
-function body(pos, rotation, verts) {
-	this.pos = pos || new vec();
-	this.type = BODY_TYPES.DYNAMIC;
-	this.rotation = rotation || 0.0;
-	this.verts = verts;
-	this.density = 1.0;
-	this.friction = 0.3;
-	this.restitution = 0.1;
-	this.aabb = null;
-	this.name = "body";
+
+function body(props_to_copy) {
+	var props = !props_to_copy ? {} : props_to_copy;
+	
+	this.pos = props.hasOwnProperty('pos') ? copy_vec(props.pos) : new vec();
+	this.type = props.hasOwnProperty('type') ? props.type : BODY_TYPES.DYNAMIC;
+	this.rotation = props.hasOwnProperty('rotation') ? props.rotation : 0;
+	this.verts = props.hasOwnProperty('verts') ? copy_vert_array(props.verts) : [new vec(), new vec(), new vec()];
+	this.density = props.hasOwnProperty('density') ? props.density : 1;
+	this.friction = props.hasOwnProperty('friction') ? props.friction : 0.3;
+	this.restitution = props.hasOwnProperty('restitution') ? props.restitution : 0.1;
+	this.aabb = props.hasOwnProperty('aabb') ? copy_aabb(props.aabb) : calculate_aabb(this);
+	this.name = props.hasOwnProperty('name') ? copy_string(props.name) : "body";
+	
 	this.is_body = true;
-}
-function copy_body(b) {
-	var copy = new body();
-	
-	copy.pos = copy_vec(b.pos);
-	copy.type = b.type;
-	copy.rotation = b.rotation;
-	copy.verts = copy_vert_array(b.verts);
-	copy.density = b.density;
-	copy.friction = b.friction;
-	copy.restitution = b.restitution;
-	copy.aabb = calculate_aabb(b);
-	copy.name = (' '+b.name).slice(1);
-	
-	return copy;
 }
 
 var JOINT_TYPES = { "Revolute": 0, "Weld": 1 }
-function joint(pos, type, body_a, body_b) {
-	this.pos = pos || new vec();
-	this.rotation = 0;
-	this.enable_limit = false;
-	this.lower_angle = 0;
-	this.upper_angle = 360;
-	this.collide_connected = false;
-	this.body_a = body_a || null;
-	this.body_b = body_b || null;
-	this.type = type || 0;
-	this.name = "joint";
+function joint(props_to_copy) {
+	var props = !props_to_copy ? {} : props_to_copy;
+	
+	this.pos = props.hasOwnProperty('pos') ? copy_vec(props.pos) : new vec();
+	this.rotation = props.hasOwnProperty('rotation') ? props.rotation : 0;
+	this.enable_limit = props.hasOwnProperty('enable_limit') ? props.enable_limit : false;
+	this.lower_angle = props.hasOwnProperty('lower_angle') ? props.lower_angle : 0;
+	this.upper_angle = props.hasOwnProperty('upper_angle') ? props.upper_angle : 0;
+	this.collide_connected = props.hasOwnProperty('collide_connected') ? props.collide_connected : false;
+	this.body_a = props.hasOwnProperty('body_a') ? props.body_a : null;
+	this.body_b = props.hasOwnProperty('body_b') ? props.body_b : null;
+	this.type = props.hasOwnProperty('type') ? props.type : JOINT_TYPES["Revolute"];
+	this.name = props.hasOwnProperty('name' ) ? copy_string(props.name) : "joint";
+	
 	this.is_joint = true;
-}
-function copy_joint(j) {
-	var copy = new joint();
-	
-	copy.pos = copy_vec(j.pos);
-	copy.rotation = j.rotation;
-	copy.enable_limit = j.enable_limit;
-	copy.lower_angle = j.lower_angle;
-	copy.upper_angle = j.upper_angle;
-	copy.collide_connected = j.collide_connected;
-	copy.body_a = j.body_a;
-	copy.body_b = j.body_b;
-	copy.type = j.type;
-	copy.name = (' '+j.name).slice(1);
-	
-	return copy;
 }
 
 function AABB(min, max) {
