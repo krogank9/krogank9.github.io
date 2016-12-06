@@ -169,18 +169,6 @@ function export_joint(joint, bodies_list) {
 	return converted;
 }
 
-function load_joint(joint, objects_list) {
-	if(joint.body_a !== -1)
-		joint.body_a = objects_list[joint.body_a];
-	else
-		joint.body_a = null;
-		
-	if(joint.body_b !== -1)
-		joint.body_b = objects_list[joint.body_b];
-	else
-		joint.body_b = null;
-}
-
 function save_world(world_to_save) {
 	var world = copy_world(world_to_save);
 	
@@ -215,7 +203,8 @@ function load_world(json) {
 	// When saved, the joint's body a and b are set to the indexes of bodies,
 	// set them back to the actual objects
 	filter_joints(remade_objects_arr).forEach(function(elem) {
-		load_joint(elem, remade_objects_arr);
+		joint.body_a = remade_objects_arr[joint.body_a];	
+		joint.body_b = remade_objects_arr[joint.body_b];
 	});
 	
 	world.objects = remade_objects_arr;
@@ -305,6 +294,9 @@ function export_world_rube(world_to_export) {
 					name: "fixture",
 					density: b.density,
 					friction: b.friction,
+					"filter-categoryBits": b.category_bits,
+					"filter-maskBits": b.mask_bits,
+					"filter-groupIndex": b.group_index,
 					polygon: {
 						vertices: {x: [], y: []}
 					}

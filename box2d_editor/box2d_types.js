@@ -43,6 +43,7 @@ function body(props_to_copy) {
 	// default 1st category and collide with all other categories
 	this.category_bits = props.hasOwnProperty('category_bits') ? props.category_bits : 0x0001;
 	this.mask_bits = props.hasOwnProperty('mask_bits') ? props.mask_bits : 0xFFFF;
+	this.group_index = props.hasOwnProperty('group_index') ? props.group_index : 0;
 	
 	this.is_body = true;
 }

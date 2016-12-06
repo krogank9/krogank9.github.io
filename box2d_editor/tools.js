@@ -107,16 +107,21 @@ $("#selection_properties_dialog").dialog({
 			var sel_all_joints = (sel.length === filter_joints(sel).length) && !sel_empty;
 			if(sel_all_bodies) {
 				if(selection_properties_static.checked === true) {
-					sel.forEach(function(el){el.type=BODY_TYPES.STATIC});
+					sel.forEach(function(b){b.type=BODY_TYPES.STATIC});
 				}
 				else if(selection_properties_dynamic.checked === true) {
-					sel.forEach(function(el){el.type=BODY_TYPES.DYNAMIC});
+					sel.forEach(function(b){b.type=BODY_TYPES.DYNAMIC});
 				}
 				else if(selection_properties_kinematic.checked === true) {
-					sel.forEach(function(el){el.type=BODY_TYPES.KINEMATIC});
+					sel.forEach(function(b){b.type=BODY_TYPES.KINEMATIC});
 				}
 				
-				sel.forEach(function(el){el.density=parseFloat(selection_properties_density.value)});
+				sel.forEach(function(b){
+					b.density=parseFloat(selection_properties_density.value)
+					b.category_bits = category_bits_input.get_decimal();
+					b.mask_bits = mask_bits_input.get_decimal();
+					b.group_index = parseInt(group_index_input.value) || 0;
+				});
 			}
 			else if(sel_all_joints) {
 				sel.forEach(function(el){el.collide_connected=selection_collide_connected.checked;});
@@ -157,6 +162,10 @@ $("#selection_properties_dialog").dialog({
 			selection_properties_static.checked = selection.every(function(b){return b.type==BODY_TYPES.STATIC});
 			selection_properties_dynamic.checked = selection.every(function(b){return b.type==BODY_TYPES.DYNAMIC});
 			selection_properties_kinematic.checked = selection.every(function(b){return b.type==BODY_TYPES.KINEMATIC});
+
+			category_bits_input.set_decimal( selection[0].category_bits );
+			mask_bits_input.set_decimal( selection[0].mask_bits );
+			group_index_input.value = selection[0].group_index;
 		} else if(selection_all_joints) {
 			selection_collide_connected.checked = selection[0].collide_connected;
 		}
@@ -168,6 +177,10 @@ selection_properties_static = document.getElementById("selection_properties_stat
 selection_properties_density = document.getElementById("selection_properties_density");
 selection_properties_name = document.getElementById("selection_properties_name");
 selection_collide_connected = document.getElementById("selection_collide_connected");
+
+category_bits_input = document.getElementById("category_bits_input");
+mask_bits_input = document.getElementById("mask_bits_input");
+group_index_input = document.getElementById("group_index_input");
 
 selection_joint_properties = document.getElementById("selection_joint_properties");
 selection_body_properties = document.getElementById("selection_body_properties");
