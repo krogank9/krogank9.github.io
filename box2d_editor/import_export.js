@@ -202,7 +202,7 @@ function load_world(json) {
 	
 	// When saved, the joint's body a and b are set to the indexes of bodies,
 	// set them back to the actual objects
-	filter_joints(remade_objects_arr).forEach(function(elem) {
+	filter_joints(remade_objects_arr).forEach(function(joint) {
 		joint.body_a = remade_objects_arr[joint.body_a];	
 		joint.body_b = remade_objects_arr[joint.body_b];
 	});

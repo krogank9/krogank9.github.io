@@ -1,8 +1,8 @@
 var rad2deg = 57.2958;
 
 function vec(x,y) {
-	this.x = x||0.0;
-	this.y = y||0.0;
+	this.x = x||0;
+	this.y = y||0;
 	
 	this.magnitude = function()
 	{
