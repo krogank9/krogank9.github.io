@@ -682,7 +682,7 @@ joint_tool.mousedown = function(evt) {
 	var pos = canvas_to_viewport(cur_mouse_pos);
 	switch(current_joint) {
 		case "Revolute":
-			var j = new joint(pos, JOINT_TYPES["Revolute"], b0, b1);
+			var j = new joint({pos:pos, type:JOINT_TYPES["Revolute"], body_a:b0, body_b:b1});
 			j.collide_connected = joint_collide_connected.checked===true;
 			if(enable_joint_limit.checked === true) {
 				j.enable_limit = true;

@@ -67,7 +67,7 @@ for(let i=0, bit_input=bit_inputs[0]; i<bit_inputs.length; bit_input=bit_inputs[
 	bit_input.size = parseInt(bit_input.getAttribute('size'));
 	if( isNaN(bit_input.size) )
 		bit_input.size = 4;
-
+		
 	bit_input._endianness = bit_input.getAttribute('endianness') || "big";
 	bit_input.setAttribute('endianness', bit_input._endianness);
 	var rainbow = bit_input.getAttribute('rainbow') == "true";

@@ -41,8 +41,8 @@ function body(props_to_copy) {
 	this.name = props.hasOwnProperty('name') ? copy_string(props.name) : "body";
 	
 	// default 1st category and collide with all other categories
-	this.category_bits = props.hasOwnProperty('category_bits') ? category_bits : 0x0001;
-	this.mask_bits = props.hasOwnProperty('mask_bits') ? category_bits : 0xFFFF;
+	this.category_bits = props.hasOwnProperty('category_bits') ? props.category_bits : 0x0001;
+	this.mask_bits = props.hasOwnProperty('mask_bits') ? props.mask_bits : 0xFFFF;
 	
 	this.is_body = true;
 }
