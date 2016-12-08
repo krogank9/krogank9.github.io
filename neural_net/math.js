@@ -118,19 +118,19 @@ function mirror_angle_v(ang) {
 }
 //Mirror an angle horizontally
 function mirror_angle_h(ang) {
-	return -ang + 180;
+	return -ang + Math.PI;
 }
 
 function normalize_ang(ang) {
 	while(ang < 0)
-		ang += 360;
-	return ang%360;
+		ang += (2*Math.PI);
+	return ang%(2*Math.PI);
 }
 
 function make_ang_small(ang) {
 	ang = normalize_ang(ang);
-	if(ang > 180)
-		ang = ang-360;
+	if(ang > Math.PI)
+		ang = ang-(2*Math.PI);
 	return ang;
 }
 
@@ -144,9 +144,9 @@ function find_angle_difference(to, from) {
 	var dist1 = to-from;
 	
 	if(to>from)
-		from += 360;
+		from += 2*Math.PI;
 	else if(from>to)
-		to += 360;
+		to += 2*Math.PI;
 		
 	var dist2 = to-from;
 	
