@@ -28,7 +28,7 @@ function load_b2d_world() {
 	for (let j = b2d_world.m_jointList; j; j = j.m_next) {
 		if( j instanceof b2RevoluteJoint) {
 			j.m_enableMotor = true;
-			j.m_maxMotorTorque = 8;
+			j.m_maxMotorTorque = 40;
 			//j.m_motorSpeed = -8;
 		}
 	}
