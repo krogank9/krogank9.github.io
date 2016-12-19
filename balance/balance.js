@@ -72,12 +72,19 @@ function set_feet_position()
 {
 	var center = get_center_mass(ragdoll);
 	
-	//var ideal_feet_distance = ideal_feet_distance;
-	// first try to put the feet at the ideal distance, left foot on the left and right foot on the right
-	var l_foot = new vec(center.x-ideal_feet_distance, 0);
-	l_foot.y = get_joint_pos(l_leg_joints[0]).x - get_y_pos_circle(leg_length, ideal_feet_distance);
-	var r_foot = new vec(center.x+ideal_feet_distance, 0);
-	r_foot.y = get_joint_pos(l_leg_joints[0]).x - get_y_pos_circle(leg_length, ideal_feet_distance);
+	var l_foot = get_joint_pos(l_leg_joints[2]);
+	var r_foot = get_joint_pos(r_leg_joints[2]);
+	l_foot.x = center.x - l_foot.x;
+	r_foot.x = center.x - r_foot.x;
+	
+	if( Math.abs(l_foot.x) > Math.abs(r_foot.x) )
+		;//l_foot.x = r_foot.x * -1;
+	else
+		;//r_foot.x = l_foot.x * -1;
+		
+	// make legs as extended as possible to stay standing
+	l_foot.y = -1*get_y_pos_circle(leg_length, l_foot.x);
+	r_foot.y = -1*get_y_pos_circle(leg_length, r_foot.x);
 	
 	// use inverse kinematics to iterate and find what angles are needed to reach the desired positions
 	var l_goal = fabrIK([upper_leg_length, lower_leg_length], get_pos_relative_to_joint(l_foot, l_leg_joints[0]));
@@ -174,6 +181,13 @@ function update_world() {
 	player_context.restore();
 	
 	b2d_world.ClearForces();
+	
+	player_context.strokeStyle = "green";
+	player_context.beginPath();
+	var center = get_center_mass(ragdoll).x;
+	player_context.moveTo(player_offset.x+center*player_scale,0);
+	player_context.lineTo(player_offset.x+center*player_scale,player_canvas.height);
+	player_context.stroke();
 	
 	requestAnimationFrame(update_world);
 };
