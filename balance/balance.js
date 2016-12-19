@@ -1,5 +1,6 @@
 var upper_body = null;
 var ragdoll = [];
+var ground = null;
 
 var arm_joints = [];
 
@@ -8,6 +9,8 @@ var knee_joints = [];
 var leg_joints = [];
 var l_leg_joints = [];
 var r_leg_joints = [];
+var l_foot_body = null;
+var r_foot_body = null;
 
 var ideal_feet_distance = 0;
 var upper_leg_length = 0;
@@ -29,9 +32,9 @@ function rotate_joint(j, ang) {
 	var direction = diff > 0 ? 1 : -1;
 	
 	var straightness = get_angle_closeness(dest, cur);
-	j.SetMaxMotorTorque(50);
+	j.SetMaxMotorTorque(10);
 	var intensity = 1.0-straightness;
-	j.SetMotorSpeed( intensity*50*direction );
+	j.SetMotorSpeed( intensity*10*direction );
 }
 
 function straighten_joint(j)
@@ -41,60 +44,97 @@ function straighten_joint(j)
 
 function get_center_mass(bodies)
 {
-	var total_mass = bodies[0].GetMass();
-	var total_pos = bodies[0].GetPosition();
-	total_pos = new vec(total_pos.x, total_pos.y);
+	total_pos = new vec(0, 0);
 	
-	// weight many centers of mass with their corresponding masses to
-	// determine the center of mass of multiple bodies
-	for(let i = 1; i < bodies.length; i++)
-	{
-		var pos = bodies[i].GetPosition();
-		pos = new vec(pos.x, pos.y);
-
-		var mass = bodies[i].GetMass();
-		var max_mass = total_mass > mass ? total_mass : mass;
-
-		var cur = mass/max_mass;
-		var total = total_mass/max_mass;
-
-		var x = pos.x*cur + total_pos.x*total;
-		var y = pos.y*cur + total_pos.y*total;
-		
-		total_pos.x = x;
-		total_pos.y = y;
-	}
+	var max = 0;
+	bodies.forEach(function(b){max=b.GetMass()>max?b.GetMass():max;});
+	var center = new vec(0,0);
+	bodies.forEach(function(b) {
+		var mass = b.GetMass();
+		var weight = 1/bodies.length;
+		var pos = b2vec_to_vec( b.GetPosition() );
+		center = center.add( pos.scale(weight) );
+	});
 	
-	return total_pos
+	return center;
 }
+
+function bodies_colliding(body_a, body_b)
+{
+	var contact = (body_a.GetContactList() || {}).contact;
+	while( contact )
+	{
+		var a = contact.GetFixtureA().GetBody();
+		var b = contact.GetFixtureB().GetBody();
+		if( (a === body_a && b === body_b) || (a === body_b && b === body_a) )
+			return true;
+		else
+			contact = contact.GetNext();
+	}
+	return false;
+}
+
+var r_last = new vec(0,0);
+var l_last = new vec(0,0);
+
+var r_hip_last = new vec(0,0);
+var l_hip_last = new vec(0,0);
 
 function set_feet_position()
 {
 	var center = get_center_mass(ragdoll);
 	
+	var l_hip = get_joint_pos(l_leg_joints[0]);
+	var r_hip = get_joint_pos(r_leg_joints[0]);
+	
 	var l_foot = get_joint_pos(l_leg_joints[2]);
 	var r_foot = get_joint_pos(r_leg_joints[2]);
-	l_foot.x = center.x - l_foot.x;
-	r_foot.x = center.x - r_foot.x;
 	
-	if( Math.abs(l_foot.x) > Math.abs(r_foot.x) )
-		;//l_foot.x = r_foot.x * -1;
-	else
-		;//r_foot.x = l_foot.x * -1;
+	l_foot.x -= center.x;
+	r_foot.x -= center.x;
+		
+	// if( right foot is touching ground )
+		// l_foot.x = r_foot.x * -1
+	// else if( left foot is touching ground )
+		// r_foot.x = l_foot.x * -1;
+	if( bodies_colliding(l_foot_body, ground) )
+	{
+		r_foot.x = l_foot.x * -1;
+		r_foot.y = l_foot.y;
+	}
+	else if(bodies_colliding(r_foot_body, ground) )
+	{
+		l_foot.x = r_foot.x * -1;
+		l_foot.y = r_foot.y;
+	}
 		
 	// make legs as extended as possible to stay standing
-	l_foot.y = -1*get_y_pos_circle(leg_length, l_foot.x);
-	r_foot.y = -1*get_y_pos_circle(leg_length, r_foot.x);
+	//l_foot.y = l_hip.y - get_y_pos_circle(leg_length, l_foot.x);
+	//r_foot.y = r_hip.y - get_y_pos_circle(leg_length, r_foot.x);
+	
+	// turn x position back to absolute
+	l_foot.x += center.x;
+	r_foot.x += center.x;
+	
+	l_last.set_equal_to(l_foot);
+	r_last.set_equal_to(r_foot);
+	
+	l_hip_last.set_equal_to(l_hip);
+	r_hip_last.set_equal_to(r_hip);
+	
+	var l_rel = l_foot.subtract(l_hip);
+	var r_rel = r_foot.subtract(r_hip);
 	
 	// use inverse kinematics to iterate and find what angles are needed to reach the desired positions
-	var l_goal = fabrIK([upper_leg_length, lower_leg_length], get_pos_relative_to_joint(l_foot, l_leg_joints[0]));
-	var r_goal = fabrIK([upper_leg_length, lower_leg_length], get_pos_relative_to_joint(r_foot, r_leg_joints[0]));
-	
+	var l_goal = fabrIK([upper_leg_length, lower_leg_length], l_rel);
+	var r_goal = fabrIK([upper_leg_length, lower_leg_length], r_rel);
+
 	rotate_joint(l_leg_joints[0], absolute_ang_to_rel(l_leg_joints[0], l_goal[0]));
 	rotate_joint(l_leg_joints[1], absolute_ang_to_rel(l_leg_joints[1], l_goal[1]));
 
 	rotate_joint(r_leg_joints[0], absolute_ang_to_rel(r_leg_joints[0], r_goal[0]));
 	rotate_joint(r_leg_joints[1], absolute_ang_to_rel(r_leg_joints[1], r_goal[1]));
+	
 	
 	//...
 	// if they can't be placed at the ideal position because of joint limits, that
@@ -111,6 +151,9 @@ function step_world()
 
 function init() {
 	upper_body = getNamedBodies(b2d_world, "upper_body")[0];
+	ground = getNamedBodies(b2d_world, "ground")[0];
+	l_foot_body = getNamedBodies(b2d_world, "l_foot")[0];
+	r_foot_body = getNamedBodies(b2d_world, "r_foot")[0];
 	for (let j = b2d_world.m_jointList; j; j = j.m_next) {
 		if( j.GetType() == 1 ) // revolute
 		{
@@ -137,8 +180,9 @@ function init() {
 		b.start_y_pos = b.GetPosition().y;
 		b.start_angle = b.GetAngle();
 		
-		if( b.GetType() == 2 )
+		if( b.GetType() == 2 ) {
 			ragdoll.push(b);
+		}
 	}
 	
 	l_leg_joints.push( getNamedJoints(b2d_world, "l_hip")[0] );
@@ -163,6 +207,14 @@ function init() {
 load_b2d_world();
 init();
 
+function world_to_canvas(world_vec) {
+	var converted = new vec(world_vec.x, world_vec.y);
+	converted = converted.scale(player_scale);
+	converted.y *= -1;
+	converted.y += player_canvas.height;
+	return converted.add(player_offset);
+}
+
 function update_world() {
 	if(draw_world == false)
 		return;
@@ -184,10 +236,39 @@ function update_world() {
 	
 	player_context.strokeStyle = "green";
 	player_context.beginPath();
-	var center = get_center_mass(ragdoll).x;
-	player_context.moveTo(player_offset.x+center*player_scale,0);
-	player_context.lineTo(player_offset.x+center*player_scale,player_canvas.height);
+	var center = world_to_canvas(get_center_mass(ragdoll));
+	player_context.moveTo(center.x,0);
+	player_context.lineTo(center.x,player_canvas.height);
 	player_context.stroke();
+	
+	player_context.strokeStyle = "blue";
+	player_context.beginPath();//foot
+	var left = world_to_canvas(l_last);
+	player_context.moveTo(left.x,left.y-5);
+	player_context.lineTo(left.x,left.y+5);
+	player_context.stroke();
+	
+	//hip
+	player_context.beginPath();
+	var left = world_to_canvas(l_hip_last);
+	player_context.moveTo(left.x,left.y-5);
+	player_context.lineTo(left.x,left.y+5);
+	player_context.stroke();
+	
+	player_context.strokeStyle = "red";
+	player_context.beginPath();//foot
+	var right = world_to_canvas(r_last);
+	player_context.moveTo(right.x,right.y-5);
+	player_context.lineTo(right.x,right.y+5);
+	player_context.stroke();
+	
+	//hip
+	player_context.beginPath();
+	var right = world_to_canvas(r_hip_last);
+	player_context.moveTo(right.x,right.y-5);
+	player_context.lineTo(right.x,right.y+5);
+	player_context.stroke();
+	
 	
 	requestAnimationFrame(update_world);
 };

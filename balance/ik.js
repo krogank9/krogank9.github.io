@@ -75,20 +75,22 @@ function get_y_pos_circle(r,x)
 function get_joint_pos(joint)
 {
 	var anchor = joint.GetAnchorA();
-	var body_pos = joint.GetBodyA().GetPosition();
-	var body_ang = joint.GetBodyA().GetAngle() % MAX_RADS;
-	var rel_joint_pos = (new vec(anchor.x, anchor.y)).rotate_by(body_ang);
-	body_pos = new vec(body_pos.x, body_pos.y);
-	return body_pos.add(rel_joint_pos);
+	return new vec(anchor.x, anchor.y);
 }
 
 function absolute_ang_to_rel(joint, ang)
 {
 	ang -= joint.GetBodyA().GetAngle();
 	ang -= joint.m_referenceAngle;
-	return ang + Math.PI/2 % MAX_RADS;
+	return (ang + Math.PI/2) % MAX_RADS;
 }
 
+function b2vec_to_vec(b2) {
+	return new vec(b2.x, b2.y);
+}
+
+/*
+probably won't ever need to use this function. made it on accident.
 function get_pos_relative_to_joint(pos, joint)
 {
 	var joint_pos = get_joint_pos(joint);
@@ -97,3 +99,4 @@ function get_pos_relative_to_joint(pos, joint)
 	var rotated = ang2normal(ang).scale(rel_pos.magnitude());
 	return rotated;
 }
+*/
