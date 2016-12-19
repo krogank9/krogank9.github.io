@@ -219,7 +219,7 @@ canvas.onmouseout = function() {
 	canvas.style.cursor = "default";
 	right_mouse_down = false;
 }
-canvas.oncontextmenu = function() { return false }
+//canvas.oncontextmenu = function() { return false }
 canvas.ondragstart = function() { return false }
 
 function update_info_div() {

@@ -147,7 +147,7 @@
 			}
 		</style>
 	</head>
-	<body>
+	<body oncontextmenu="return false">
 		<div id="load_save_play_div">
 			<input type="file" id="open_file" style="display: none"></input>
 			<input type="image" id="open_button" onclick="$('#open_file').click();" src="open_icon.png" draggable="false"></input>
@@ -304,6 +304,9 @@
 		<div id="bottombar">
 			<span id="document_info">&nbsp;</span>
 		</div>
+		<script>
+			function falser(){ return false }
+		</script>
 		<canvas id="editor_canvas"></canvas>
 		
 		<script src="jquery-3.1.0.min.js"></script>

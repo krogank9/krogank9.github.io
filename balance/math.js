@@ -1,4 +1,5 @@
 var rad2deg = 57.2958;
+var MAX_RADS = Math.PI*2;
 
 function vec(x,y) {
 	this.x = x||0;
@@ -7,6 +8,10 @@ function vec(x,y) {
 	this.magnitude = function()
 	{
 		return Math.sqrt(this.x*this.x + this.y*this.y);
+	}
+	this.mag_sq = function()
+	{
+		return this.x*this.x + this.y*this.y;
 	}
 	this.normalize = function()
 	{
@@ -37,7 +42,7 @@ function vec(x,y) {
 	}
 	this.angle = function()
 	{
-		return Math.atan2(this.y,this.x)*rad2deg;
+		return Math.atan2(this.y,this.x);
 	}
 	this.rotate_by = function(by_ang)
 	{
@@ -72,10 +77,8 @@ function copy_vec(v) {
 }
 
 function ang2normal(ang) {
-	var rads = ang / rad2deg;
-
-	var x = Math.cos( rads );
-	var y = Math.sin( rads );
+	var x = Math.cos( ang );
+	var y = Math.sin( ang );
 	
 	return new vec(x, y);
 }
@@ -122,15 +125,14 @@ function mirror_angle_h(ang) {
 }
 
 function normalize_ang(ang) {
-	while(ang < 0)
-		ang += (2*Math.PI);
-	return ang%(2*Math.PI);
+	ang %= MAX_RADS;
+	return ang < 0 ? ang+MAX_RADS : ang;
 }
 
 function make_ang_small(ang) {
 	ang = normalize_ang(ang);
 	if(ang > Math.PI)
-		ang = ang-(2*Math.PI);
+		ang = ang-MAX_RADS;
 	return ang;
 }
 
@@ -144,9 +146,9 @@ function find_angle_difference(to, from) {
 	var dist1 = to-from;
 	
 	if(to>from)
-		from += 2*Math.PI;
+		from += MAX_RADS;
 	else if(from>to)
-		to += 2*Math.PI;
+		to += MAX_RADS;
 		
 	var dist2 = to-from;
 	
