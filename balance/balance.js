@@ -46,12 +46,12 @@ function get_center_mass(bodies)
 {
 	total_pos = new vec(0, 0);
 	
-	var max = 0;
-	bodies.forEach(function(b){max=b.GetMass()>max?b.GetMass():max;});
+	var total_mass = 0;
+	bodies.forEach(function(b){total_mass+=b.GetMass()});
 	var center = new vec(0,0);
 	bodies.forEach(function(b) {
 		var mass = b.GetMass();
-		var weight = 1/bodies.length;
+		var weight = mass/total_mass;
 		var pos = b2vec_to_vec( b.GetPosition() );
 		center = center.add( pos.scale(weight) );
 	});
@@ -93,24 +93,14 @@ function set_feet_position()
 	l_foot.x -= center.x;
 	r_foot.x -= center.x;
 		
-	// if( right foot is touching ground )
-		// l_foot.x = r_foot.x * -1
-	// else if( left foot is touching ground )
-		// r_foot.x = l_foot.x * -1;
 	if( bodies_colliding(l_foot_body, ground) )
-	{
 		r_foot.x = l_foot.x * -1;
-		r_foot.y = l_foot.y;
-	}
 	else if(bodies_colliding(r_foot_body, ground) )
-	{
 		l_foot.x = r_foot.x * -1;
-		l_foot.y = r_foot.y;
-	}
 		
 	// make legs as extended as possible to stay standing
-	//l_foot.y = l_hip.y - get_y_pos_circle(leg_length, l_foot.x);
-	//r_foot.y = r_hip.y - get_y_pos_circle(leg_length, r_foot.x);
+	l_foot.y = l_hip.y - get_y_pos_circle(leg_length, l_foot.x);
+	r_foot.y = r_hip.y - get_y_pos_circle(leg_length, r_foot.x);
 	
 	// turn x position back to absolute
 	l_foot.x += center.x;
@@ -134,12 +124,6 @@ function set_feet_position()
 
 	rotate_joint(r_leg_joints[0], absolute_ang_to_rel(r_leg_joints[0], r_goal[0]));
 	rotate_joint(r_leg_joints[1], absolute_ang_to_rel(r_leg_joints[1], r_goal[1]));
-	
-	
-	//...
-	// if they can't be placed at the ideal position because of joint limits, that
-	// means the ragdoll is falling over. to maintain the center of balance one leg
-	// will cross over the other while staying as close to the ideal distance as possible
 }
 
 function step_world()
