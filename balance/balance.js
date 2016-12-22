@@ -199,8 +199,8 @@ function set_feet_position()
 	var step_rel = step_leg_goal.subtract( get_joint_pos(step_leg.joints[0]) );
 	var step_leg_angles = fabrIK([upper_leg_length, lower_leg_length], step_rel);
 	
-	rotate_joint( pivot_leg.joints[0], absolute_ang_to_rel(step_leg.joints[0], step_leg_angles[0]) );
-	rotate_joint( pivot_leg.joints[1], absolute_ang_to_rel(step_leg.joints[1], step_leg_angles[1]) );
+	rotate_joint( step_leg.joints[0], absolute_ang_to_rel(step_leg.joints[0], step_leg_angles[0]) );
+	rotate_joint( step_leg.joints[1], absolute_ang_to_rel(step_leg.joints[1], step_leg_angles[1]) );
 	
 	// make the pivot leg's foot always point towards ground
 	rotate_joint( pivot_leg.joints[1], absolute_ang_to_rel(pivot_leg.joints[1], -90/rad2deg) );
