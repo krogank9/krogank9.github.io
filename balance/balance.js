@@ -20,7 +20,7 @@ var leg_length = 0;
 
 var all_joints = [];
 
-var MAX_TORQUE = 20;
+var MAX_TORQUE = 30;
 
 function get_angle_closeness(ang1, ang2) {
 	var diff = Math.abs( find_angle_difference(ang1, ang2) );
@@ -124,6 +124,11 @@ function determine_pivot_leg(center, l_foot_contact, r_foot_contact) {
 		return r_leg;
 	else if(l_pos != null && r_pos != null)
 	{
+		if(l_pos.x > center.x && r_pos.x > center.x)
+			return l_leg;
+		else if(l_pos.x < center.x && r_pos.x < center.x)
+			return r_leg;
+			
 		var l_dist = Math.abs( center.x - l_pos.x );
 		var r_dist = Math.abs( center.x - r_pos.x );
 		return l_dist < r_dist ? l_leg : r_leg;
@@ -203,7 +208,7 @@ function set_feet_position()
 	rotate_joint( step_leg.joints[1], absolute_ang_to_rel(step_leg.joints[1], step_leg_angles[1]) );
 	
 	// make the pivot leg's foot always point towards ground
-	rotate_joint( pivot_leg.joints[1], absolute_ang_to_rel(pivot_leg.joints[1], -90/rad2deg) );
+	//rotate_joint( pivot_leg.joints[1], absolute_ang_to_rel(pivot_leg.joints[1], -90/rad2deg) );
 }
 
 /*
