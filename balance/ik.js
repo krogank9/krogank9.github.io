@@ -49,7 +49,7 @@ function fabrIK(sizes, goal, opt_start_angs, opt_margin_error)
 			positions[i+1].set_equal_to( positions[i].add(diff) );
 		}
 
-		if(++iter > 50)
+		if(++iter > 100)
 			break;
 	}
 	
@@ -85,18 +85,6 @@ function absolute_ang_to_rel(joint, ang)
 	return (ang + Math.PI/2) % MAX_RADS;
 }
 
-function b2vec_to_vec(b2) {
+function b2vec2_to_vec(b2) {
 	return new vec(b2.x, b2.y);
 }
-
-/*
-probably won't ever need to use this function. made it on accident.
-function get_pos_relative_to_joint(pos, joint)
-{
-	var joint_pos = get_joint_pos(joint);
-	var rel_pos = pos.subtract(joint_pos);
-	var ang = absolute_ang_to_rel( joint, rel_pos.angle() );
-	var rotated = ang2normal(ang).scale(rel_pos.magnitude());
-	return rotated;
-}
-*/
