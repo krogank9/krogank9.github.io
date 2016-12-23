@@ -1,0 +1,109 @@
+<!DOCTYPE html PUBLIC"-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	</head>
+	<body>
+		<canvas id="canvas" width="600" height="400" style="border:1px solid black"></canvas>
+	</body>
+	<script src="jquery-3.1.0.min.js"></script>
+	<script src="math.js"></script>
+	<script>
+		var canvas = document.getElementById("canvas");
+		var ctx = canvas.getContext("2d");
+		
+		var lever_angle = -90/rad2deg;
+		var lever_size = 40;
+		var lever_bottom = new vec(canvas.width/2, canvas.height-40);
+		var handle_radius = 4;
+		function get_lever_pos(size)
+		{
+			var rel = ang2normal(lever_angle).scale(size);
+			return lever_bottom.add(rel);
+		}
+		
+		function get_angle_closeness(ang1, ang2) {
+			var diff = Math.abs( find_angle_difference(ang1, ang2) );
+			return 1.0 - diff/MAX_RADS;
+		}
+
+		var lever_speed = 0;
+		var max_speed = 10;
+		function update_lever_angle()
+		{
+			var dest = normalize_ang(-90/rad2deg);
+			var cur = normalize_ang(lever_angle);
+
+			var diff = find_angle_difference(dest, cur);
+			var direction = diff > 0 ? 1 : -1;
+
+			var straightness = get_angle_closeness(dest, cur);
+			var intensity = 1.0-straightness;
+			lever_speed = intensity*max_speed*direction;
+			
+			lever_angle += lever_speed;
+		}
+		
+		function animate()
+		{
+			ctx.clearRect(0,0,canvas.width,canvas.height);
+			// draw the base of the lever
+			ctx.beginPath()
+			ctx.arc(canvas.width/2, canvas.height, 40, -Math.PI, 0);
+			ctx.stroke();
+			// draw the lever
+			var start = get_lever_pos(0);
+			var end = get_lever_pos(lever_size);
+			ctx.moveTo(start.x, start.y);
+			ctx.lineTo(end.x, end.y);
+			ctx.stroke();
+			// draw the tip of the lever
+			ctx.beginPath();
+			var tip = get_lever_pos(lever_size+handle_radius);
+			ctx.arc(tip.x, tip.y, handle_radius, 0, Math.PI*2);
+			if(lever_grabbed||lever_hovered)
+				ctx.fill();
+			else
+				ctx.stroke();
+			
+			if(!lever_grabbed)
+				update_lever_angle();
+			requestAnimationFrame(animate);
+		}
+		animate();
+		
+		var lever_hovered = false;
+		var lever_grabbed = false;
+		var mouse_down = false;
+		canvas.onmousemove = function(evt)
+		{
+			var rect = canvas.getBoundingClientRect(), root = document.documentElement;
+			var x = evt.clientX - rect.left - root.scrollLeft;
+			var y = evt.clientY - rect.top - root.scrollTop;
+			var mouse_pos = new vec(x,y);
+			lever_hovered = mouse_pos.subtract( get_lever_pos(lever_size) ).magnitude() <= handle_radius+4;
+			
+			if(lever_grabbed)
+			{
+				lever_angle = mouse_pos.subtract(get_lever_pos(0)).angle();
+			}
+		}
+		canvas.onmousedown = function(evt)
+		{
+			if(evt.button == 0)
+			{
+				mouse_down = true;
+				lever_grabbed = lever_hovered;
+			}
+		}
+		canvas.onmouseup = function(evt)
+		{
+			if(evt.button == 0)
+			{
+				mouse_down = false;
+				lever_grabbed = false;
+			}
+		}
+	</script>
+</html>

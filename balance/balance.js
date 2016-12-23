@@ -129,6 +129,7 @@ function determine_pivot_leg(center, l_foot_contact, r_foot_contact) {
 		else if(l_pos.x < center.x && r_pos.x < center.x)
 			return r_leg;
 			
+		// when both feet touch the ground on both sides of the center of mass
 		var l_dist = Math.abs( center.x - l_pos.x );
 		var r_dist = Math.abs( center.x - r_pos.x );
 		return l_dist < r_dist ? l_leg : r_leg;
@@ -178,27 +179,27 @@ function set_feet_position()
 	set_joint_speeds( r_leg.joints, 0 );
 	set_joint_speeds( l_leg.joints, 0 );
 	
+	rotate_joint( l_leg.joints[2], absolute_ang_to_rel(l_leg.joints[2], -90/rad2deg) );
+	rotate_joint( r_leg.joints[2], absolute_ang_to_rel(r_leg.joints[2], -90/rad2deg) );
+	
 	var center = get_center_mass(ragdoll);
 	var l_foot_contact = get_contact(l_leg.bodies[2], ground);
 	var r_foot_contact = get_contact(r_leg.bodies[2], ground);
 	l_last = avg_contact_point(l_foot_contact) || lowest_vert_pos(l_leg.bodies[2]);
 	r_last = avg_contact_point(r_foot_contact) || lowest_vert_pos(r_leg.bodies[2]);
-
+	
 	var pivot_leg = determine_pivot_leg(center, l_foot_contact, r_foot_contact);
 	if(pivot_leg == null)
 		return;
 	var step_leg = pivot_leg===r_leg ? l_leg : r_leg;
 		
-	pivot_leg.contact_pos = avg_contact_point( get_contact(pivot_leg.bodies[2], ground) );
+	pivot_leg.pos = get_joint_pos(pivot_leg.joints[2]).subtract(get_joint_pos(pivot_leg.joints[0]));
 	
-	pivot_leg.contact_pos.x -= center.x;
+	pivot_leg.pos.x -= center.x;
 
-	var step_leg_goal = copy_vec(pivot_leg.contact_pos);
+	var step_leg_goal = copy_vec(pivot_leg.pos);
 	// both legs equidistant from center of mass
 	step_leg_goal.x *= -1;
-	// IK positions relative to bodies center, predict which corner
-	// of body makes contact with ground and position relative to that
-	step_leg_goal = step_leg_goal.subtract( predict_contact(step_leg.bodies[2]) );
 	step_leg_goal.x += center.x;
 	
 	var step_rel = step_leg_goal.subtract( get_joint_pos(step_leg.joints[0]) );
@@ -208,7 +209,7 @@ function set_feet_position()
 	rotate_joint( step_leg.joints[1], absolute_ang_to_rel(step_leg.joints[1], step_leg_angles[1]) );
 	
 	// make the pivot leg's foot always point towards ground
-	//rotate_joint( pivot_leg.joints[1], absolute_ang_to_rel(pivot_leg.joints[1], -90/rad2deg) );
+	rotate_joint( pivot_leg.joints[1], absolute_ang_to_rel(pivot_leg.joints[1], -90/rad2deg) );
 }
 
 /*
