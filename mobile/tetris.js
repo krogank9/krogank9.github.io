@@ -1,13 +1,14 @@
-var game = new Phaser.Game(800, 600, Phaser.WEBGL, 'phaser-example', { preload: preload, create: create, update: update, render: render });
 
 function preload() {
 }
 
 var board_width = 10;
 var board_height = 20;
-var scale = 20; //block size in px
+var scale = 30; //block size in px
 var offset = {x:0, y:0};
 var game_board;
+
+var game = new Phaser.Game(board_width*scale, board_height*scale, Phaser.WEBGL, 'phaser-example', { preload: preload, create: create, update: update, render: render });
 
 var graphics;
 
@@ -30,6 +31,9 @@ var cur_piece;
 
 function get_time() { return (new Date()).getTime(); }
 
+
+var down_key;
+
 function create() {
 	graphics = game.add.graphics(0, 0);
 	
@@ -46,11 +50,38 @@ function create() {
 	
 	// resize the drawing scale so the game board fits on screen
 	scale = game.renderer.height/board_height;
+	
+	game.input.keyboard.onDownCallback = key_pressed;
+	down_key = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
+}
+
+function key_pressed(evt)
+{
+	var k = Phaser.Keyboard;
+	switch(evt.keyCode)
+	{
+		case k.UP:
+			cur_piece.rotate();
+			break;
+		case k.LEFT:
+			cur_piece.move(-1,0);
+			break;
+		case k.RIGHT:
+			cur_piece.move(1,0);
+			break;
+	}
 }
 
 function update() {
-	if(get_time() - last_tick > tick_gap)
+	var time = get_time();
+	if(time - last_tick > tick_gap)
+	{
 		tick();
+	}
+	else if(cur_piece.check_touching() == false && down_key.isDown && (time - last_tick) > tick_gap_fast )
+	{
+		tick();
+	}
 }
 
 function piece(shape_name)
@@ -106,17 +137,12 @@ function piece(shape_name)
 		var new_blocks = new Array(new_width);
 		for(let x=0; x<new_width; x++)
 			new_blocks[x] = new Array(new_height);
-		this.loop_blocks(function(block, x, y) {
+		this.loop_blocks(function(cur_block, x, y) {
 			var new_x = (new_width-1)-y;
 			var new_y = x;
-
-			if(this.blocks[x][y] == null)
-			{
-				new_blocks[new_x][new_y] = null;
-				return;
-			}		
-			var color = block.color;
-			var border = block.border;
+			
+			var color = cur_block.color;
+			var border = cur_block.border;
 			new_blocks[new_x][new_y] = new block(color, border);
 			new_blocks[new_x][new_y].rotate();
 		});
@@ -130,6 +156,8 @@ function piece(shape_name)
 		this.height = new_height;
 		// after rotating, change the x & y based on new width and height
 		// to keep piece centered
+		this.y -= new_height - old_height;
+		this.x -= new_width - old_width;
 		
 		// sometimes the rotated piece will end up overlapping with something,
 		// if possible just move the piece by 1 to try and correct it.
@@ -138,12 +166,13 @@ function piece(shape_name)
 			this.x -= 1;
 			if(this.check_overlap() == false)
 				return true;
-			this.x += 2;
+			this.x -= 1;
 			if(this.check_overlap() == false)
 				return true;
-				
-			this.x -= 1;
-			this.y -= 1;
+			this.x += 3;
+			if(this.check_overlap() == false)
+				return true;
+			this.x += 1;
 			if(this.check_overlap() == false)
 				return true;
 			
@@ -158,9 +187,12 @@ function piece(shape_name)
 		else
 			return true;
 	}
-	this.check_overlap = function() {
+	this.check_overlap = function()
+	{
 		this.loop_blocks
 		var overlap = false;
+		if(this.x < 0 || (this.x + this.width) > board_width)
+			return true;
 		this.loop_blocks( function(block, x, y, world_x, world_y) {
 			overlap = game_board[world_x][world_y] != null;
 			if(overlap)
@@ -168,7 +200,8 @@ function piece(shape_name)
 		});
 		return overlap;
 	}
-	this.check_touching = function() {
+	this.check_touching = function()
+	{
 		var touching = false;
 		this.loop_blocks(function(block, x, y, world_x, world_y) {
 			if(world_y < 0)
@@ -179,18 +212,34 @@ function piece(shape_name)
 		});
 		return touching;
 	}
-	this.place_on_board = function() {
+	this.place_on_board = function()
+	{
 		var in_bounds = true;
 		// place the piece on the game board
-		this.loop_blocks(function(block, x, y, world_x, world_y) {
+		this.loop_blocks(function(block, x, y, world_x, world_y)
+		{
 			game_board[world_x][world_y] = block;
-			if(world_y < 0) {
-				console.log('ya');
+			if(world_y < 0)
+			{
 				in_bounds = false;
 				return false;
 			}
 		});
 		return in_bounds;
+	}
+	this.move = function(x_add,y_add)
+	{
+		var old_x = this.x;
+		var old_y = this.y;
+		
+		this.x += x_add;
+		this.y += y_add;
+		
+		if( this.check_overlap() )
+		{
+			this.x = old_x;
+			this.y = old_y;
+		}
 	}
 }
 
@@ -263,7 +312,8 @@ function draw_block(block,x,y)
 }
 
 // move piece down screen, place piece & check for any lines to clear
-var tick_gap = 100;
+var tick_gap = 500;
+var tick_gap_fast = 50;
 var last_tick = get_time();
 function tick()
 {
