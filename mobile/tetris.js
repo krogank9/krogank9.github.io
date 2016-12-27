@@ -22,10 +22,10 @@ function create() {
 	graphics = game.add.graphics(0, 0);
 	
 	game_board = new Array(board_width);
-	for(let x=0; x<game_board.length; x++)
+	for(var x=0; x<game_board.length; x++)
 	{
 		game_board[x] = new Array(board_height);
-		for(let y=0; y<game_board[0].length; y++)
+		for(var y=0; y<game_board[0].length; y++)
 		{
 			game_board[x][y] = null;
 		}
@@ -165,9 +165,9 @@ function tick()
 		if(!result)
 		{
 			alert("game over");
-			for(let x=0; x<board_width; x++)
+			for(var x=0; x<board_width; x++)
 			{
-				for(let y=0; y<board_height; y++)
+				for(var y=0; y<board_height; y++)
 				{
 					game_board[x][y] = null;
 				}
@@ -184,9 +184,9 @@ function tick()
 function render() {
 	graphics.clear();
 	// draw the gameboard
-	for(let x=0; x<board_width; x++)
+	for(var x=0; x<board_width; x++)
 	{
-		for(let y=0; y<board_height; y++)
+		for(var y=0; y<board_height; y++)
 		{
 			if(game_board[x][y] != null)
 				draw_block(game_board[x][y],x,y);

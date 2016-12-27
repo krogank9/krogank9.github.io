@@ -128,7 +128,7 @@ function init()
 	{
 		return blueprints.map(function(blueprint){
 			var shape = Array.matrix(4,4);
-			for(let i=0; i<blueprint.length; i++)
+			for(var i=0; i<blueprint.length; i++)
 				shape[i%4][parseInt(i/4)] = blueprint.charAt(i)!=" "?1:0;
 			return shape;
 		});
@@ -176,9 +176,9 @@ function piece(shape, color, border_color)
 {
 	// populate blocks array
 	this.blocks = Array.matrix(4);
-	for(let x=0; x<4; x++)
+	for(var x=0; x<4; x++)
 	{
-		for(let y=0; y<4; y++)
+		for(var y=0; y<4; y++)
 		{
 			if(shape[x][y])
 			{
@@ -202,9 +202,9 @@ function piece(shape, color, border_color)
 	}
 	
 	this.loop_blocks = function(callback) {
-		for(let x=0; x<4; x++)
+		for(var x=0; x<4; x++)
 		{
-			for(let y=0; y<4; y++)
+			for(var y=0; y<4; y++)
 			{
 				if(this.blocks[x][y] == null)
 					continue;
@@ -327,22 +327,22 @@ function delete_block(x,y)
 
 function clear_line(y1)
 {
-	for(let x1=0; x1<board_width; x1++)
+	for(var x1=0; x1<board_width; x1++)
 	{
 		delete_block(x1,y1);
 	}
 	// move all lines above the cleared one down 1
-	for(let y=y1; y>0; y--)
-		for(let x=0; x<board_width; x++)
+	for(var y=y1; y>0; y--)
+		for(var x=0; x<board_width; x++)
 			game_board[x][y] = game_board[x][y-1];
 }
 
 function check_clearable_lines()
 {
-	for(let y=0; y<board_height; y++)
+	for(var y=0; y<board_height; y++)
 	{
 		var clearable = true;
-		for(let x=0; x<board_width; x++)
+		for(var x=0; x<board_width; x++)
 		{
 			if(game_board[x][y] == null)
 			{
