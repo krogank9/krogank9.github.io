@@ -9,7 +9,7 @@ var scale = 30; //block size in px
 var offset = {x:0, y:0};
 var game_board;
 
-var game = new Phaser.Game(board_width*(scale + spacing)-1, board_height*(scale + spacing)-1, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
+var game = new Phaser.Game(board_width*(scale + spacing)-1, board_height*(scale + spacing)-1, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update, render: render });
 
 var graphics;
 
