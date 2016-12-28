@@ -58,11 +58,11 @@ function create() {
     score_text.align = "center";
     score_text.anchor.x = 0.5;
     
-	var hold_text = game.add.bitmapText(offset.x - side_pad_px/2, offset.y, 'lcd14', "HOLD",size);
+	var hold_text = game.add.bitmapText(offset.x/2, offset.y, 'lcd14', "HOLD",size);
     hold_text.align = "center";
     hold_text.anchor.x = 0.5;
 
-    var next_text = game.add.bitmapText(Math.floor(offset.x+calc_width+side_pad_px/2), offset.y, 'lcd14', "NEXT",size);
+    var next_text = game.add.bitmapText(Math.floor(offset.x+calc_width+offset.x/2), offset.y, 'lcd14', "NEXT",size);
     next_text.align = "center";
     next_text.anchor.x = 0.5;
 
