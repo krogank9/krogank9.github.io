@@ -43,7 +43,6 @@ function draw_border(x,y,width,height,thickness,border_mask,corner_mask,top_colo
 		draw_slant(x+width-thickness,y+height-thickness,bottom_color,top_color);
 }
 
-var calc_thickness = Math.ceil(window.innerWidth * 3/1300);
 function draw_block(block,x,y)
 {
 	if(y<0)
@@ -68,7 +67,7 @@ function draw_block(block,x,y)
 	x += board_x*spacing;
 	y += board_y*spacing;
 	//border thickness
-	var thickness = calc_thickness;
+	var thickness = 10;
 	
 	var color = block.colors[0];
 	var border_color = block.colors[1];
