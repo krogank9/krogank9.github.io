@@ -11,7 +11,8 @@ var offset = {x:0, y:0};
 var game_board;
 
 var score = 0;
-var score_text;
+var score_text, hold_text, next_text;
+var font_size = 0;
 
 //percents of the screen left surrounding the game board
 var top_pad = 0.1;
@@ -54,18 +55,26 @@ function create() {
 		}
 	}
 
-	var size = Math.floor(offset.y/3);
-    score_text = game.add.bitmapText(Math.floor(game.world.centerX), offset.y/2 - size, 'lcd14', "SCORE\n0",size);
+	font_size = Math.floor(offset.y);
+    score_text = game.add.bitmapText(0, 0, 'lcd14', "SCORE\n0",font_size);
     score_text.align = "center";
     score_text.anchor.x = 0.5;
     
-	var hold_text = game.add.bitmapText(offset.x/2, offset.y, 'lcd14', "HOLD",size);
+	hold_text = game.add.bitmapText(0, offset.y, 'lcd14', "HOLD",font_size);
     hold_text.align = "center";
     hold_text.anchor.x = 0.5;
 
-    var next_text = game.add.bitmapText(Math.floor(offset.x+calc_width+offset.x/2), offset.y, 'lcd14', "NEXT",size);
+    next_text = game.add.bitmapText(0, offset.y, 'lcd14', "NEXT",font_size);
     next_text.align = "center";
     next_text.anchor.x = 0.5;
+    
+    // adjust text size till it fits around the edges
+    while(hold_text.width > side_pad_px*0.9 || next_text.width > side_pad_px*0.9 || score_text.height > offset.y*0.9)
+		score_text.fontSize = next_text.fontSize = hold_text.fontSize = --font_size;
+		
+	score_text.position.set(game.world.centerX, offset.y/2 - font_size);
+	hold_text.position.set(offset.x-side_pad_px/2,offset.y)
+	next_text.position.set(offset.x+calc_width+side_pad_px/2,offset.y)
 
 	init();
 	new_rand_piece();
