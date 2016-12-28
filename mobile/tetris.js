@@ -76,7 +76,7 @@ function create() {
 	hold_text.position.set(offset.x-side_pad_px/2,offset.y)
 	next_text.position.set(offset.x+calc_width+side_pad_px/2,offset.y)
 	
-	score_text.anchor.x = hold_text.anchor.x = next_next.anchor.x = 0.5;
+	score_text.anchor.x = hold_text.anchor.x = next_text.anchor.x = 0.5;
 
 	init();
 	new_rand_piece();
