@@ -16,7 +16,7 @@ var score_text;
 //percents of the screen left surrounding the game board
 var top_pad = 0.1;
 var bottom_pad = 0.025;
-var side_pad = 0.2;
+var side_pad = 0.25;
 
 // maximum width and height the board can take up
 var board_spacing_y = window.innerHeight*(1.0 - bottom_pad - top_pad);
