@@ -75,6 +75,8 @@ function create() {
 	score_text.position.set(game.world.centerX, offset.y/2 - font_size);
 	hold_text.position.set(offset.x-side_pad_px/2,offset.y)
 	next_text.position.set(offset.x+calc_width+side_pad_px/2,offset.y)
+	
+	score_text.anchor.x = hold_text.anchor.x = next_next.anchor.x = 0.5;
 
 	init();
 	new_rand_piece();
