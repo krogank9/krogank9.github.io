@@ -13,9 +13,44 @@ Array.matrix = function(numrows, numcols, initial)
     return arr;
 }
 
+function remap_hashmap(hashmap,callback)
+{
+	var new_map = {};
+	for (var i = 0, keys = Object.keys(hashmap), ii = keys.length; i < ii; i++) {
+		new_map[keys[i]] = callback(hashmap[keys[i]]);
+	}
+	return new_map;
+}
+
 function rand_int(ceiling)
 {
 	return Math.floor(Math.random()*ceiling);
+}
+
+function fade(hex,percent,opt_to)
+{
+	var to = opt_to || 0;
+	var r, g, b;
+	hex = hex.toString(16);
+	while(hex.length < 6)
+		hex = "0"+hex;
+		
+	r = parseInt(hex.substring(0,2), 16);
+	g = parseInt(hex.substring(2,4), 16);
+	b = parseInt(hex.substring(4,6), 16);
+	
+	var i = 1.0-percent;
+	r = Math.floor(r*i + to*percent).toString(16);
+	g = Math.floor(g*i + to*percent).toString(16);
+	b = Math.floor(b*i + to*percent).toString(16);
+	
+	r = r.length<2?"0"+r:r;
+	g = g.length<2?"0"+g:g;
+	b = b.length<2?"0"+b:b;
+	
+	hex = r+g+b;
+
+	return parseInt(hex,16);
 }
 
 function init()
@@ -145,7 +180,8 @@ function init()
 	function generate_pieces(name)
 	{
 		return shapes[name].map(function(shape){
-			return new piece(shape, shape_colors[name], shape_border_colors[name]);
+			var colors = [shape_colors[name], shape_border_colors[name],shape_border_colors2[name],shape_border_colors3[name]];
+			return new piece(shape, colors);
 		});
 	}
 	pieces = {
@@ -165,14 +201,17 @@ function init()
 var shapes, pieces;
 
 var shape_names = ["SQUARE", "L", "L_BACKWARDS", "S", "Z", "T", "I"];
-var shape_colors = {"SQUARE":0xffcf3c, "L":0xff6b00, "L_BACKWARDS":0x3131d0, "S":0x06ac2d, "Z":0xdc003c, "T":0xc13cff, "I":0x189dc8}
-var shape_border_colors = {"SQUARE":0xffecb3, "L":0xffa96a, "L_BACKWARDS":0x7c7cf4, "S":0x32dc5a, "Z":0xea7495, "T":0xde99ff, "I":0x83dcf9}
+var shape_colors = {"SQUARE":0xffcf3c, "L":0xff6b00, "L_BACKWARDS":0x3131d0, "S":0x06ac2d, "Z":0xdc003c, "T":0xa42edb, "I":0x189dc8}
+var shape_border_colors = remap_hashmap(shape_colors, function(val) { return fade(val, 0.33) });
+
+var shape_border_colors2 = remap_hashmap(shape_colors, function(val) { return fade(val, 0.25) });
+var shape_border_colors3 = remap_hashmap(shape_colors, function(val) { return fade(val, 0.33, 255) });
 
 //bit flags for borders
 var block_border = {"TOP":1, "RIGHT":2, "BOTTOM":4, "LEFT":8, "ALL":1|2|4|8}
 var block_corners = {"TOP_LEFT":1, "TOP_RIGHT":2, "BOTTOM_LEFT":4, "BOTTOM_RIGHT":8, "ALL":1|2|4|8}
 
-function piece(shape, color, border_color)
+function piece(shape, colors)
 {
 	// populate blocks array
 	this.blocks = Array.matrix(4);
@@ -183,7 +222,7 @@ function piece(shape, color, border_color)
 			if(shape[x][y])
 			{
 				function valid(x,y) { return x>=0 && x<4 && y>=0 && y<4; }
-				this.blocks[x][y] = new block({color:color, border_color:border_color, border:block_border["ALL"], corners:block_corners["ALL"]});
+				this.blocks[x][y] = new block({colors:colors, border:block_border["ALL"], corners:block_corners["ALL"]});
 				var cur_block = this.blocks[x][y];
 				
 				// set bit flags for drawing borders around blocks
@@ -218,8 +257,7 @@ function piece(shape, color, border_color)
 function block(props)
 {
 	props = props || {};
-	this.color = props.color || 0;
-	this.border_color = props.border_color || 0;
+	this.colors = props.colors || [0,0,0];
 	this.border = props.border || 0;
 	this.corners = props.corners || 0;
 }
