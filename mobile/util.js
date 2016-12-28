@@ -272,6 +272,8 @@ function cur_piece()
 function new_rand_piece()
 {
 	var rand_name = shape_names[rand_int(shape_names.length)];
+	while(pieces[rand_name] === cur_type)
+		rand_name = shape_names[rand_int(shape_names.length)];
 	cur_type = pieces[rand_name];
 	cur_rotation = rand_int(cur_type.length);
 	cur_pos.x = 4;

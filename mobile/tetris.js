@@ -1,5 +1,6 @@
 
 function preload() {
+	 game.load.bitmapFont('lcd14', 'lcd14.png', 'lcd14.xml');
 }
 
 var board_width = 10;
@@ -9,9 +10,12 @@ var scale = 30; //block size in px
 var offset = {x:0, y:0};
 var game_board;
 
+var score = 0;
+var score_text;
+
 //percents of the screen left surrounding the game board
-var top_pad = 0.15;
-var bottom_pad = 0.05;
+var top_pad = 0.1;
+var bottom_pad = 0.025;
 var left_pad = 0.15;
 var right_pad = 0.15;
 
@@ -19,11 +23,11 @@ var right_pad = 0.15;
 // maximum width and height the board can take up
 var board_spacing_y = window.innerHeight*(1.0 - bottom_pad - top_pad);
 var board_spacing_x = window.innerHeight*(1.0 - left_pad - right_pad);
-scale = Math.floor(board_spacing_y/board_height)-1;
+scale = Math.floor(board_spacing_y/board_height)-spacing;
 if((scale+spacing)*board_width > board_spacing_x)
-	scale = Math.floor(board_spacing_x/board_height)-1;
+	scale = Math.floor(board_spacing_x/board_width)-spacing;
 
-offset.y = window.innerHeight*top_pad;
+offset.y = Math.floor(window.innerHeight*top_pad);
 var calc_width = (scale+spacing)*board_width;
 offset.x = Math.floor(window.innerWidth/2 - calc_width/2);
 
@@ -46,6 +50,11 @@ function create() {
 			game_board[x][y] = null;
 		}
 	}
+
+	var size = Math.floor(offset.y/3);
+    score_text = game.add.bitmapText(Math.floor(game.world.centerX), offset.y/2 - size, 'lcd14', "SCORE\n0",size);
+    score_text.align = "center";
+    score_text.anchor.x = 0.5;
 
 	init();
 	new_rand_piece();
@@ -117,21 +126,27 @@ function render() {
 	graphics.clear();
 	// draw gameboard background
 	graphics.beginFill(0);
-	graphics.drawRect(offset.x, offset.y, board_width*(scale+spacing), board_height*(scale+spacing)-1);
+	graphics.drawRect(offset.x, offset.y, board_width*(scale+spacing)-spacing, board_height*(scale+spacing)-spacing);
 	graphics.endFill();
 	// draw the gameboard
 	for(var x=0; x<board_width; x++)
 	{
 		for(var y=0; y<board_height; y++)
 		{
+			var px_x = x*(spacing+scale) + offset.x;
+			var px_y = y*(spacing+scale) + offset.y;
 			if(game_board[x][y] != null)
-				draw_block(game_board[x][y],x,y);
+				draw_block(game_board[x][y],px_x,px_y,scale);
 		}
 	}
 	// and draw the current piece
 	cur_piece().loop_blocks(function(block, x, y){
 		var world_x = cur_pos.x + x;
 		var world_y = cur_pos.y + y;
-		draw_block(block, world_x, world_y);
+		px_x = world_x*(spacing+scale) + offset.x;
+		px_y = world_y*(spacing+scale) + offset.y;
+		
+		if(world_y >= 0)
+			draw_block(block, px_x, px_y,scale);
 	});
 }

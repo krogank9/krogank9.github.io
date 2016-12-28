@@ -27,9 +27,18 @@ function draw_border(x,y,width,height,thickness,border_mask,corner_mask,top_colo
 		dr(x+width-thickness,y,thickness,height,top_color);
 		
 	function draw_slant(x,y,top,bottom) {
+		graphics.beginFill(top);
 		for(var x1=0;x1<thickness;x1++)
 			for(var y1=0;y1<thickness;y1++)
-				dr(x+x1,y+y1,1,1,x1>y1?top:bottom);
+				if(x1>y1)
+					graphics.drawRect(x+x1,y+y1,1,1);
+		graphics.endFill();
+		graphics.beginFill(bottom);
+		for(var x1=0;x1<thickness;x1++)
+			for(var y1=0;y1<thickness;y1++)
+				if(x1<=y1)
+					graphics.drawRect(x+x1,y+y1,1,1);
+		graphics.endFill();
 	}
 	// draw the slanted edges for 3d effect
 	if(left&&top)
@@ -43,21 +52,8 @@ function draw_border(x,y,width,height,thickness,border_mask,corner_mask,top_colo
 		draw_slant(x+width-thickness,y+height-thickness,bottom_color,top_color);
 }
 
-var calc_thickness = Math.ceil(window.innerWidth * 3/1300);
-function draw_block(block,x,y)
-{
-	if(y<0)
-		return;
-
-	var board_x = x;
-	var board_y = y;
-	// get the screen pos
-	x *= scale;
-	y *= scale;
-	x += offset.x;
-	y += offset.y;
-	
-	
+function draw_block(block,x,y,scale)
+{	
 	//some code to deal with the 1px spacing between blocks
 	var mask = block.border;
 	var right = mask & block_border["RIGHT"];
@@ -65,10 +61,8 @@ function draw_block(block,x,y)
 	var top = mask & block_border["TOP"];
 	var bottom = mask & block_border["BOTTOM"];
 
-	x += board_x*spacing;
-	y += board_y*spacing;
 	//border thickness
-	var thickness = calc_thickness;
+	var thickness = 4;
 	
 	var color = block.colors[0];
 	var border_color = block.colors[1];
