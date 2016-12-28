@@ -67,7 +67,7 @@ function draw_block(block,x,y)
 	x += board_x*spacing;
 	y += board_y*spacing;
 	//border thickness
-	var thickness = 3;
+	var thickness = 5;
 	
 	var color = block.colors[0];
 	var border_color = block.colors[1];
