@@ -53,10 +53,6 @@ function fade(hex,percent,opt_to)
 	return parseInt(hex,16);
 }
 
-function getDPI() {
-	return document.getElementById("dpi").offsetHeight;
-}
-
 function init()
 {
 	var shape_blueprints = {

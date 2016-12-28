@@ -6,7 +6,6 @@ function preload() {
 var board_width = 10;
 var board_height = 20;
 var spacing = 1;
-var border_thickness = Math.floor(4/96 * getDPI());
 var scale = 30; //block size in px
 var offset = {x:0, y:0};
 var game_board;
@@ -17,16 +16,17 @@ var score_text;
 //percents of the screen left surrounding the game board
 var top_pad = 0.1;
 var bottom_pad = 0.025;
-var left_pad = 0.15;
-var right_pad = 0.15;
-
+var side_pad = 0.2;
 
 // maximum width and height the board can take up
 var board_spacing_y = window.innerHeight*(1.0 - bottom_pad - top_pad);
-var board_spacing_x = window.innerHeight*(1.0 - left_pad - right_pad);
+var board_spacing_x = window.innerHeight*(1.0 - side_pad*2);
 scale = Math.floor(board_spacing_y/board_height)-spacing;
 if((scale+spacing)*board_width > board_spacing_x)
 	scale = Math.floor(board_spacing_x/board_width)-spacing;
+	
+var side_pad_px = window.innerWidth * side_pad;
+var right_pad_pos = side_pad_px + board_spacing_x;
 
 offset.y = Math.floor(window.innerHeight*top_pad);
 var calc_width = (scale+spacing)*board_width;
@@ -36,6 +36,7 @@ var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, '
 var graphics;
 
 function get_time() { return (new Date()).getTime(); }
+function update_score() { score_text.text = "SCORE\n"+score; }
 
 var down_key;
 
@@ -56,6 +57,14 @@ function create() {
     score_text = game.add.bitmapText(Math.floor(game.world.centerX), offset.y/2 - size, 'lcd14', "SCORE\n0",size);
     score_text.align = "center";
     score_text.anchor.x = 0.5;
+    
+	var hold_text = game.add.bitmapText(offset.x - side_pad_px/2, offset.y, 'lcd14', "HOLD",size);
+    hold_text.align = "center";
+    hold_text.anchor.x = 0.5;
+
+    var next_text = game.add.bitmapText(Math.floor(offset.x+calc_width+side_pad_px/2), offset.y, 'lcd14', "NEXT",size);
+    next_text.align = "center";
+    next_text.anchor.x = 0.5;
 
 	init();
 	new_rand_piece();
