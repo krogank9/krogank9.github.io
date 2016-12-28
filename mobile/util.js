@@ -204,8 +204,8 @@ var shape_names = ["SQUARE", "L", "L_BACKWARDS", "S", "Z", "T", "I"];
 var shape_colors = {"SQUARE":0xffcf3c, "L":0xff6b00, "L_BACKWARDS":0x3131d0, "S":0x06ac2d, "Z":0xdc003c, "T":0xa42edb, "I":0x189dc8}
 var shape_border_colors = remap_hashmap(shape_colors, function(val) { return fade(val, 0.33) });
 
-var shape_border_colors2 = remap_hashmap(shape_colors, function(val) { return fade(val, 0.25) });
-var shape_border_colors3 = remap_hashmap(shape_colors, function(val) { return fade(val, 0.33, 255) });
+var shape_border_colors2 = remap_hashmap(shape_colors, function(val) { return fade(val, 0.25, 0) });
+var shape_border_colors3 = remap_hashmap(shape_colors, function(val) { return fade(val, 0.50, 255) });
 
 //bit flags for borders
 var block_border = {"TOP":1, "RIGHT":2, "BOTTOM":4, "LEFT":8, "ALL":1|2|4|8}
