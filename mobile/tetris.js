@@ -30,6 +30,7 @@ var right_pad_pos = side_pad_px + board_spacing_x;
 
 offset.y = Math.floor(window.innerHeight*top_pad);
 var calc_width = (scale+spacing)*board_width;
+var calc_height = (scale+spacing)*board_height;
 offset.x = Math.floor(window.innerWidth/2 - calc_width/2);
 
 var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'phaser-container', { preload: preload, create: create, update: update, render: render });
@@ -58,11 +59,11 @@ function create() {
     score_text.align = "center";
     score_text.anchor.x = 0.5;
     
-	var hold_text = game.add.bitmapText(offset.x/2, offset.y+50, 'lcd14', "HOLD",size);
+	var hold_text = game.add.bitmapText(offset.x/2, offset.y, 'lcd14', "HOLD",size);
     hold_text.align = "center";
     hold_text.anchor.x = 0.5;
 
-    var next_text = game.add.bitmapText(Math.floor(offset.x+calc_width+offset.x/2), offset.y+50, 'lcd14', "NEXT",size);
+    var next_text = game.add.bitmapText(Math.floor(offset.x+calc_width+offset.x/2), offset.y, 'lcd14', "NEXT",size);
     next_text.align = "center";
     next_text.anchor.x = 0.5;
 
