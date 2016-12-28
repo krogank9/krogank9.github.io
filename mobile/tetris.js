@@ -6,6 +6,7 @@ function preload() {
 var board_width = 10;
 var board_height = 20;
 var spacing = 1;
+var border_thickness = Math.floor(4/96 * getDPI());
 var scale = 30; //block size in px
 var offset = {x:0, y:0};
 var game_board;
