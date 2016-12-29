@@ -62,19 +62,19 @@ function create() {
     
 	hold_text = game.add.bitmapText(0, offset.y, 'lcd14', "HOLD",font_size);
     hold_text.align = "center";
+    hold_text.anchor.x = 0.5;
 
     next_text = game.add.bitmapText(0, offset.y, 'lcd14', "NEXT",font_size);
     next_text.align = "center";
+    next_text.anchor.x = 0.5;
     
     // adjust text size till it fits around the edges
-    while(hold_text.width > side_pad_px*0.9 || next_text.width > side_pad_px*0.9 || score_text.height > offset.y*0.9)
+    while(font_size*0.8*4 > side_pad_px*0.9 || font_size*2 > offset.y*0.8)
 		score_text.fontSize = next_text.fontSize = hold_text.fontSize = --font_size;
 	
-	var hold_diff = side_pad_px - hold_text.width;
-	var next_diff = side_pad_px - next_text.width;
 	score_text.position.set(game.world.centerX, offset.y/2 - font_size);
-	hold_text.position.set(offset.x-hold_text.width-hold_diff/2,offset.y)
-	next_text.position.set(offset.x+calc_width+next_diff/2,offset.y)
+	hold_text.position.set(offset.x-side_pad_px/2,offset.y)
+	next_text.position.set(offset.x+calc_width+side_pad_px/2,offset.y)
 
 	init();
 	new_rand_piece();
