@@ -65,6 +65,7 @@ function create() {
 		score_text.fontSize = next_text.fontSize = hold_text.fontSize = --font_size;
 		
 	score_text.anchor.x = 0.5;
+	next_text.anchor.x = 0;
 	hold_text.anchor.x = 1.0;
 	score_text.align = next_text.align = hold_text.align = "center";
 	
