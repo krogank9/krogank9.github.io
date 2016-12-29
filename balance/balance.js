@@ -20,7 +20,7 @@ var leg_length = 0;
 
 var all_joints = [];
 
-var MAX_TORQUE = 30;
+var MAX_TORQUE = 40;
 
 function get_angle_closeness(ang1, ang2) {
 	var diff = Math.abs( find_angle_difference(ang1, ang2) );
@@ -136,36 +136,6 @@ function determine_pivot_leg(center, l_foot_contact, r_foot_contact) {
 	}
 }
 
-// check which corner of the foot will hit the ground first to be able to
-// place it more precisely
-function predict_contact(body)
-{
-	var verts = body.m_fixtureList.m_shape.m_vertices;
-	var body_angle = body.GetAngle();
-	verts = verts.map(function(vert){
-		var pos = new vec(vert.x, vert.y);
-		return pos.rotate_by(body_angle);
-	});
-	bottom = new vec(0,0);
-	verts.forEach(function(v){if(v.y < bottom.y) bottom.y=v.y;});
-
-	var prediction = copy_vec(verts[0]);
-	for(let i=0; i<verts.length; i++)
-	{
-		var cur_dist = prediction.subtract(bottom).magnitude();
-		var vert_dist = bottom.subtract(verts[i]).magnitude();
-		if(vert_dist < cur_dist)
-			prediction.set_equal_to(verts[i]);
-		
-		var midpt = verts[i].add(verts[(i+1)%verts.length]).scale(0.5);
-		var midpt_dist = bottom.subtract(midpt).magnitude();
-		if(midpt_dist < cur_dist)
-			prediction.set_equal_to(midpt);
-	}
-
-	return prediction;
-}
-
 var r_last = new vec(0,0);
 var l_last = new vec(0,0);
 
@@ -185,15 +155,13 @@ function set_feet_position()
 	var center = get_center_mass(ragdoll);
 	var l_foot_contact = get_contact(l_leg.bodies[2], ground);
 	var r_foot_contact = get_contact(r_leg.bodies[2], ground);
-	l_last = avg_contact_point(l_foot_contact) || lowest_vert_pos(l_leg.bodies[2]);
-	r_last = avg_contact_point(r_foot_contact) || lowest_vert_pos(r_leg.bodies[2]);
 	
 	var pivot_leg = determine_pivot_leg(center, l_foot_contact, r_foot_contact);
 	if(pivot_leg == null)
 		return;
 	var step_leg = pivot_leg===r_leg ? l_leg : r_leg;
 		
-	pivot_leg.pos = get_joint_pos(pivot_leg.joints[2]).subtract(get_joint_pos(pivot_leg.joints[0]));
+	pivot_leg.pos = get_joint_pos(pivot_leg.joints[2]);
 	
 	pivot_leg.pos.x -= center.x;
 
@@ -202,14 +170,14 @@ function set_feet_position()
 	step_leg_goal.x *= -1;
 	step_leg_goal.x += center.x;
 	
+	r_last = pivot_leg.pos;
+	l_last = step_leg_goal;
+	
 	var step_rel = step_leg_goal.subtract( get_joint_pos(step_leg.joints[0]) );
 	var step_leg_angles = fabrIK([upper_leg_length, lower_leg_length], step_rel);
 	
 	rotate_joint( step_leg.joints[0], absolute_ang_to_rel(step_leg.joints[0], step_leg_angles[0]) );
 	rotate_joint( step_leg.joints[1], absolute_ang_to_rel(step_leg.joints[1], step_leg_angles[1]) );
-	
-	// make the pivot leg's foot always point towards ground
-	rotate_joint( pivot_leg.joints[1], absolute_ang_to_rel(pivot_leg.joints[1], -90/rad2deg) );
 }
 
 /*

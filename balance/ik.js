@@ -63,13 +63,12 @@ function fabrIK(sizes, goal, opt_start_angs, opt_margin_error)
 	return end_angs;
 }
 
-function get_y_pos_circle(r,x)
+function get_pos_circle(r,n)
 {
 	r = Math.abs(r)
-	x = Math.abs(x)
-	x = x>r?r:x;
-	var y = Math.sqrt(r*r - x*x);
-	return y;
+	n = Math.abs(n)
+	n = n>r?r:n;
+	return Math.sqrt(r*r - n*n);
 }
 
 function get_joint_pos(joint)
@@ -88,3 +87,5 @@ function absolute_ang_to_rel(joint, ang)
 function b2vec2_to_vec(b2) {
 	return new vec(b2.x, b2.y);
 }
+
+function sign(n) { return n<0?-1:1; }

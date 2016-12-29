@@ -11,13 +11,14 @@ var offset = {x:0, y:0};
 var game_board;
 
 var score = 0;
+var level = 0;
 var score_text, hold_text, next_text;
 var font_size = 0;
 
 //percents of the screen left surrounding the game board
 var top_pad = 0.1;
 var bottom_pad = 0.025;
-var side_pad = 0.25;
+var side_pad = 0.3;
 
 // maximum width and height the board can take up
 var board_spacing_y = window.innerHeight*(1.0 - bottom_pad - top_pad);
@@ -57,8 +58,8 @@ function create() {
 
 	font_size = Math.floor(offset.y);
     score_text = game.add.bitmapText(0, 0, 'lcd14', "SCORE\n0",font_size);
-	hold_text = game.add.bitmapText(0, offset.y, 'lcd14', "HOLD ",font_size);
-    next_text = game.add.bitmapText(0, offset.y, 'lcd14', " NEXT",font_size);
+	hold_text = game.add.bitmapText(0, offset.y, 'lcd14', "HOLD",font_size);
+    next_text = game.add.bitmapText(0, offset.y, 'lcd14', "NEXT",font_size);
     
     // adjust text size till it fits around the edges
     while(font_size*6 > side_pad_px*0.9 || font_size*2 > offset.y*0.8)
@@ -70,8 +71,8 @@ function create() {
 	score_text.align = next_text.align = hold_text.align = "center";
 	
 	score_text.position.set(game.world.centerX, offset.y/2 - font_size);
-	hold_text.position.set(offset.x,offset.y);
-	next_text.position.set(offset.x+calc_width,offset.y);
+	hold_text.position.set(offset.x-font_size/2,offset.y);
+	next_text.position.set(offset.x+calc_width+font_size/2,offset.y);
 
 	init();
 	new_rand_piece();
@@ -130,8 +131,10 @@ function tick()
 					game_board[x][y] = null;
 				}
 			}
+			score = 0;
+			update_score();
 		}
-		new_rand_piece();
+		cycle_next_piece();
 	}
 	else
 	{	
@@ -166,4 +169,31 @@ function render() {
 		if(world_y >= 0)
 			draw_block(block, px_x, px_y,scale);
 	});
+	var box_size = font_size*3;
+	var preview_scale = Math.floor(box_size/4); //fit 5 blocks inside preview
+	// draw the next piece
+	graphics.beginFill(0);
+	graphics.drawRect(offset.x+calc_width+font_size/2,offset.y+font_size*1.5,box_size,box_size);
+	graphics.endFill();
+	var cur = cur_piece(1);
+	var start_x = offset.x+calc_width+font_size/2;
+	var start_y = offset.y+font_size*1.5;
+
+	// calculate where the midpoint of the piece will be for centering
+	var mid_x = (cur.top_left.x + cur.bottom_right.x)/2 + 0.5;
+	var mid_y = (cur.top_left.y + cur.bottom_right.y)/2 + 0.5;
+	mid_x = mid_x*(spacing + preview_scale);
+	mid_y = mid_y*(spacing + preview_scale);
+
+	start_x += box_size/2 - mid_x;
+	start_y += box_size/2 - mid_y;
+	cur.loop_blocks(function(block, x, y){
+		var px_x = start_x + x*(spacing+preview_scale);
+		var px_y = start_y + y*(spacing+preview_scale);
+		draw_block(block, Math.floor(px_x), Math.floor(px_y), preview_scale);
+	});
+	// draw the held piece
+	graphics.beginFill(0);
+	graphics.drawRect(offset.x-font_size/2-box_size,offset.y+font_size*1.5,box_size,box_size);
+	graphics.endFill();
 }

@@ -62,7 +62,7 @@ function draw_block(block,x,y,scale)
 	var bottom = mask & block_border["BOTTOM"];
 
 	//border thickness
-	var thickness = 4;
+	var thickness = 4//10;
 	
 	var color = block.colors[0];
 	var border_color = block.colors[1];

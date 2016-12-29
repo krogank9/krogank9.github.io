@@ -197,6 +197,7 @@ function init()
 	pieces["SQUARE"][0].loop_blocks(function(block,x,y){
 		block.corners = 0;
 	});
+	set_pieces();
 }
 var shapes, pieces;
 
@@ -213,6 +214,8 @@ var block_corners = {"TOP_LEFT":1, "TOP_RIGHT":2, "BOTTOM_LEFT":4, "BOTTOM_RIGHT
 
 function piece(shape, colors)
 {
+	this.top_left = {x:3,y:3}
+	this.bottom_right = {x:0,y:0}
 	// populate blocks array
 	this.blocks = Array.matrix(4);
 	for(var x=0; x<4; x++)
@@ -234,6 +237,16 @@ function piece(shape, colors)
 					cur_block.border ^= block_border["BOTTOM"];
 				if(valid(x,y-1) && shape[x][y-1])
 					cur_block.border ^= block_border["TOP"];
+					
+				// set the top left and bottom right blocks for drawing a centered preview of piece
+				if(x < this.top_left.x)
+					this.top_left.x = x;
+				if(y < this.top_left.y)
+					this.top_left.y = y;
+				if(x > this.bottom_right.x)
+					this.bottom_right.x = x;
+				if(y > this.bottom_right.y)
+					this.bottom_right.y = y;
 			}
 			else
 				this.blocks[x][y] = null;
@@ -262,30 +275,55 @@ function block(props)
 	this.corners = props.corners || 0;
 }
 
-var cur_type;
-var cur_rotation;
-var cur_pos = {x:0, y:0}
-function cur_piece()
-{
-	return cur_type[cur_rotation];
-}
-function new_rand_piece()
+var cur_pos = {x:4, y:-3}
+var cur_pieces = new Array(4);
+
+function new_rand_piece(not_type)
 {
 	var rand_name = shape_names[rand_int(shape_names.length)];
-	while(pieces[rand_name] === cur_type)
+	while(pieces[rand_name] === not_type)
 		rand_name = shape_names[rand_int(shape_names.length)];
-	cur_type = pieces[rand_name];
-	cur_rotation = rand_int(cur_type.length);
+	var type = pieces[rand_name];
+	var rotation = rand_int(type.length);
+	return { type: type, rotation: rotation, piece: type[rotation] }
+}
+function cur_piece(i)
+{
+	return cur_pieces[i||0].type[cur_pieces[i||0].rotation];
+}
+function set_pieces()
+{
+	// move pieces down the array if the current one is null
+	for(var i=0; i<cur_pieces.length-1; i++)
+	{
+		if(!cur_pieces[i] && !!cur_pieces[i+1])
+		{
+			cur_pieces[i] = cur_pieces[i+1];
+			cur_pieces[i+1] = null;
+		}
+	}
+	// set any that aren't null
+	for(var i=0; i<cur_pieces.length; i++)
+		if(!cur_pieces[i])
+			cur_pieces[i] = new_rand_piece(!i || cur_pieces[i-1].type);
+}
+// get the next piece and 
+function cycle_next_piece()
+{
+	cur_pieces[0] = cur_pieces[1];
+	cur_pieces[1] = null;
+	set_pieces();
 	cur_pos.x = 4;
 	cur_pos.y = -3;
 }
 function rotate()
 {
-	var old_rotation = cur_rotation;
-	cur_rotation = (cur_rotation+1)%cur_type.length;
+	var cur = cur_pieces[0];
+	var old_rotation = cur.rotation;
+	cur.rotation = (cur.rotation+1)%cur.type.length;
 	if(check_valid_position() == false)
 	{
-		cur_rotation = old_rotation;
+		cur.rotation = old_rotation;
 		return false;
 	}
 	return true;
@@ -379,6 +417,7 @@ function clear_line(y1)
 
 function check_clearable_lines()
 {
+	var lines_cleared = 0;
 	for(var y=0; y<board_height; y++)
 	{
 		var clearable = true;
@@ -391,8 +430,14 @@ function check_clearable_lines()
 			}
 		}
 		if(clearable)
+		{
 			clear_line(y);
+			lines_cleared++;
+		}
 	}
+	var points_awarded = {0:0, 1:40, 2:100, 3:300, 4:1200};
+	score += points_awarded[lines_cleared] * (level+1);
+	update_score();
 }
 
 function place_on_board(piece)
