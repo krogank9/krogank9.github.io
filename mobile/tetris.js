@@ -57,11 +57,11 @@ function create() {
 
 	font_size = Math.floor(offset.y);
     score_text = game.add.bitmapText(0, 0, 'lcd14', "SCORE\n0",font_size);
-	hold_text = game.add.bitmapText(0, offset.y, 'lcd14', " HOLD ",font_size);
-    next_text = game.add.bitmapText(0, offset.y, 'lcd14', " NEXT ",font_size);
+	hold_text = game.add.bitmapText(0, offset.y, 'lcd14', "HOLD ",font_size);
+    next_text = game.add.bitmapText(0, offset.y, 'lcd14', " NEXT",font_size);
     
     // adjust text size till it fits around the edges
-    while(font_size*0.8*6 > side_pad_px*0.9 || font_size*2 > offset.y*0.8)
+    while(font_size*6 > side_pad_px*0.9 || font_size*2 > offset.y*0.8)
 		score_text.fontSize = next_text.fontSize = hold_text.fontSize = --font_size;
 		
 	score_text.anchor.x = 0.5;
@@ -70,7 +70,6 @@ function create() {
 	score_text.align = next_text.align = hold_text.align = "center";
 	
 	score_text.position.set(game.world.centerX, offset.y/2 - font_size);
-	var pad = (side_pad_px - font_size*0.8*4)/2;
 	hold_text.position.set(offset.x,offset.y);
 	next_text.position.set(offset.x+calc_width,offset.y);
 
