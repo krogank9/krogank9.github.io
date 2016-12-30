@@ -705,7 +705,7 @@ joint_tool.mousedown = function(evt) {
 			add_objects([j]);
 			break;
 		case "Weld":
-			var j = new joint(pos, JOINT_TYPES["Weld"], b0, b1);
+			var j = new joint({pos:pos, type:JOINT_TYPES["Weld"], body_a:b0, body_b:b1});
 			add_objects([j]);
 			break;
 	}

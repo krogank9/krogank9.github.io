@@ -145,25 +145,17 @@ function export_joint(joint, bodies_list) {
 		converted.maxMotorTorque = 0;
 		converted.motorSpeed = 0;
 		
-		// If you set refAngle to -45, getJointAngle() will return 0 when
-		// body b's rotation is -45 (in relation to a)
-		// so it will also return 45 when body b's rotation is 0
-		//
-		// Reference angle is what you want body_b.rotation - body_a.rotation to be when the joint is at 0
-		var diff = find_angle_difference(joint.body_b.rotation, joint.body_a.rotation);
+		// refAngle example: If you set refAngle to -45, getJointAngle() will return 0 when
+		// body b's rotation is -45. Angles are measured as body b's angle in relation to body a's angle
+		var ang_diff = joint.body_b.rotation - joint.body_a.rotation;
 		var joint_rel = joint.body_b.pos.subtract(joint.pos).angle();
-		// the body within the joint limits how you want it
-		// to the bodies angle relative to each other, add
-		// the joints rotation and offset from the body. 
-		// i do make_ang_small on that to combine the offset into one angle... it's a bit confusing but this seemingly works:
-		var ref = diff+make_ang_small(joint.rotation-joint_rel);
-		converted.refAngle = ref/rad2deg;
+		var offset = normalize_ang(joint.rotation-joint_rel) - 360;
+		var reference_angle = ang_diff+offset;
+		converted.refAngle = reference_angle/rad2deg;
 		
 	} else if(joint.type == JOINT_TYPES["Weld"]) {
-		// setting the reference angle is done a bit differently for the weld
-		// just need to set it so they maintain the same rotation, no joint limits to account for
-		var diff = joint.body_b.rotation - joint.body_a.rotation;
-		converted.refAngle = diff/rad2deg;
+		var ang_diff = joint.body_b.rotation - joint.body_a.rotation;
+		converted.refAngle = ang_diff/rad2deg;
 	}
 	
 	return converted;

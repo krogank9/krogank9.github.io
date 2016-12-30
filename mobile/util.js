@@ -56,7 +56,7 @@ function fade(hex,percent,opt_to)
 function init()
 {
 	var shape_blueprints = {
-		"SQUARE":[
+		"O":[
 			"    "+
 			" XX "+
 			" XX "+
@@ -83,7 +83,7 @@ function init()
 			"    "+
 			"    ",
 		],
-		"L_BACKWARDS":[
+		"J":[
 			" X  "+
 			" O  "+
 			"XX  "+
@@ -169,9 +169,9 @@ function init()
 		});
 	}
 	shapes = {
-		"SQUARE":generate_shapes(shape_blueprints["SQUARE"]),
+		"O":generate_shapes(shape_blueprints["O"]),
 		"L":generate_shapes(shape_blueprints["L"]),
-		"L_BACKWARDS":generate_shapes(shape_blueprints["L_BACKWARDS"]),
+		"J":generate_shapes(shape_blueprints["J"]),
 		"S":generate_shapes(shape_blueprints["S"]),
 		"Z":generate_shapes(shape_blueprints["Z"]),
 		"T":generate_shapes(shape_blueprints["T"]),
@@ -185,24 +185,25 @@ function init()
 		});
 	}
 	pieces = {
-		"SQUARE":generate_pieces("SQUARE"),
+		"O":generate_pieces("O"),
 		"L":generate_pieces("L"),
-		"L_BACKWARDS":generate_pieces("L_BACKWARDS"),
+		"J":generate_pieces("J"),
 		"S":generate_pieces("S"),
 		"Z":generate_pieces("Z"),
 		"T":generate_pieces("T"),
 		"I":generate_pieces("I")
 	}
-	// turn off drawing corners for the square
-	pieces["SQUARE"][0].loop_blocks(function(block,x,y){
+	// turn off drawing corners for the O
+	pieces["O"][0].loop_blocks(function(block,x,y){
 		block.corners = 0;
 	});
-	set_pieces();
+	while(cur_pieces.length < 4)
+		cur_pieces.push(get_next_piece());
 }
 var shapes, pieces;
 
-var shape_names = ["SQUARE", "L", "L_BACKWARDS", "S", "Z", "T", "I"];
-var shape_colors = {"SQUARE":0xffcf3c, "L":0xff6b00, "L_BACKWARDS":0x3131d0, "S":0x06ac2d, "Z":0xdc003c, "T":0xa42edb, "I":0x189dc8}
+var shape_names = ["O", "L", "J", "S", "Z", "T", "I"];
+var shape_colors = {"O":0xffcf3c, "L":0xff6b00, "J":0x3131d0, "S":0x06ac2d, "Z":0xdc003c, "T":0xa42edb, "I":0x189dc8}
 var shape_border_colors = remap_hashmap(shape_colors, function(val) { return fade(val, 0.33) });
 
 var shape_border_colors2 = remap_hashmap(shape_colors, function(val) { return fade(val, 0.25, 0) });
@@ -276,43 +277,44 @@ function block(props)
 }
 
 var cur_pos = {x:4, y:-3}
-var cur_pieces = new Array(4);
+// current dropped piece and 3 previewable pieces
+var cur_pieces = [];
+var next_pieces = [];
 
-function new_rand_piece(not_type)
+// generate a random permutation of the 7 tetris pieces
+function generate_permutation()
 {
-	var rand_name = shape_names[rand_int(shape_names.length)];
-	while(pieces[rand_name] === not_type)
-		rand_name = shape_names[rand_int(shape_names.length)];
-	var type = pieces[rand_name];
-	var rotation = rand_int(type.length);
-	return { type: type, rotation: rotation, piece: type[rotation] }
+	var perm = [];
+	var len = shape_names.length;
+	function in_perm(name1) { return perm.some(function(name2){return name1==name2}); }
+	while(len > 0)
+	{
+		var choose = rand_int(len);
+		// choose a random shape from remaining unchosen shapes
+		while( in_perm( shape_names[choose] ) )
+			choose = (choose + 1) % shape_names.length;
+		perm.push(shape_names[choose]);
+		len--;
+	}
+	return perm.map(function(name){
+		var type = pieces[name];
+		var rotation = rand_int(type.length);
+		return {type:type, rotation:rotation};
+	});
+}
+function get_next_piece()
+{
+	return next_pieces.pop() || (next_pieces = generate_permutation()).pop();
 }
 function cur_piece(i)
 {
 	return cur_pieces[i||0].type[cur_pieces[i||0].rotation];
 }
-function set_pieces()
-{
-	// move pieces down the array if the current one is null
-	for(var i=0; i<cur_pieces.length-1; i++)
-	{
-		if(!cur_pieces[i] && !!cur_pieces[i+1])
-		{
-			cur_pieces[i] = cur_pieces[i+1];
-			cur_pieces[i+1] = null;
-		}
-	}
-	// set any that aren't null
-	for(var i=0; i<cur_pieces.length; i++)
-		if(!cur_pieces[i])
-			cur_pieces[i] = new_rand_piece(!i || cur_pieces[i-1].type);
-}
 // get the next piece and 
 function cycle_next_piece()
 {
-	cur_pieces[0] = cur_pieces[1];
-	cur_pieces[1] = null;
-	set_pieces();
+	cur_pieces.shift();
+	cur_pieces.push(get_next_piece());
 	cur_pos.x = 4;
 	cur_pos.y = -3;
 }

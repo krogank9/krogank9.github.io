@@ -169,6 +169,7 @@ function set_feet_position()
 	// both legs equidistant from center of mass
 	step_leg_goal.x *= -1;
 	step_leg_goal.x += center.x;
+	pivot_leg.pos.x += center.x;
 	
 	r_last = pivot_leg.pos;
 	l_last = step_leg_goal;

@@ -129,8 +129,8 @@ function normalize_ang(ang) {
 
 function make_ang_small(ang) {
 	ang = normalize_ang(ang);
-	if(ang > 180)
-		ang = ang-360;
+ 	if(ang > 180)
+		ang -= 360;
 	return ang;
 }
 

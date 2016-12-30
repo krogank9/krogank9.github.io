@@ -45,7 +45,7 @@ var down_key;
 
 function create() {
 	graphics = game.add.graphics(0, 0);
-	game.stage.backgroundColor = "#304d66";
+	game.stage.backgroundColor = "#333333";
 	game_board = new Array(board_width);
 	for(var x=0; x<game_board.length; x++)
 	{
@@ -75,7 +75,6 @@ function create() {
 	next_text.position.set(offset.x+calc_width+font_size/2,offset.y);
 
 	init();
-	new_rand_piece();
 	
 	game.input.keyboard.onDownCallback = key_pressed;
 	down_key = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);

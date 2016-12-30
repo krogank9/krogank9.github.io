@@ -167,9 +167,8 @@ canvas.onmouseup = function(evt) {
 	cur_mouse_pos.set_equal_to(pos);
 }
 canvas.onmousemove = function(evt) {
-	var rect = player_canvas.getBoundingClientRect(), root = document.documentElement;
-    var x = evt.clientX - rect.left - root.scrollLeft;
-    var y = evt.clientY - rect.top - root.scrollTop;
+	var x = evt.pageX - this.offsetLeft;
+	var y = evt.pageY - this.offsetTop;
 	var pos = new vec(x,y);
 	var pos_change = pos.subtract(cur_mouse_pos);
 	
