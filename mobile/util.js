@@ -261,7 +261,7 @@ function piece(shape, colors)
 			{
 				if(this.blocks[x][y] == null)
 					continue;
-				if( callback(this.blocks[x][y], x, y) == false )
+				if( callback(this.blocks[x][y], x, y) === false )
 					return;
 			}
 		}
@@ -285,16 +285,14 @@ var next_pieces = [];
 function generate_permutation()
 {
 	var perm = [];
-	var len = shape_names.length;
 	function in_perm(name1) { return perm.some(function(name2){return name1==name2}); }
-	while(len > 0)
+	while(perm.length < shape_names.length)
 	{
-		var choose = rand_int(len);
+		var choose = rand_int(shape_names.length);
 		// choose a random shape from remaining unchosen shapes
 		while( in_perm( shape_names[choose] ) )
 			choose = (choose + 1) % shape_names.length;
 		perm.push(shape_names[choose]);
-		len--;
 	}
 	return perm.map(function(name){
 		var type = pieces[name];
@@ -316,7 +314,7 @@ function cycle_next_piece()
 	cur_pieces.shift();
 	cur_pieces.push(get_next_piece());
 	cur_pos.x = 4;
-	cur_pos.y = -3;
+	cur_pos.y = cur_piece().bottom_right.y * -1;
 }
 function rotate()
 {

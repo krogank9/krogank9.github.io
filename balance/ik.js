@@ -26,7 +26,7 @@ function fabrIK(sizes, goal, opt_start_angs, opt_margin_error)
 	
 	// Now that we have the start positions, start iterating through
 	// FABRIK until the goal position is reached within the margin of error
-	var margin_error = Math.abs(opt_margin_error) || 0.01;
+	var margin_error = Math.abs(opt_margin_error) || 0.001;
 	var last = positions.length - 1;
 	var iter = 0;
 	while( goal.subtract(positions[last]).magnitude() > margin_error )

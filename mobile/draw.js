@@ -4,7 +4,7 @@ function mobilecheck() {
   return check;
 };
 
-var border_thickness = mobilecheck() ? 8:4;
+var border_thickness = 4/26;
 
 function draw_border(x,y,width,height,thickness,border_mask,corner_mask,top_color,bottom_color,is_O)
 {
@@ -72,7 +72,7 @@ function draw_block(block,x,y,scale)
 	var top = mask & block_border["TOP"];
 	var bottom = mask & block_border["BOTTOM"];
 
-	var thickness = border_thickness;
+	var thickness = Math.round(border_thickness*scale);
 	
 	var color = block.colors[0];
 	var border_color = block.colors[1];
