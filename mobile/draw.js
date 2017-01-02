@@ -63,7 +63,7 @@ function draw_border(x,y,width,height,thickness,border_mask,corner_mask,top_colo
 if(mobilecheck())
 	document.body.webkitRequestFullscreen()
 
-function draw_block(block,x,y,scale)
+function draw_block(block,x,y,scale,colors)
 {	
 	//some code to deal with the 1px spacing between blocks
 	var mask = block.border;
@@ -74,13 +74,14 @@ function draw_block(block,x,y,scale)
 
 	var thickness = Math.round(border_thickness*scale);
 	
-	var color = block.colors[0];
-	var border_color = block.colors[1];
-	var bottom_edge_color = block.colors[2];
-	var top_edge_color = block.colors[3];
+	colors = colors || block.colors;
+	var color = colors[0];
+	var border_color = colors[1];
+	var bottom_edge_color = colors[2];
+	var top_edge_color = colors[3];
 
 	function dr(x,y,width,height,col){ graphics.beginFill(col);graphics.drawRect(x,y,width,height);graphics.endFill(); }
-	var is_O = color == shape_colors["O"];
+	var is_O = (block.piece == "O");
 	// fill in the spots between the spacing
 	if(!right)
 	{

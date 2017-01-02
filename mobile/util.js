@@ -181,7 +181,7 @@ function init()
 	{
 		return shapes[name].map(function(shape){
 			var colors = [shape_colors[name], shape_border_colors[name],shape_border_colors2[name],shape_border_colors3[name]];
-			return new piece(shape, colors);
+			return new piece(shape, colors, name);
 		});
 	}
 	pieces = {
@@ -203,17 +203,19 @@ function init()
 var shapes, pieces;
 
 var shape_names = ["O", "L", "J", "S", "Z", "T", "I"];
-var shape_colors = {"O":0xffcf3c, "L":0xff6b00, "J":0x3131d0, "S":0x06ac2d, "Z":0xdc003c, "T":0xa42edb, "I":0x189dc8}
+var shape_colors = {"O":0xffcf3c, "L":0xff6b00, "J":0x3131d0, "S":0x06ac2d, "Z":0xdc003c, "T":0xa42edb, "I":0x189dc8, "GHOST":0x333333}
 var shape_border_colors = remap_hashmap(shape_colors, function(val) { return fade(val, 0.33) });
 
 var shape_border_colors2 = remap_hashmap(shape_colors, function(val) { return fade(val, 0.25, 0) });
 var shape_border_colors3 = remap_hashmap(shape_colors, function(val) { return fade(val, 0.50, 255) });
 
+var ghost_colors = [shape_colors["GHOST"], shape_border_colors["GHOST"], shape_border_colors2["GHOST"], shape_border_colors3["GHOST"]];
+
 //bit flags for borders
 var block_border = {"TOP":1, "RIGHT":2, "BOTTOM":4, "LEFT":8, "ALL":1|2|4|8}
 var block_corners = {"TOP_LEFT":1, "TOP_RIGHT":2, "BOTTOM_LEFT":4, "BOTTOM_RIGHT":8, "ALL":1|2|4|8}
 
-function piece(shape, colors)
+function piece(shape, colors, name)
 {
 	this.top_left = {x:3,y:3}
 	this.bottom_right = {x:0,y:0}
@@ -226,7 +228,7 @@ function piece(shape, colors)
 			if(shape[x][y])
 			{
 				function valid(x,y) { return x>=0 && x<4 && y>=0 && y<4; }
-				this.blocks[x][y] = new block({colors:colors, border:block_border["ALL"], corners:block_corners["ALL"]});
+				this.blocks[x][y] = new block({colors:colors, border:block_border["ALL"], corners:block_corners["ALL"], piece:name});
 				var cur_block = this.blocks[x][y];
 				
 				// set bit flags for drawing borders around blocks
@@ -273,6 +275,7 @@ function block(props)
 	props = props || {};
 	this.colors = props.colors || [0,0,0];
 	this.border = props.border || 0;
+	this.piece = props.piece || "";
 	this.corners = props.corners || 0;
 }
 
@@ -280,6 +283,7 @@ var cur_pos = {x:4, y:-3}
 // current dropped piece and 3 previewable pieces
 var cur_pieces = [];
 var next_pieces = [];
+var held_piece = null;
 
 // generate a random permutation of the 7 tetris pieces
 function generate_permutation()
@@ -315,6 +319,20 @@ function cycle_next_piece()
 	cur_pieces.push(get_next_piece());
 	cur_pos.x = 4;
 	cur_pos.y = cur_piece().bottom_right.y * -1;
+}
+function swap_held_piece()
+{
+	if(held_piece == null)
+	{
+		held_piece = cur_pieces[0];
+		cycle_next_piece();
+	}
+	else
+	{
+		var tmp = held_piece;
+		held_piece = cur_pieces[0];
+		cur_pieces[0] = tmp;
+	}
 }
 function rotate()
 {

@@ -45,7 +45,7 @@ var down_key;
 
 function create() {
 	graphics = game.add.graphics(0, 0);
-	game.stage.backgroundColor = "#24249c";
+	game.stage.backgroundColor = "#304d66";
 	game_board = new Array(board_width);
 	for(var x=0; x<game_board.length; x++)
 	{
@@ -143,10 +143,20 @@ function tick()
 
 function render() {
 	graphics.clear();
+	var width = board_width*(scale+spacing)-spacing;
+	var height = board_height*(scale+spacing)-spacing;
 	// draw gameboard background
 	graphics.beginFill(0);
-	graphics.drawRect(offset.x, offset.y, board_width*(scale+spacing)-spacing, board_height*(scale+spacing)-spacing);
+	graphics.drawRect(offset.x, offset.y, width, height);
 	graphics.endFill();
+	
+	graphics.beginFill( fade(0x333333,0.56) );
+	for(var x=1; x<board_width; x++)
+		graphics.drawRect(offset.x  + x*(spacing+scale) - spacing,offset.y,spacing,height);
+	for(var y=1; y<board_height; y++)
+		graphics.drawRect(offset.x,offset.y + y*(spacing+scale) - spacing,width,spacing);
+	graphics.endFill();
+	
 	// draw the gameboard
 	for(var x=0; x<board_width; x++)
 	{
@@ -158,25 +168,39 @@ function render() {
 				draw_block(game_board[x][y],px_x,px_y,scale);
 		}
 	}
-	// and draw the current piece
+
+	var tmp = cur_pos.y;
+	while(check_touching_bottom() == false)
+		cur_pos.y++;
+	var ghost_y = cur_pos.y;
+	cur_pos.y = tmp;
+	
+	// draw the current piece and the ghost of where it will land
 	cur_piece().loop_blocks(function(block, x, y){
 		var world_x = cur_pos.x + x;
 		var world_y = cur_pos.y + y;
-		px_x = world_x*(spacing+scale) + offset.x;
-		px_y = world_y*(spacing+scale) + offset.y;
 		
+		var px_x = world_x*(spacing+scale) + offset.x;
+		var px_y = world_y*(spacing+scale) + offset.y;
+
+		var ghost_world_y = ghost_y + y;
+		var ghost_px_y = ghost_world_y*(spacing+scale) + offset.y;
+
+		draw_block(block, px_x, ghost_px_y,scale,ghost_colors);
 		if(world_y >= 0)
 			draw_block(block, px_x, px_y,scale);
 	});
+	
 	var box_size = font_size*3;
-	var preview_scale = Math.floor(box_size/4); //fit 5 blocks inside preview
+	var preview_scale = Math.floor(box_size/4 * 0.9); //fit 4 blocks inside preview *0.9 for padding
+	var v_spacer = font_size/2;
+	var side_offset_y = offset.y+font_size*1.5;
 	
 	// draw the preview of the next pieces
 	for(var i=1; i<cur_pieces.length; i++)
 	{
-		var v_spacer = font_size;
 		var start_x = offset.x+calc_width+font_size/2;
-		var start_y = (offset.y+font_size*1.5)*i + v_spacer*(i-1);
+		var start_y = side_offset_y + (box_size+v_spacer)*(i-1);
 		graphics.beginFill(0);
 		graphics.drawRect(start_x,start_y,box_size,box_size);
 		graphics.endFill();
@@ -186,8 +210,8 @@ function render() {
 		// calculate where the midpoint of the piece will be for centering
 		var mid_x = (cur.top_left.x + cur.bottom_right.x)/2 + 0.5;
 		var mid_y = (cur.top_left.y + cur.bottom_right.y)/2 + 0.5;
-		mid_x = mid_x*(spacing + preview_scale);
-		mid_y = mid_y*(spacing + preview_scale);
+		mid_x *= spacing + preview_scale;
+		mid_y *= spacing + preview_scale;
 
 		start_x += box_size/2 - mid_x;
 		start_y += box_size/2 - mid_y;
@@ -199,7 +223,26 @@ function render() {
 	}
 	
 	// draw the held piece
+	var start_x = offset.x-font_size/2-box_size;
+	var start_y = side_offset_y;
 	graphics.beginFill(0);
-	graphics.drawRect(offset.x-font_size/2-box_size,offset.y+font_size*1.5,box_size,box_size);
+	graphics.drawRect(start_x,start_y,box_size,box_size);
 	graphics.endFill();
+	var held = held_piece && held_piece.type[held_piece.rotation];
+	if(held)
+	{
+		var mid_x = (held.top_left.x + held.bottom_right.x)/2 + 0.5;
+		var mid_y = (held.top_left.y + held.bottom_right.y)/2 + 0.5;
+		mid_x *= spacing + preview_scale;
+		mid_y *= spacing + preview_scale;
+		
+		start_x += box_size/2 - mid_x;
+		start_y += box_size/2 - mid_y;
+
+		held.loop_blocks(function(block, x, y) {	
+			var px_x = start_x + x*(spacing+preview_scale);
+			var px_y = start_y + y*(spacing+preview_scale);
+			draw_block(block, Math.floor(px_x), Math.floor(px_y), preview_scale);
+		});
+	}
 }
