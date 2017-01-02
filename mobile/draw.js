@@ -6,6 +6,11 @@ function mobilecheck() {
 
 var border_thickness = 4/26;
 
+function round_edge(x,y,size, right, bottom)
+{
+	
+}
+
 function draw_border(x,y,width,height,thickness,border_mask,corner_mask,top_color,bottom_color,is_O)
 {
 	function dr(x,y,width,height,col){ graphics.beginFill(col);graphics.drawRect(x,y,width,height);graphics.endFill(); }

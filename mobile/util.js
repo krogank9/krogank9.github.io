@@ -63,6 +63,11 @@ function init()
 			"    "
 		],
 		"L":[
+			"  X "+
+			"XOX "+
+			"    "+
+			"    ",
+			
 			" X  "+
 			" O  "+
 			" XX "+
@@ -76,19 +81,9 @@ function init()
 			"XX  "+
 			" O  "+
 			" X  "+
-			"    ",
-			
-			"  X "+
-			"XOX "+
-			"    "+
-			"    ",
+			"    "
 		],
-		"J":[
-			" X  "+
-			" O  "+
-			"XX  "+
-			"    ",
-			
+		"J":[			
 			"X   "+
 			"XOX "+
 			"    "+
@@ -103,6 +98,11 @@ function init()
 			"XOX "+
 			"  X "+
 			"    ",
+			
+			" X  "+
+			" O  "+
+			"XX  "+
+			"    "
 		],
 		"S":[
 			"    "+
@@ -127,6 +127,16 @@ function init()
 			"    ",
 		],
 		"T":[
+			" X  "+
+			"XOX "+
+			"    "+
+			"    ",
+
+			" X  "+
+			" OX "+
+			" X  "+
+			"    ",
+			
 			"    "+
 			"XOX "+
 			" X  "+
@@ -135,28 +145,18 @@ function init()
 			" X  "+
 			"XO  "+
 			" X  "+
-			"    ",
-			
-			" X  "+
-			"XOX "+
-			"    "+
-			"    ",
-			
-			" X  "+
-			" OX "+
-			" X  "+
 			"    "
 		],
 		"I":[
-			" X  "+
-			" X  "+
-			" O  "+
-			" X  ",
-			
 			"    "+
 			"    "+
 			"XOXX"+
-			"    "
+			"    ",
+
+			" X  "+
+			" X  "+
+			" O  "+
+			" X  "
 		]
 	}
 	function generate_shapes(blueprints)
@@ -197,9 +197,22 @@ function init()
 	pieces["O"][0].loop_blocks(function(block,x,y){
 		block.corners = 0;
 	});
-	while(cur_pieces.length < 4)
-		cur_pieces.push(get_next_piece());
+
+	reset();
 }
+
+function reset()
+{
+	cur_pieces = [];
+	next_pieces = [];
+	held_piece = null;
+	can_hold = true;
+	while(cur_pieces.length < 5)
+		cur_pieces.push(get_next_piece());
+	
+	reset_pos();
+}
+
 var shapes, pieces;
 
 var shape_names = ["O", "L", "J", "S", "Z", "T", "I"];
@@ -279,49 +292,66 @@ function block(props)
 	this.corners = props.corners || 0;
 }
 
-var cur_pos = {x:4, y:-3}
+var cur_pos = {x:0, y:0}
 // current dropped piece and 3 previewable pieces
 var cur_pieces = [];
 var next_pieces = [];
 var held_piece = null;
+var can_hold = true;
 
 // generate a random permutation of the 7 tetris pieces
 function generate_permutation()
 {
 	var perm = [];
 	function in_perm(name1) { return perm.some(function(name2){return name1==name2}); }
-	while(perm.length < shape_names.length)
+	var len = shape_names.length;
+	while(perm.length < len)
 	{
-		var choose = rand_int(shape_names.length);
+		var choose = rand_int(len);
 		// choose a random shape from remaining unchosen shapes
 		while( in_perm( shape_names[choose] ) )
-			choose = (choose + 1) % shape_names.length;
+			choose = (choose + 1) % len;
 		perm.push(shape_names[choose]);
 	}
 	return perm.map(function(name){
 		var type = pieces[name];
-		var rotation = rand_int(type.length);
-		return {type:type, rotation:rotation};
+		return {type:type, rotation:0};
 	});
 }
+
 function get_next_piece()
 {
-	return next_pieces.pop() || (next_pieces = generate_permutation()).pop();
+	if(next_pieces.length == 0)
+		next_pieces = generate_permutation();
+	return next_pieces.pop();
 }
 function cur_piece(i)
 {
 	return cur_pieces[i||0].type[cur_pieces[i||0].rotation];
 }
-// get the next piece and 
+function reset_pos()
+{
+	var cur = cur_piece();
+	var piece_width =  cur.bottom_right.x - cur.top_left.x + 1;
+	if(piece_width == 2)
+		cur_pos.x = 3
+	else
+		cur_pos.x = 4
+	cur_pos.y = cur.bottom_right.y * -1 - 1;
+}
+
 function cycle_next_piece()
 {
 	cur_pieces.shift();
 	cur_pieces.push(get_next_piece());
-	cur_pos.x = 4;
-	cur_pos.y = cur_piece().bottom_right.y * -1;
+	reset_pos();
+	can_hold = true;
 }
 function swap_held_piece()
 {
+	if(!can_hold)
+		return false;
+		
 	if(held_piece == null)
 	{
 		held_piece = cur_pieces[0];
@@ -333,6 +363,11 @@ function swap_held_piece()
 		held_piece = cur_pieces[0];
 		cur_pieces[0] = tmp;
 	}
+	
+	reset_pos();
+	can_hold = false;
+	
+	return true;
 }
 function rotate()
 {
@@ -370,9 +405,12 @@ function check_touching_bottom()
 	cur_piece().loop_blocks(function(block, block_x, block_y) {
 		var world_x = cur_pos.x + block_x;
 		var world_y = cur_pos.y + block_y;
+		
 		if(world_y+1 < 0)
-			return;
+			return true;
+
 		touching = (world_y+1 >= board_height) || (game_board[world_x][world_y+1] != null);
+
 		if(touching)
 			return false;
 	});
@@ -460,19 +498,22 @@ function check_clearable_lines()
 
 function place_on_board(piece)
 {
-	var in_bounds = true;
+	var valid_pos = true;
 	// place the piece on the game board
 	cur_piece().loop_blocks(function(b, block_x, block_y)
 	{
 		var world_x = cur_pos.x + block_x;
 		var world_y = cur_pos.y + block_y;
 		if(world_y < 0 || game_board[world_x][world_y] != null)
-			return in_bounds = false;
+		{
+			valid_pos = false;
+			return false;
+		}
 		game_board[world_x][world_y] = new block(b);
 	});
-	if(in_bounds)
+	if(valid_pos)
 	{
 		check_clearable_lines();
 	}
-	return in_bounds;
+	return valid_pos;
 }

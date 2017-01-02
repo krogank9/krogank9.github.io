@@ -1,3 +1,16 @@
+// music ideas for the game, probably going to use keygen music
+// https://www.youtube.com/watch?v=cYkaG5CT53I
+//
+// 0:00
+// slow music: 39:43, 1:20:26, 1:27:38
+// medium music: 38:52, 48:40, 1:22:02, 1:24:33
+// fast music: 15:27, 21:56
+//
+// https://www.youtube.com/watch?v=N5vt4c3pREk
+//
+// slow music: 0:00
+//
+
 
 function preload() {
 	 game.load.bitmapFont('lcd14', 'lcd14.png', 'lcd14.xml');
@@ -45,7 +58,7 @@ var down_key;
 
 function create() {
 	graphics = game.add.graphics(0, 0);
-	game.stage.backgroundColor = "#304d66";
+	game.stage.backgroundColor = "#f6d1a1";
 	game_board = new Array(board_width);
 	for(var x=0; x<game_board.length; x++)
 	{
@@ -94,6 +107,9 @@ function key_pressed(evt)
 		case k.RIGHT:
 			move_right();
 			break;
+		case k.H:
+			swap_held_piece();
+			break;
 	}
 }
 
@@ -132,6 +148,7 @@ function tick()
 			}
 			score = 0;
 			update_score();
+			reset();
 		}
 		cycle_next_piece();
 	}
@@ -186,7 +203,8 @@ function render() {
 		var ghost_world_y = ghost_y + y;
 		var ghost_px_y = ghost_world_y*(spacing+scale) + offset.y;
 
-		draw_block(block, px_x, ghost_px_y,scale,ghost_colors);
+		if(ghost_world_y >= 0)
+			draw_block(block, px_x, ghost_px_y,scale,ghost_colors);
 		if(world_y >= 0)
 			draw_block(block, px_x, px_y,scale);
 	});
@@ -195,15 +213,22 @@ function render() {
 	var preview_scale = Math.floor(box_size/4 * 0.9); //fit 4 blocks inside preview *0.9 for padding
 	var v_spacer = font_size/2;
 	var side_offset_y = offset.y+font_size*1.5;
+	var border_radius = 5;
 	
 	// draw the preview of the next pieces
 	for(var i=1; i<cur_pieces.length; i++)
 	{
 		var start_x = offset.x+calc_width+font_size/2;
-		var start_y = side_offset_y + (box_size+v_spacer)*(i-1);
+		var start_y = side_offset_y + (box_size)*(i-1) + (i>1?v_spacer:0);
 		graphics.beginFill(0);
-		graphics.drawRect(start_x,start_y,box_size,box_size);
+		graphics.drawRoundedRect(start_x,start_y,box_size,box_size,border_radius);
 		graphics.endFill();
+		if(i > 1 && i < (cur_pieces.length-1) )
+		{
+			graphics.beginFill(0);
+			graphics.drawRect(start_x,start_y+border_radius,box_size,box_size);
+			graphics.endFill();
+		}
 		
 		var cur = cur_piece(i);
 
@@ -226,7 +251,7 @@ function render() {
 	var start_x = offset.x-font_size/2-box_size;
 	var start_y = side_offset_y;
 	graphics.beginFill(0);
-	graphics.drawRect(start_x,start_y,box_size,box_size);
+	graphics.drawRoundedRect(start_x,start_y,box_size,box_size,border_radius);
 	graphics.endFill();
 	var held = held_piece && held_piece.type[held_piece.rotation];
 	if(held)
