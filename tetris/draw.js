@@ -62,14 +62,6 @@ function draw_board()
 {
 	board_context.clearRect(0,0,board_width_px,board_height_px);
 	
-	// draw spacer lines
-	board_context.fillStyle = "#0c0c0c";
-	for(var x=1; x<(board_width); x++)
-		board_context.fillRect(x*(spacing+board_scale) - spacing,0, spacing, board_height_px);
-	for(var y=1; y<(board_height); y++)
-		board_context.fillRect(0,y*(spacing+board_scale) - spacing, board_width_px, spacing);
-	board_context.fill();
-	
 	// draw every block on the gameboard
 	for(var x=0; x<board_width; x++)
 	{
@@ -178,28 +170,28 @@ function draw_block(context,block,x,y,scale,colors)
 	if(!right)
 	{
 		//grid
-		dr(x+scale,y,spacing,scale,border_color);
+		dr(x+scale,y,spacing,scale,color);
 
 		// connect corners and borders, O (square) is a special case
-		if(!is_O || top|right)
+		if(!is_O || (top|right) )
 			dr(x+scale,y,spacing,thickness,top_edge_color);//top right
-		if(!is_O || bottom|right)
+		if(!is_O || (bottom|right) )
 			dr(x+scale,y+scale-thickness,spacing,thickness,bottom_edge_color);//bottom right
 	}
 	if(!bottom)
 	{
 		//grid
-		dr(x,y+scale,scale,spacing,border_color);
+		dr(x,y+scale,scale,spacing,color);
 
 		// connect corners and borders, O is a special case
-		if(!is_O || bottom|left)
+		if(!is_O || (bottom|left) )
 			dr(x,y+scale,thickness,spacing,bottom_edge_color);//bottom left
-		if(!is_O || bottom|right)
+		if(!is_O || (bottom|right) )
 			dr(x+scale-thickness,y+scale,thickness,spacing,top_edge_color);//bottom right
 	}
 	if(is_O && !bottom && !right)
 	{
-		dr(x+scale,y+scale,spacing,spacing,border_color);
+		dr(x+scale,y+scale,spacing,spacing,color);
 	}
 	
 	// draw the block
