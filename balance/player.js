@@ -31,7 +31,7 @@ function load_b2d_world() {
 	
 	player_offset.set_equal_to(new vec(290,-110));
 
-	player_scale = 50;
+	player_scale = 100;
 	
 	debugDraw.SetDrawScale(player_scale);
 	b2d_world.SetDebugDraw(debugDraw);

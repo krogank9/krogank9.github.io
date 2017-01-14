@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC"-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Flexcell demo with resizable div</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<style>
+			body,html {
+				margin:0; padding:0;
+				overflow: hidden;
+			}
+			div
+			{
+				display: inline-block;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="resizable" class="ui-widget-content flexdiv_root vertical" style="width:800px; height:600px;">
+			<div id="base" class="flexdiv_root vertical" style="height: 100%; width: 100%;">
+				<div id="top_bar" class="height=25px" style="background-color: silver">resize me</div>
+				<div id="window_content">
+					<div id="left_content" class="vertical">
+						<div> <div class="center width=50px height=50px" style="background-color: red">50px by 50px</div> </div>
+						<div style="border-top: 1px solid black"> <div class="center width=50% height=50%" style="background-color: cyan">50% by 50%</div> </div>
+					</div>
+					<div id="ar_demo" width="0.5ar" style="background-color: grey">
+						<div id="callback_demo" style="background-color: gold" class="center width=test_width_calc height=1ar">
+							callback based sizing (Math.round)
+						</div>
+					</div>
+					<div class="vertical" id="right_content">
+						<div> <div id="center_horizontal_demo" class="width=50% center_horizontal" style="background-color:black; color:white;">center_horizontal</div> </div>
+						<div id="test" style="border-top: 1px solid black; border-bottom: 1px solid black;">
+							<div id="ar_demo_2" style="background-color: #98ff98" class="width=1ar height=50% center">50% by 1ar center</div>
+						</div>
+						<div class="vertical">
+							<div id="center_vertical_demo" style="background-color: black; color:white;"class="height=20% center_vertical">center_vertical</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script src="jquery-3.1.0.min.js"></script>
+	<link rel="stylesheet" href="jquery_ui/jquery-ui.css">
+	<script src="jquery_ui/jquery-ui.js"></script>
+	<script src="flexdiv.js"></script>
+	<script>
+		function test_width_calc()
+		{
+			var p = document.getElementById("ar_demo");
+			var size = p.offsetWidth > p.offsetHeight ? p.offsetHeight : p.offsetWidth;
+			return Math.round(size*0.5/30)*30;
+		}
+		var base;
+		$( function() {
+			base = document.getElementById("base");
+			update_flexdiv(base);
+			
+			$("#resizable").resizable({
+				resize: function() { update_flexdiv(base) }
+			});
+		});
+	</script>
+</html>

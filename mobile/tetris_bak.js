@@ -1,24 +1,10 @@
-// music ideas for the game, probably going to use keygen music
-// https://www.youtube.com/watch?v=cYkaG5CT53I
-//
-// 0:00
-// slow music: 39:43, 1:20:26, 1:27:38
-// medium music: 38:52, 48:40, 1:22:02, 1:24:33
-// fast music: 15:27, 21:56
-//
-// https://www.youtube.com/watch?v=N5vt4c3pREk
-//
-// slow music: 0:00
-//
-
-
 function preload() {
-	 game.load.bitmapFont('sans', 'sans.png', 'sans.xml');
+	 game.load.bitmapFont('lcd14', 'lcd14.png', 'lcd14.xml');
 }
 
 var board_width = 10;
 var board_height = 20;
-var spacing = mobilecheck() ? 2:1;
+
 var scale = 30; //block size in px
 var offset = {x:0, y:0};
 var game_board;
@@ -27,27 +13,6 @@ var score = 0;
 var level = 0;
 var score_text, hold_text, next_text;
 var font_size = 0;
-
-//percents of the screen left surrounding the game board
-var top_pad = 0.1;
-var bottom_pad = 0.025;
-var side_pad = 0.3;
-
-// maximum width and height the board can take up
-var board_spacing_y = window.innerHeight*(1.0 - bottom_pad - top_pad);
-var board_spacing_x = window.innerHeight*(1.0 - side_pad*2);
-var board_padding = 0.02 * board_spacing_y;
-scale = Math.floor((board_spacing_y - board_padding*2)/board_height)-spacing;
-if((scale+spacing)*board_width > board_spacing_x)
-	scale = Math.floor((board_spacing_x - board_padding*2)/board_width)-spacing;
-	
-var side_pad_px = window.innerWidth * side_pad;
-var right_pad_pos = side_pad_px + board_spacing_x;
-
-offset.y = Math.floor(window.innerHeight*top_pad + board_padding);
-var calc_width = (scale+spacing)*board_width;
-var calc_height = (scale+spacing)*board_height;
-offset.x = Math.floor(window.innerWidth/2 - calc_width/2 + board_padding);
 
 var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'phaser-container', { preload: preload, create: create, update: update, render: render });
 var graphics;
@@ -71,9 +36,9 @@ function create() {
 	}
 
 	font_size = Math.floor(offset.y);
-    score_text = game.add.bitmapText(0, 0, 'sans', "SCORE\n0",font_size);
-	hold_text = game.add.bitmapText(0, offset.y, 'sans', "HOLD",font_size);
-    next_text = game.add.bitmapText(0, offset.y, 'sans', "NEXT",font_size);
+    score_text = game.add.bitmapText(0, 0, 'lcd14', "SCORE\n0",font_size);
+	hold_text = game.add.bitmapText(0, offset.y, 'lcd14', "HOLD",font_size);
+    next_text = game.add.bitmapText(0, offset.y, 'lcd14', "NEXT",font_size);
     
     // adjust text size till it fits around the edges
     while(font_size*6 > side_pad_px*0.9 || font_size*2 > offset.y*0.8)
@@ -88,6 +53,7 @@ function create() {
 	hold_text.position.set(offset.x-font_size/2,offset.y);
 	next_text.position.set(offset.x+calc_width+font_size/2,offset.y);
 
+	draw_init();
 	init();
 	
 	game.input.keyboard.onDownCallback = key_pressed;

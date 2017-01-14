@@ -1,0 +1,106 @@
+<!DOCTYPE html PUBLIC"-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Flexcell demo with resizable div</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<style>
+			body,html {
+				margin:0; padding:0;
+				overflow: hidden;
+			}
+			div
+			{
+				display: inline-block;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="resizable" class="ui-widget-content" style="width:800px; height:600px; left: 0px; top: 0px; margin:0; padding:0;">
+			<div id="top_bar" style="border-bottom: 1px solid #cccccc; height:20px;">&nbsp;resize me! pixel perfect &amp; flexible table layout</div>
+			<div id="window_area">
+				<div id="left">
+					<div id="left_top">
+						<div id="centered_fixed_px" style="background-color: pink">50x<br>50px</div>
+					</div>
+					<div id="left_bot" style="border-top: 1px solid #cccccc;">
+						<div id="centered_percent" style="background-color: cyan">50% x 50%</div>
+					</div>
+				</div>
+				<div id="ar_demo" style="background-color: silver">
+					constant aspect ratio
+					<div id="callback_demo" style="background-color: gold">callback function based sizing</div>
+				</div>
+				<div id="right">
+					<div id="right_centered" style="background-color:black; color:white;">50% x 1ar</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script src="jquery-3.1.0.min.js"></script>
+	<link rel="stylesheet" href="jquery_ui/jquery-ui.css">
+	<script src="jquery_ui/jquery-ui.js"></script>
+	<script src="flexcell.js"></script>
+	<script>
+		function get(id)
+		{
+			return document.getElementById(id);
+		}
+		function loop_obj(obj, callback) 
+		{
+			for( var key in obj )
+			{
+				if( obj.hasOwnProperty(key) )
+					callback(key, obj[key]);
+			}
+		}
+		var win = new flexcell({vertical:true});
+		var cells = {};
+		cells["top_bar"] = win.createChild({height:"20px"});
+		cells["window_area"] = win.createChild();
+		
+		cells["left"] = cells["window_area"].createChild({vertical:true});
+		cells["ar_demo"] = cells["window_area"].createChild({width:"0.7ar"});
+		cells["right"] = cells["window_area"].createChild();
+		
+		cells["left_top"] = cells["left"].createChild();
+		cells["left_bot"] = cells["left"].createChild();
+		
+		cells["centered_fixed_px"] = cells["left_top"].createCenteredChild("50px", "50px");
+		
+		cells["centered_percent"] = cells["left_bot"].createCenteredChild("50%", "50%");
+
+		cells["right_centered"] = cells["right"].createCenteredChild("50%", "1ar");
+
+		function calculator(){
+			var width = (cells["ar_demo"].calc_width * 0.4);
+			width = Math.round( width/25 ) * 25;
+			return width
+		}
+		cells["ar_demo"].createChildren([{},{width:calculator, vertical:true},{}])
+		cells["callback_demo"] = cells["ar_demo"].children[1].createChildren([{},{height:"1ar"},{}])[1];
+		
+		function update_sizes()
+		{
+			win.width = $("#resizable").width(), win.height = $("#resizable").height();
+			win.recalc();
+			var offset = $("#resizable").position();
+			loop_obj(cells, function(key, value) {
+				var div = get(key);
+				div.style.width = value.calc_width + "px";
+				div.style.height = value.calc_height + "px";
+				div.style.left = (value.calc_x) + "px";
+				var add = key!="top_bar"?1:0; // hack for the bottom border i put on top_bar
+				div.style.top = (value.calc_y + add) + "px";
+				div.style.position = "fixed";
+			});
+		}
+		
+		$( function() {
+			$("#resizable").resizable({
+				resize: update_sizes
+			});
+			update_sizes();
+		});
+	</script>
+</html>

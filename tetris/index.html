@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC"-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi" />
+		<style>
+			@font-face
+			{
+				font-family: "FreeSans";
+				src: url(res/DejaVuSans.ttf) format("truetype");
+			}
+			
+			*{margin:0;padding:0;font-family: "FreeSans";}
+			
+			body, html
+			{
+				margin:0;
+				padding:0;
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+				background-color: #161674;
+			}
+		</style>
+	</head>
+	<body>
+		
+		<div id="game_div" class="flexdiv_root vertical" style="width: 100%; height: 100%; top: 0px; left: 0px; visibility: hidden;">
+			<img id="cat" src="res/cat.png">
+			<div id="top" class="height=13% vertical">
+				<div class="height=75%">
+					<div></div>
+					<div class="flexdiv_end width=1ar">
+						<img src="res/sound_on.png" style="width: 100%; height:100%;">
+					</div>
+					<div class="flexdiv_end width=1ar">
+						<img src="res/pause.png" style="width: 100%; height:100%;">
+					</div>
+				</div>
+			</div>
+			<div id="touch_area" class="vertical">
+				<div id="middle" class="height=get_center_height()">
+					<div id="left">
+						<div class="center_horizontal width=calc_box_size() vertical">
+							<div class="height=10%"></div>
+							<div class="flexdiv_end height=0.5ar" id="hold_text_container">
+								<div id="hold_text" style="color: white; text-align: center; display: inline-block;">HOLD</div>
+							</div>
+							<div id="hold" class="height=1ar" style="background-color: black">
+								<canvas id="hold_canvas" style="width:100%; height:100%"></canvas>
+							</div>
+							<div class="height=20%"></div>
+							<div class="height=1ar" style="text-align: center">
+								<img src="res/paw.png" style="height: 100%; width: auto;">
+							</div>
+						</div>
+					</div>
+					<div id="center" class="width=get_center_width()" style="background-color: #000000;">
+						<canvas id="board_canvas"></canvas>
+					</div>
+					<div id="right">
+						<div id="next_blocks" class="center_horizontal width=calc_box_size() vertical">
+							<div id="r_offset" class="height=10%"></div>
+							<div class="flexdiv_end height=0.5ar" id="next_text_container">
+								<div id="next_text" style="color: white; text-align: center; display: inline-block;">NEXT</div>
+							</div>
+							<div id="next_1" class="height=1ar" style="background-color: black">
+								<canvas id="next_canvas_1"></canvas>
+							</div>
+							<div class="height=0.1ar"></div>
+							<div id="next_2" class="height=1ar" style="background-color: black">
+								<canvas id="next_canvas_2"></canvas>
+							</div>
+							<div id="next_3" class="height=1ar" style="background-color: black">
+								<canvas id="next_canvas_3"></canvas>
+							</div>
+							<div id="next_4" class="height=1ar" style="background-color: black">
+								<canvas id="next_canvas_4"></canvas>
+							</div>
+							<div> <img id="tail" src="res/tail.png"> </div>
+						</div>
+					</div>
+				</div>
+				<div id="bottom" class="flexdiv_end">
+					<div id="score_text" style="color: white; text-align: center; width: 100%;">
+						SCORE: 0<br>LEVEL 0
+					</div>
+				</div>
+			</div>
+		</div>
+		
+	</body>
+	<script src="flexdiv.js"></script>
+	<script src="layout.js"></script>
+	
+	<script src="hammer.min.js"></script>
+	<script src="input.js"></script>
+	
+	<script src="util.js"></script>
+	<script src="draw.js"></script>
+	<script src="tetris.js"></script>
+</html>
