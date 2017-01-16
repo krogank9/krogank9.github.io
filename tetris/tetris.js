@@ -1,55 +1,76 @@
 function get_time() { return (new Date()).getTime(); }
 
+var leader_board = [
+	["     ", 0],
+	["     ", 0],
+	["     ", 0],
+	["     ", 0],
+	["     ", 0],
+	["     ", 0],
+	["     ", 0],
+	["     ", 0],
+	["     ", 0],
+	["     ", 0]
+];
+function show_leaderboard()
+{
+}
+
 var game_board;
 var level = 0, score = 0;
 var max_level = 20;
+var paused = false;
 
 var score_text = get("score_text");
 function update_score()
 {
-	score_text.innerHTML = "SCORE: "+score+"<br>LEVEL "+level;
+	function numberWithCommas(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+	score_text.innerHTML = "SCORE "+numberWithCommas(score)+"<br>LEVEL "+level;
 }
 
-window.onkeydown = function(evt)
+var muted = false;
+var sound_img = get("sound_img");
+function toggle_mute()
 {
-	switch(evt.keyCode)
+	if(!muted)
 	{
-		case 37: //left
-			move_left();
-			break;
-		case 39: //right
-			move_right();
-			break;
-		case 38: // up
-			rotate();
-			break;
-		case 40: //down
-			drop();
-			break;
-		case 72: // h
-			swap_held_piece();
-			break;
-		default:
-			return;
+		muted = true;
+		sound_img.src = "res/sound_off.png";
 	}
-	draw_all();
-}
-
-window.onkeyup = function(evt)
-{
-	if(evt.keyCode == 40 && dropping)
+	else if(muted)
 	{
-		dropping = false;
-		clearTimeout(tick_timeout);
-		setTimeout(tick, get_tick_speed());
+		muted = false;
+		sound_img.src = "res/sound_on.png";
 	}
 }
 
-var max_speed = 100;
-var min_speed = 500;
-function get_tick_speed() { return min_speed - (min_speed-max_speed) * (level/max_level); }
+var pause_div = get("pause_overlay");
+function toggle_pause()
+{
+	if(!paused)
+	{
+		paused = true;
+		pause_div.style.visibility = "visible";
+	}
+	else if(paused)
+	{
+		paused = false;
+		pause_div.style.visibility = "hidden";
+	}
+}
 
-var dropping = false;
+var max_speed = 50;
+var min_speed = 750;
+
+var place_delay = min_speed;
+
+var drop_fast = false;
+function get_tick_speed() {
+	var speed = min_speed - (min_speed-max_speed) * (level/max_level);
+	if(drop_fast)
+		speed = max_speed;
+	return speed;
+}
 
 var tick_gap = 250;
 var tick_gap_fast = 50;
@@ -61,6 +82,8 @@ function tick()
 	if(check_touching_bottom())
 	{
 		var result = place_on_board(cur_piece);
+		drop_fast = false;
+		
 		if(!result)
 		{
 			alert("game over");
@@ -93,12 +116,18 @@ function init()
 	requestAnimationFrame(main_loop);
 }
 
+var window_focus = true;
+window.onfocus = function(){window_focus = true}
+window.onblur = function(){window_focus = false}
 function main_loop()
 {
 	var now = get_time();
-	if( now - last_tick > get_tick_speed() )
-	{
+	var elapsed = now - last_tick;
+	
+	var tick_gap = check_touching_bottom() ? place_delay : get_tick_speed();
+
+	if( window_focus && elapsed > tick_gap && !paused )
 		tick();
-	}
+		
 	requestAnimationFrame(main_loop);
 }

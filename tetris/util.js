@@ -116,6 +116,16 @@ function init_pieces()
 			"X   "+
 			"XO  "+
 			" X  "+
+			"    ",
+			
+			" XX "+
+			"XO  "+
+			"    "+
+			"    ",
+			
+			" X  "+
+			" XO "+
+			"  X "+
 			"    "
 		],
 		"Z":[
@@ -128,6 +138,16 @@ function init_pieces()
 			" OX "+
 			" X  "+
 			"    ",
+			
+			"XO  "+
+			" XX "+
+			"    "+
+			"    ",
+			
+			" X  "+
+			"OX  "+
+			"X   "+
+			"    "
 		],
 		"T":[
 			" X  "+
@@ -159,7 +179,17 @@ function init_pieces()
 			" X  "+
 			" X  "+
 			" O  "+
-			" X  "
+			" X  ",
+			
+			"    "+
+			"XOXX"+
+			"    "+
+			"    ",
+
+			"  X "+
+			"  X "+
+			"  O "+
+			"  X "
 		]
 	}
 	function generate_shapes(blueprints)
@@ -206,7 +236,8 @@ function reset()
 {
 	game_board = Array.matrix(10, 20, null);
 	level = 0, score = 0;
-	dropping = false;
+	update_score();
+	drop_fast = false;
 	
 	cur_pieces = [];
 	next_pieces = [];
@@ -216,6 +247,10 @@ function reset()
 		cur_pieces.push(get_next_piece());
 	
 	reset_pos();
+	total_lines_cleared = 0;
+	
+	last_tick = get_time();
+	draw_all();
 }
 
 var shapes, pieces;
@@ -374,16 +409,58 @@ function swap_held_piece()
 	
 	return true;
 }
+function try_kick_piece()
+{
+	// try to bump the piece 1 block in a direction to make position valid
+	var kick_coords = [
+		[1,0], [-1,0],
+		[1,1], [-1,1],
+		[0,1]
+	];
+	
+	// I is longer than other pieces so also try 2 in each direction
+	var I_kick_coords = [
+		[1,0], [-1,0],
+		[1,1], [-1,1],
+		[0,1],
+		
+		[2,0], [-2,0],
+		[2,1], [-2,1],
+		[2,2], [-2,2],
+		[0,2]
+	];
+	
+	var is_I = cur_pieces[0].type === pieces["I"];
+	var coords = is_I ? I_kick_coords : kick_coords;
+	
+	for(var i=0; i<coords.length; i++)
+	{
+		var coord = coords[i];
+		
+		cur_pos.x += coord[0];
+		cur_pos.y += coord[1];
+		
+		if(check_valid_position())
+			return true;
+		
+		cur_pos.x -= coord[0];
+		cur_pos.y -= coord[1];
+	}
+
+	return false;
+}
 function rotate()
 {
 	var cur = cur_pieces[0];
 	var old_rotation = cur.rotation;
 	cur.rotation = (cur.rotation+1)%cur.type.length;
-	if(check_valid_position() == false)
+
+	if(check_valid_position() == false && try_kick_piece() == false)
 	{
 		cur.rotation = old_rotation;
 		return false;
 	}
+
 	return true;
 }
 function drop()
@@ -420,23 +497,12 @@ function check_touching_bottom()
 	return touching;
 }
 
-function move_left()
+function move_piece(x)
 {
-	cur_pos.x--;
+	cur_pos.x += x;
 	if(check_valid_position() == false)
 	{
-		cur_pos.x++;
-		return false;
-	}
-	return true;
-}
-
-function move_right()
-{
-	cur_pos.x++;
-	if(check_valid_position() == false)
-	{
-		cur_pos.x--;
+		cur_pos.x -= x;
 		return false;
 	}
 	return true;
@@ -462,18 +528,23 @@ function delete_block(x,y)
 	game_board[x][y] = null;
 }
 
-function clear_line(y1)
+function clear_line(y)
 {
-	for(var x1=0; x1<board_width; x1++)
+	for(var x=0; x<board_width; x++)
 	{
-		delete_block(x1,y1);
+		delete_block(x,y);
 	}
 	// move all lines above the cleared one down 1
-	for(var y=y1; y>0; y--)
+	for(var y1=y; y1>=0; y1--)
+	{
 		for(var x=0; x<board_width; x++)
-			game_board[x][y] = game_board[x][y-1]  || null;
+		{
+			game_board[x][y1] = game_board[x][y1-1]  || null;
+		}
+	}
 }
 
+var total_lines_cleared = 0;
 function check_clearable_lines()
 {
 	var lines_cleared = 0;
@@ -494,8 +565,14 @@ function check_clearable_lines()
 			lines_cleared++;
 		}
 	}
+	
 	var points_awarded = {0:0, 1:40, 2:100, 3:300, 4:1200};
 	score += points_awarded[lines_cleared] * (level+1);
+	
+	total_lines_cleared += lines_cleared;
+	if(lines_cleared == 4)
+		level++;
+	
 	update_score();
 }
 

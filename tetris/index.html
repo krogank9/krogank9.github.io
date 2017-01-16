@@ -22,19 +22,26 @@
 				overflow: hidden;
 				background-color: #161674;
 			}
+			
+			.fullscreen
+			{
+				width: 100%; height: 100%;
+				position: absolute; 
+				top: 0px; left: 0px;
+				visibility: hidden;
+			}
 		</style>
 	</head>
 	<body>
-		
-		<div id="game_div" class="flexdiv_root vertical" style="width: 100%; height: 100%; top: 0px; left: 0px; visibility: hidden;">
+		<div id="game_div" class="flexdiv_root vertical fullscreen">
 			<img id="cat" src="res/cat.png">
 			<div id="top" class="height=13% vertical">
 				<div class="height=75%">
 					<div></div>
-					<div class="flexdiv_end width=1ar">
-						<img src="res/sound_on.png" style="width: 100%; height:100%;">
+					<div class="flexdiv_end width=1ar" onclick="toggle_mute()">
+						<img id="sound_img" src="res/sound_on.png" style="width: 100%; height:100%;">
 					</div>
-					<div class="flexdiv_end width=1ar">
+					<div class="flexdiv_end width=1ar" onclick="toggle_pause()">
 						<img src="res/pause.png" style="width: 100%; height:100%;">
 					</div>
 				</div>
@@ -84,12 +91,52 @@
 				</div>
 				<div id="bottom" class="flexdiv_end">
 					<div id="score_text" style="color: white; text-align: center; width: 100%;">
-						SCORE: 0<br>LEVEL 0
+						SCORE 0<br>LEVEL 0
 					</div>
 				</div>
 			</div>
 		</div>
-		
+		<div id="pause_overlay" class="flexdiv_root fullscreen" style="z-index: 999; background-color: rgba(0,0,0, 0.5)">
+			<div class="center vertical width=75% height=1ar" style="border-radius: 10px; border: solid 10px #4d4da4; background-color: #161674; color:white">
+				<div class="height=10%" style="text-align: center; background-color: #4d4da4; display: flex; justify-content: center; align-items: center;">
+					PAUSED
+				</div>
+				<div class="height=10px" style="background-color: #4d4da4;"></div>
+				<div class="flexdiv_end" style="text-align: center; display: flex; justify-content: space-between; align-items: center; flex-direction: column">
+					<span></span>
+					<span id="resume_button" style="border: solid 3px #4d4da4; border-radius: 10px; padding: 10px;" onclick="toggle_pause()">
+						RESUME
+					</span>
+					<span id="quit_button" style="border: solid 3px #4d4da4; border-radius: 10px; padding: 10px;" onclick="reset(); toggle_pause()">
+						RESTART
+					</span>
+					<span id="quit_button" style="border: solid 3px #4d4da4; border-radius: 10px; padding: 10px;" onclick="exit_game()">
+						QUIT
+					</span>
+					<span></span>
+				</div>
+			</div>
+		</div>
+		<div id="leaderboard_overlay" class="flexdiv_root fullscreen" style="z-index: 999; background-color: rgba(0,0,0, 0.5);">
+			<div class="center vertical width=75% height=1.7ar" style="border-radius: 10px; border: solid 10px #4d4da4; background-color: #161674; color:white;">
+				<div class="height=10%" style="text-align: center; background-color: #4d4da4; display: flex; justify-content: center; align-items: center;">
+					GAME OVER
+				</div>
+				<div class="flexdiv_end height=10px" style="background-color: #4d4da4;">
+				</div>
+				<div class="flexdiv_end">
+					<div style="height:100%; width: 70%; display: flex; justify-content: space-between; align-items: center; flex-direction: column">
+						<div></div>
+						<div>1. Logan 999</div>
+						<div>2. Logan 999</div>
+						<div>3. Logan 999</div>
+						<div>4. Logan 999</div>
+						<div>5. Logan 999</div>
+						<div></div>
+					</div>
+				</div>
+			</div>
+		</div>
 	</body>
 	<script src="flexdiv.js"></script>
 	<script src="layout.js"></script>

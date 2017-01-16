@@ -91,8 +91,7 @@ function maximize_text()
 	while(next_text.offsetWidth > next_text_container.offsetWidth)
 		next_text.style.fontSize = --font_size + "px";
 	
-	hold_text.style.fontSize = font_size + "px";	
-	score_text.style.fontSize = font_size + "px";
+	document.body.style.fontSize = font_size + "px";	
 	
 	//center all
 	score_text.style.position = "absolute";
@@ -149,6 +148,8 @@ window.onload = function(){
 	// initialize the layout
 	calc_board_size();
 	update_flexdiv(game_div);
+	update_flexdiv(get("pause_overlay"));
+	update_flexdiv(get("leaderboard_overlay"));
 	
 	maximize_text();
 	set_board_border();
