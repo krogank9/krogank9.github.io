@@ -27,33 +27,35 @@ function rand_int(ceiling)
 	return Math.floor(Math.random()*ceiling);
 }
 
-function html_to_rgb(html_col)
+function LayeredAudio(file_name, num_layers)
 {
-	var hex = html_col.slice(1);
-	var r = parseInt(hex.substring(0,2), 16);
-	var g = parseInt(hex.substring(2,4), 16);
-	var b = parseInt(hex.substring(4,6), 16);
-	return {r:r, g:g, b:b};
+	this.num_layers = num_layers || 10;
+	
+	this.audio_arr = [];
+	while(this.audio_arr.length < this.num_layers)
+	{
+		var snd = new Audio();
+		snd.src = file_name;
+		this.audio_arr.push( snd );
+	}
+	
+	this.cur_sound = 0;
+	
+	var self = this;
+	this.play = function()
+	{	
+		var snd = self.audio_arr[ self.cur_sound ];
+		snd.play();
+		self.cur_sound = (self.cur_sound+1) % self.num_layers;
+	}
 }
+var shift_sound = new LayeredAudio("res/shift.wav");
 
 function fade(col,percent,opt_to)
 {
 	var to = opt_to || 0;
-	col = html_to_rgb(col);
-	var r=col.r, g=col.g, b=col.b;
-	
 	var i = 1.0-percent;
-	r = Math.floor(r*i + to*percent).toString(16);
-	g = Math.floor(g*i + to*percent).toString(16);
-	b = Math.floor(b*i + to*percent).toString(16);
-	
-	r = r.length<2?"0"+r:r;
-	g = g.length<2?"0"+g:g;
-	b = b.length<2?"0"+b:b;
-	
-	col = r+g+b;
-
-	return "#"+col;
+	return col.map(function(x){ return x*i + to*percent; });
 }
 
 function init_pieces()
@@ -256,11 +258,11 @@ function reset()
 var shapes, pieces;
 
 var shape_names = ["O", "L", "J", "S", "Z", "T", "I"];
-var shape_colors = {"O":"#ffcf3c", "L":"#ff6b00", "J":"#3131d0", "S":"#06ac2d", "Z":"#dc003c", "T":"#a42edb", "I":"#189dc8", "GHOST":"#333333"}
+var shape_colors = {"O":[1, 0.81, 0.24], "L":[1, 0.42, 0], "J":[0.19, 0.19, 0.82], "S":[0.19, 0.19, 0.82], "Z":[0.86, 0, 0.24], "T":[0.64, 0.18, 0.86], "I":[0.09, 0.62, 0.78], "GHOST":[0.2,0.2,0.2]}
 var shape_border_colors = remap_hashmap(shape_colors, function(val) { return fade(val, 0.33) });
 
 var shape_border_colors2 = remap_hashmap(shape_colors, function(val) { return fade(val, 0.25, 0) });
-var shape_border_colors3 = remap_hashmap(shape_colors, function(val) { return fade(val, 0.50, 255) });
+var shape_border_colors3 = remap_hashmap(shape_colors, function(val) { return fade(val, 0.50, 1) });
 
 var ghost_colors = [shape_colors["GHOST"], shape_border_colors["GHOST"], shape_border_colors2["GHOST"], shape_border_colors3["GHOST"]];
 
@@ -406,6 +408,8 @@ function swap_held_piece()
 	
 	reset_pos();
 	can_hold = false;
+
+	draw_all();
 	
 	return true;
 }
@@ -460,6 +464,8 @@ function rotate()
 		cur.rotation = old_rotation;
 		return false;
 	}
+	
+	draw_board();
 
 	return true;
 }
@@ -505,6 +511,7 @@ function move_piece(x)
 		cur_pos.x -= x;
 		return false;
 	}
+	draw_board();
 	return true;
 }
 

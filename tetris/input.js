@@ -17,20 +17,14 @@ hammer.on("panmove", function(evt) {
 	if(moved_x > board_width_px/10)
 	{
 		if(Math.abs(moved_x) > Math.abs(moved_y))
-		{
 			move_piece(1);
-			draw_all();
-		}
 		last_x = evt.deltaX;
 		last_y = evt.deltaY;
 	}
 	else if(moved_x < -board_width_px/10)
 	{
 		if(Math.abs(moved_x) > Math.abs(moved_y))
-		{
 			move_piece(-1);
-			draw_all();
-		}
 		last_x = evt.deltaX;
 		last_y = evt.deltaY;
 	}
@@ -53,8 +47,6 @@ hammer.on('tap', function(evt){
 		swap_held_piece();
 	else
 		rotate();
-
-	draw_all();
 });
 
 //////////////
@@ -88,7 +80,6 @@ window.onkeydown = function(evt)
 		default:
 			return;
 	}
-	draw_all();
 }
 
 window.onkeyup = function(evt)

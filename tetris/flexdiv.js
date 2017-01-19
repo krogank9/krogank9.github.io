@@ -146,15 +146,6 @@ function update_flexdiv(div)
 		set_flexdiv_props(div);
 		div.calc_width = div.offsetWidth;
 		div.calc_height = div.offsetHeight;
-		
-		var left = parseInt(get_prop(div, "border-left-width"));
-		div.calc_width -= left;
-		var right = parseInt(get_prop(div, "border-right-width"));
-		div.calc_width -= right;
-		var top = parseInt(get_prop(div, "border-top-width"));
-		div.calc_height -= top;
-		var bottom = parseInt(get_prop(div, "border-bottom-width"));
-		div.calc_height -= bottom;
 	}
 	else if(classes.some(function(c){return c=="flexdiv_end"}))
 		return;
@@ -210,20 +201,6 @@ function update_flexdiv(div)
 			rel_y += child.calc_height;
 		else
 			rel_x += child.calc_width;
-	});
-	
-	// account for borders
-	children.forEach(function(child) {
-		var left = parseInt(get_prop(child, "border-left-width"));
-		child.rel_x += left;
-		child.calc_width -= left*2;
-		var right = parseInt(get_prop(child, "border-right-width"));
-		child.calc_width -= right;
-		var top = parseInt(get_prop(child, "border-top-width"));
-		child.rel_y += top;
-		child.calc_height -= top*2;
-		var bottom = parseInt(get_prop(child, "border-bottom-width"));
-		child.calc_height -= bottom;
 	});
 	
 	// set styles and iterate

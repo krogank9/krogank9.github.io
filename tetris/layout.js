@@ -51,6 +51,17 @@ function position_canvases()
 		var next_canvas = get("next_canvas_"+i);
 		next_canvas.width = next_canvas.height = box_size;
 	}
+	
+	var board_canvas = get("board_canvas");
+	var hold_canvas = get("hold_canvas");
+	var next_canvas = [
+		get("next_canvas_1"), get("next_canvas_2"),
+		get("next_canvas_3"), get("next_canvas_4")
+	];
+	
+	board_context = new Renderer( board_canvas );
+	hold_context = new Renderer( hold_canvas );
+	next_context = next_canvas.map(function(c){return new Renderer(c)});
 }
 
 function calc_box_size()
@@ -149,7 +160,6 @@ window.onload = function(){
 	calc_board_size();
 	update_flexdiv(game_div);
 	update_flexdiv(get("pause_overlay"));
-	update_flexdiv(get("leaderboard_overlay"));
 	
 	maximize_text();
 	set_board_border();

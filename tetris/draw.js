@@ -1,13 +1,5 @@
-var board_canvas = get("board_canvas");
-var hold_canvas = get("hold_canvas");
-var next_canvas = [
-	get("next_canvas_1"), get("next_canvas_2"),
-	get("next_canvas_3"), get("next_canvas_4")
-];
-
-var board_context = board_canvas.getContext("2d");
-var hold_context = hold_canvas.getContext("2d");
-var next_context = next_canvas.map(function(c){return c.getContext("2d")});
+var board_canvas, hold_canvas, next_canvas;
+var board_context, hold_context, next_context;
 
 var border_thickness = 4/26; //ratio to block size that looks good
 
@@ -32,7 +24,7 @@ function draw_next()
 
 function draw_preview(context, piece)
 {
-	context.clearRect(0,0,box_size,box_size);
+	context.clear();
 	
 	if(!piece)
 		return;
@@ -56,11 +48,13 @@ function draw_preview(context, piece)
 		var px_y = start_y + y*(spacing+preview_scale);
 		draw_block(context, block, Math.round(px_x), Math.round(px_y), preview_scale);
 	});
+	
+	context.paint();
 }
 
 function draw_board()
 {
-	board_context.clearRect(0,0,board_width_px,board_height_px);
+	board_context.clear();
 	
 	// draw every block on the gameboard
 	for(var x=0; x<board_width; x++)
@@ -96,12 +90,13 @@ function draw_board()
 		if(world_y >= 0)
 			draw_block(board_context, block, px_x, px_y,board_scale);
 	});
+	
+	board_context.paint();
 }
 
 function draw_border(context,x,y,width,height,thickness,border_mask,corner_mask,top_color,bottom_color,is_O)
 {
-	function dr(x,y,width,height,col){ context.fillStyle = col; context.fillRect(x,y,width,height); context.fill(); }
-	function draw_corner(x,y,col){ dr(x,y,thickness,thickness,col) }
+	function draw_corner(x,y,col){ context.drawRect(x,y,thickness,thickness,col) }
 		
 	if(corner_mask & block_corners["TOP_LEFT"])
 		draw_corner(x,y,bottom_color);
@@ -118,33 +113,28 @@ function draw_border(context,x,y,width,height,thickness,border_mask,corner_mask,
 	var right = border_mask & block_border["RIGHT"];
 	
 	if(top)
-		dr(x,y,width,thickness,top_color);
+		context.drawRect(x,y,width,thickness,top_color);
 	if(left)
-		dr(x,y,thickness,height,bottom_color);
+		context.drawRect(x,y,thickness,height,bottom_color);
 	if(bottom)
-		dr(x,y+height-thickness,width,thickness,bottom_color);
+		context.drawRect(x,y+height-thickness,width,thickness,bottom_color);
 	if(right)
-		dr(x+width-thickness,y,thickness,height,top_color);
+		context.drawRect(x+width-thickness,y,thickness,height,top_color);
 		
-	function draw_slant(x,y,top_color,bottom_color) {
-		dr(x,y,thickness,thickness,top_color);
-		context.fillStyle = bottom_color;
-		for(var x1=0;x1<thickness;x1++)
-			for(var y1=0;y1<thickness;y1++)
-				if(x1<=y1)
-					context.fillRect(x+x1,y+y1,1,1);
-		context.fill();
-	}
+	var drawSlant = function(x, y, col_a, col_b) {
+		context.drawSlant(x, y, thickness, thickness, col_a, col_b);
+	};
+
 	// draw the slanted edges for 3d effect
 	if(left&&top)
-		draw_slant(x,y,top_color,bottom_color);
+		drawSlant(x,y,top_color,bottom_color);
 	if(right&&bottom)
-		draw_slant(x+width-thickness,y+height-thickness,top_color,bottom_color);
+		drawSlant(x+width-thickness,y+height-thickness,top_color,bottom_color);
 
 	if(!is_O && !(left|top))
-		draw_slant(x,y,bottom_color,top_color);
+		drawSlant(x,y,bottom_color,top_color);
 	if(!is_O && !(right|bottom))
-		draw_slant(x+width-thickness,y+height-thickness,bottom_color,top_color);
+		drawSlant(x+width-thickness,y+height-thickness,bottom_color,top_color);
 }
 
 function draw_block(context,block,x,y,scale,colors)
@@ -164,38 +154,38 @@ function draw_block(context,block,x,y,scale,colors)
 	var bottom_edge_color = colors[2];
 	var top_edge_color = colors[3];
 
-	function dr(x,y,width,height,col){ context.fillStyle = col; context.fillRect(x,y,width,height); context.fill(); }
+	var dr = context.drawRect;
 	var is_O = (block.piece == "O");
 	// fill in the spots between the spacing
 	if(!right)
 	{
 		//grid
-		dr(x+scale,y,spacing,scale,color);
+		context.drawRect(x+scale,y,spacing,scale,color);
 
 		// connect corners and borders, O (square) is a special case
 		if(!is_O || (top|right) )
-			dr(x+scale,y,spacing,thickness,top_edge_color);//top right
+			context.drawRect(x+scale,y,spacing,thickness,top_edge_color);//top right
 		if(!is_O || (bottom|right) )
-			dr(x+scale,y+scale-thickness,spacing,thickness,bottom_edge_color);//bottom right
+			context.drawRect(x+scale,y+scale-thickness,spacing,thickness,bottom_edge_color);//bottom right
 	}
 	if(!bottom)
 	{
 		//grid
-		dr(x,y+scale,scale,spacing,color);
+		context.drawRect(x,y+scale,scale,spacing,color);
 
 		// connect corners and borders, O is a special case
 		if(!is_O || (bottom|left) )
-			dr(x,y+scale,thickness,spacing,bottom_edge_color);//bottom left
+			context.drawRect(x,y+scale,thickness,spacing,bottom_edge_color);//bottom left
 		if(!is_O || (bottom|right) )
-			dr(x+scale-thickness,y+scale,thickness,spacing,top_edge_color);//bottom right
+			context.drawRect(x+scale-thickness,y+scale,thickness,spacing,top_edge_color);//bottom right
 	}
 	if(is_O && !bottom && !right)
 	{
-		dr(x+scale,y+scale,spacing,spacing,color);
+		context.drawRect(x+scale,y+scale,spacing,spacing,color);
 	}
 	
 	// draw the block
-	dr(x,y,scale,scale,color);
+	context.drawRect(x,y,scale,scale,color);
 	// draw the border
 	draw_border(context,x,y,scale,scale,thickness,block.border,block.corners,top_edge_color,bottom_edge_color,is_O);
 }

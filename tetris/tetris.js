@@ -99,13 +99,15 @@ function tick()
 			reset();
 		}
 		cycle_next_piece();
+		
+		draw_next();
 	}
 	else
 	{	
 		cur_pos.y += 1;
 	}
 	
-	draw_all();
+	draw_board();
 }
 
 function init()
