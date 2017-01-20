@@ -1,53 +1,103 @@
 //////////////////
 // touch screen //
 //////////////////
-var hammer = new Hammer(get("touch_area"));
-
-var last_x = 0;
-var last_y = 0;
-hammer.on("panstart", function(evt) {
-	last_x = 0;
-	last_y = 0;
-});
-
-hammer.on("panmove", function(evt) {
-	// shifting block left and right
-	var moved_x = evt.deltaX - last_x;
-	var moved_y = evt.deltaY - last_y;
-	if(moved_x > board_width_px/10)
-	{
-		if(Math.abs(moved_x) > Math.abs(moved_y))
-			move_piece(1);
-		last_x = evt.deltaX;
-		last_y = evt.deltaY;
-	}
-	else if(moved_x < -board_width_px/10)
-	{
-		if(Math.abs(moved_x) > Math.abs(moved_y))
-			move_piece(-1);
-		last_x = evt.deltaX;
-		last_y = evt.deltaY;
-	}
-	// fast drop -- velocity in px/ms, convert to px/s
-	if(evt.velocityY*1000 > board_height_px)
-		drop_fast = true;
-});
-hammer.on("panend", function(evt){
-	drop_fast = false;
-});
-
-hammer.get('swipe').set({ direction: Hammer.DIRECTION_DOWN });
-hammer.on("swipe", function(evt){
-	drop();
-});
-
+var touch_area = get("touch_area");
 var hold_div = get("hold");
-hammer.on('tap', function(evt){
+
+function get_touch_pos(evt)
+{
+	if(!evt || !evt.touches[0])
+		return {x:0, y:0}
+	else
+		return {x:evt.touches[0].clientX, y:evt.touches[0].clientY};
+}
+
+function diff(p2,p1)
+{
+	return {x:p2.x-p1.x, y:p2.y-p1.y};
+}
+
+function mag(p)
+{
+	return Math.sqrt(p.x*p.x + p.y*p.y);
+}
+
+function dist(p1,p2)
+{
+	return mag( diff(p1,p2) );
+}
+
+function tap(evt)
+{
 	if(hold_div.contains(evt.target))
 		swap_held_piece();
 	else
 		rotate();
-});
+}
+
+function swipe(evt)
+{
+}
+
+var last = get_touch_pos();
+var start = get_touch_pos();
+var cur = get_touch_pos();
+var start_time = 0;
+
+touch_area.ontouchstart = function(evt) {
+	start_time = get_time();
+	
+	start = get_touch_pos(evt);
+	cur = get_touch_pos(evt);
+	last = get_touch_pos(evt);
+	
+	return false;
+}
+
+touch_area.ontouchmove = function(evt)
+{
+	var touch_dur = get_time() - start_time;
+	cur = get_touch_pos(evt);
+	var travel = diff(cur, start);
+	
+	var move = diff(cur, last);
+	// shift block left to right
+	if(move.x > board_width_px/10)
+	{
+		if(Math.abs(move.x) > Math.abs(move.y))
+			move_piece(1);
+		last = cur;
+	}
+	else if(move.x < -board_width_px/10)
+	{
+		if(Math.abs(move.x) > Math.abs(move.y))
+			move_piece(-1);
+		last = cur;
+	}
+	// fast dropping
+	if( touch_dur < 200 && travel.y > board_scale*5 )
+		drop_fast = true;
+	
+	return false;
+}
+
+touch_area.ontouchend = function(evt) {
+	var touch_dur = get_time() - start_time;
+	var travel = diff(cur, start);
+	var travel_dist = mag(travel);
+
+	if(touch_dur < 200
+	&& travel_dist > board_scale
+	&& travel.y > 0 
+	&& travel.y > Math.abs(travel.x))
+		drop();
+	else if(touch_dur < 200 && travel_dist < board_scale)
+		tap(evt);
+		
+	drop_fast = false;
+		
+	return false;
+}
 
 //////////////
 // keyboard //

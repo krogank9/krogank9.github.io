@@ -258,7 +258,7 @@ function reset()
 var shapes, pieces;
 
 var shape_names = ["O", "L", "J", "S", "Z", "T", "I"];
-var shape_colors = {"O":[1, 0.81, 0.24], "L":[1, 0.42, 0], "J":[0.19, 0.19, 0.82], "S":[0.19, 0.19, 0.82], "Z":[0.86, 0, 0.24], "T":[0.64, 0.18, 0.86], "I":[0.09, 0.62, 0.78], "GHOST":[0.2,0.2,0.2]}
+var shape_colors = {"O":[1, 0.81, 0.24], "L":[1, 0.42, 0], "J":[0.19, 0.19, 0.82], "S":[0.02, 0.67, 0.17], "Z":[0.86, 0, 0.24], "T":[0.64, 0.18, 0.86], "I":[0.09, 0.62, 0.78], "GHOST":[0.2,0.2,0.2]}
 var shape_border_colors = remap_hashmap(shape_colors, function(val) { return fade(val, 0.33) });
 
 var shape_border_colors2 = remap_hashmap(shape_colors, function(val) { return fade(val, 0.25, 0) });
@@ -577,7 +577,7 @@ function check_clearable_lines()
 	score += points_awarded[lines_cleared] * (level+1);
 	
 	total_lines_cleared += lines_cleared;
-	if(lines_cleared == 4)
+	if(lines_cleared == 4 && level < 20)
 		level++;
 	
 	update_score();
