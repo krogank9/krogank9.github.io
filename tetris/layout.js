@@ -14,7 +14,7 @@ function get_center_width() { return board_width_px + board_padding; }
 
 function calc_board_size()
 {
-	var max_height = window.innerHeight * 0.75;
+	var max_height = window.innerHeight * 0.70;
 
 	var goal_height = max_height;
 	
@@ -27,6 +27,11 @@ function calc_board_size()
 	
 	board_height_px = board_scale*board_height + total_spacing_y;
 	board_width_px = board_scale*board_width + total_spacing_x;
+}
+function calc_top_height()
+{
+	calc_board_size();
+	return (window.innerHeight - board_height_px)/2;
 }
 function position_canvases()
 {
@@ -71,17 +76,6 @@ function calc_box_size()
 	box_size = max_width < max_height ? max_width : max_height;
 	return box_size;
 }
-function set_board_border()
-{
-	var border_size = Math.round( calc_box_size() * 0.03 );
-	get("center").style.borderRadius = border_size + "px";
-	
-	var side_borders = border_size;
-	get("hold").style.borderRadius = side_borders + "px";
-	get("next_1").style.borderRadius = side_borders + "px";
-	get("next_2").style.borderRadius = side_borders + "px " + side_borders + "px 0px 0px";
-	get("next_4").style.borderRadius = "0px 0px " + side_borders + "px " + side_borders + "px";
-}
 function maximize_text()
 {
 	var score_text = get("score_text");
@@ -92,18 +86,19 @@ function maximize_text()
 	var bottom = get("bottom");
 	var font_size = 0;
 	
-	score_text.style.fontSize = font_size + "px";
+	document.body.style.fontSize = font_size + "px";
+	
 	while(score_text.offsetHeight < bottom.offsetHeight*0.85)
-		score_text.style.fontSize = ++font_size + "px";
-	score_text.style.fontSize = --font_size + "px";
-	
-	
-	next_text.style.fontSize = font_size + "px";
+		document.body.style.fontSize = ++font_size + "px";
+	document.body.style.fontSize = --font_size + "px";
+
 	while(next_text.offsetWidth > next_text_container.offsetWidth)
-		next_text.style.fontSize = --font_size + "px";
+		document.body.style.fontSize = --font_size + "px";
 	
 	document.body.style.fontSize = font_size + "px";	
-	
+}
+function center_text()
+{
 	//center all
 	score_text.style.position = "absolute";
 	score_text.style.left = "0px";
@@ -127,21 +122,12 @@ function position_images()
 	var cat = get("cat");
 	
 	var left_goal = get("left").offsetWidth;
-	var top_goal = get("top").offsetHeight;
-	var max_width = Math.round(left_goal / left_paw);
-	var max_height = Math.round(top_goal / top_paw);
+	var top_goal = get("top").offsetHeight + get("touch_area_spacer").offsetHeight;
+
+	cat.style.width = board_width_px + "px";
+	cat.style.height = "auto";
+
 	cat.style.position = "absolute";
-	cat.style.left = cat.style.top = "0px";
-	if(max_width < max_height)
-	{
-		cat.style.width = max_width + "px";
-		cat.style.height = "auto";
-	}
-	else
-	{
-		cat.style.height = max_height + "px";
-		cat.style.width = "auto";
-	}
 	cat.style.left = Math.round(left_goal - cat.offsetWidth*left_paw) + "px";
 	cat.style.top = Math.round(top_goal - cat.offsetHeight*top_paw) + "px";
 	
@@ -155,20 +141,35 @@ function position_images()
 	tail.style.height = "auto";
 }
 
-window.onload = function(){
-	// initialize the layout
+var first_run = true;
+function resize_bot()
+{
+	var height = Math.round( get("score_text").offsetHeight * 1.3 );
+	get("bottom").className = "flexdiv_end " + "height=" + height + "px";
+	height = touch_area.offsetHeight - board_height_px - height;
+	get("touch_area_spacer").className = "height="+ height +"px";
+}
+function init_layout()
+{
 	calc_board_size();
 	update_flexdiv(game_div);
 	update_flexdiv(get("pause_overlay"));
+	update_flexdiv(get("highscore_overlay"));
 	
 	maximize_text();
-	set_board_border();
+	
+	if(first_run == true)
+	{
+		first_run = false;
+		resize_bot();
+		update_flexdiv(game_div);
+	}
+	
+	center_text();
+	position_canvases();
 	position_images();
 	
-	position_canvases();
-	
 	game_div.style.visibility = "visible";
-	
-	// initialize the game
-	init();
 }
+
+window.onresize = init_layout;

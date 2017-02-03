@@ -95,7 +95,12 @@ function calc_size(parsed, child_other_size, parent_cur_size, direction_other)
 	else if(parsed.is_percent)
 		return parseInt(parent_cur_size * parsed.val);
 	else if(parsed.is_px)
-		return parseInt(parsed.val);
+	{
+		if(parsed.val < 0)
+			return parseInt(parent_cur_size + parsed.val);
+		else
+			return parseInt(parsed.val);
+	}
 	else
 		return 0;
 }

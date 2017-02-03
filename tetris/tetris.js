@@ -1,19 +1,16 @@
-function get_time() { return (new Date()).getTime(); }
+var webaudio = new WebAudio();
+var click_sound = webaudio.createSound();
+click_sound.load("click1.wav");
 
-var leader_board = [
-	["     ", 0],
-	["     ", 0],
-	["     ", 0],
-	["     ", 0],
-	["     ", 0],
-	["     ", 0],
-	["     ", 0],
-	["     ", 0],
-	["     ", 0],
-	["     ", 0]
-];
-function show_leaderboard()
+window.onload = function()
 {
+	load_highscore();
+	init_layout();
+	init_pieces();
+	
+	reset();
+	draw_all();
+	requestAnimationFrame(main_loop);
 }
 
 var game_board;
@@ -24,24 +21,7 @@ var paused = false;
 var score_text = get("score_text");
 function update_score()
 {
-	function numberWithCommas(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
 	score_text.innerHTML = "SCORE "+numberWithCommas(score)+"<br>LEVEL "+level;
-}
-
-var muted = false;
-var sound_img = get("sound_img");
-function toggle_mute()
-{
-	if(!muted)
-	{
-		muted = true;
-		sound_img.src = "res/sound_off.png";
-	}
-	else if(muted)
-	{
-		muted = false;
-		sound_img.src = "res/sound_on.png";
-	}
 }
 
 var pause_div = get("pause_overlay");
@@ -56,6 +36,46 @@ function toggle_pause()
 	{
 		paused = false;
 		pause_div.style.visibility = "hidden";
+	}
+}
+
+function save_highscore()
+{
+	if(typeof(Storage) === "undefined" || !localStorage)
+		return;
+
+	localStorage.setItem("catris_highscore", highscore);
+}
+function load_highscore()
+{
+	if(typeof(Storage) === "undefined" || !localStorage)
+		return;
+
+	highscore = localStorage.catris_highscore || 0;
+}
+
+var highscore = 0;
+var highscore_div = get("highscore_overlay");
+var highscore_span = get("highscore_span");
+var yourscore_span = get("yourscore_span");
+function toggle_highscore()
+{
+	if(!paused)
+	{
+		paused = true;
+		if(score > highscore)
+		{
+			highscore = score;
+			save_highscore();
+		}
+		yourscore_span.innerHTML = "YOUR SCORE<br>"+numberWithCommas(score);
+		highscore_span.innerHTML = "HIGH SCORE<br>"+numberWithCommas(highscore);
+		highscore_div.style.visibility = "visible";
+	}
+	else if(paused)
+	{
+		paused = false;
+		highscore_div.style.visibility = "hidden";
 	}
 }
 
@@ -86,7 +106,7 @@ function tick()
 		
 		if(!result)
 		{
-			alert("game over");
+			toggle_highscore();
 			for(var x=0; x<board_width; x++)
 			{
 				for(var y=0; y<board_height; y++)
@@ -110,16 +130,8 @@ function tick()
 	draw_board();
 }
 
-function init()
-{
-	init_pieces();
-	reset();
-	draw_all();
-	requestAnimationFrame(main_loop);
-}
-
 var window_focus = true;
-window.onfocus = function(){window_focus = true}
+window.onfocus = function(){window_focus = true; draw_all();}
 window.onblur = function(){window_focus = false}
 function main_loop()
 {

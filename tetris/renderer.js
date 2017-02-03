@@ -1,4 +1,4 @@
-var v = [
+var vert_src = [
 	"attribute vec2 aVertexPosition;",
 
 	"attribute vec3 aVertexColor;",
@@ -9,7 +9,7 @@ var v = [
 		"gl_Position = vec4(aVertexPosition, 0.0, 1.0);",
 	"}"
 ].join('\n');
-var f = [
+var frag_src = [
 	"#ifdef GL_ES",
 		"precision lowp float;",
 	"#endif",
@@ -23,24 +23,33 @@ var f = [
 
 function Renderer(canvas)
 {
-	var gl = canvas.getContext("webgl");
-	gl.viewport(0,0,canvas.width,canvas.height);
-	gl.clearColor(0,0,0,1);
-	
-	var vs = gl.createShader(gl.VERTEX_SHADER);
-	gl.shaderSource(vs, v); gl.compileShader(vs);
+	var gl, program, vertexBuffer, colorBuffer;
+	function setupWebGL()
+	{
+		gl = canvas.getContext("webgl");
+		gl.viewport(0,0,canvas.width,canvas.height);
+		gl.clearColor(0,0,0,1);
+		
+		var vs = gl.createShader(gl.VERTEX_SHADER);
+		gl.shaderSource(vs, vert_src); gl.compileShader(vs);
 
-	var fs = gl.createShader(gl.FRAGMENT_SHADER);
-	gl.shaderSource(fs, f); gl.compileShader(fs);
+		var fs = gl.createShader(gl.FRAGMENT_SHADER);
+		gl.shaderSource(fs, frag_src); gl.compileShader(fs);
 
-	var program = gl.createProgram();
-	gl.attachShader(program, vs);
-	gl.attachShader(program, fs);
-	gl.linkProgram(program);
-	gl.useProgram(program);
+		program = gl.createProgram();
+		gl.attachShader(program, vs);
+		gl.attachShader(program, fs);
+		gl.linkProgram(program);
+		gl.useProgram(program);
+		
+		vertexBuffer = gl.createBuffer();
+		colorBuffer = gl.createBuffer();
+	}
+	setupWebGL();
 	
-	var vertexBuffer = gl.createBuffer();
-	var colorBuffer = gl.createBuffer();
+	canvas.addEventListener("webglcontextlost", function(evt) { evt.preventDefault(); }, false);
+	canvas.addEventListener("webglcontextrestored", setupWebGL, false);
+
 	var vertices, colors;
 	
 	this.clear = function()

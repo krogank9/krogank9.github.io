@@ -27,25 +27,29 @@ function dist(p1,p2)
 	return mag( diff(p1,p2) );
 }
 
+var paw_div = get("paw_div");
 function tap(evt)
 {
-	if(hold_div.contains(evt.target))
+	if(hold_div.contains(evt.target) || paw_div.contains(evt.target))
 		swap_held_piece();
 	else
 		rotate();
-}
-
-function swipe(evt)
-{
+		
+	last_tap = get_time();
 }
 
 var last = get_touch_pos();
 var start = get_touch_pos();
 var cur = get_touch_pos();
 var start_time = 0;
+var last_tap = 0;
+var last_time = 0;
+
+var velocity_x = 0;
+var velocity_y = 0;
 
 touch_area.ontouchstart = function(evt) {
-	start_time = get_time();
+	start_time = last_time = get_time();
 	
 	start = get_touch_pos(evt);
 	cur = get_touch_pos(evt);
@@ -56,9 +60,12 @@ touch_area.ontouchstart = function(evt) {
 
 touch_area.ontouchmove = function(evt)
 {
-	var touch_dur = get_time() - start_time;
+	var now = get_time();
+	var touch_dur = now - start_time;
 	cur = get_touch_pos(evt);
 	var travel = diff(cur, start);
+	velocity_x = travel.x / (now - last_time); // px / s
+	velocity_y = travel.y / (now - last_time);
 	
 	var move = diff(cur, last);
 	// shift block left to right
@@ -74,9 +81,14 @@ touch_area.ontouchmove = function(evt)
 			move_piece(-1);
 		last = cur;
 	}
+	
+	console.log(velocity_y + ", " + (board_scale*4/200));
 	// fast dropping
-	if( touch_dur < 200 && travel.y > board_scale*5 )
+	//if( touch_dur < 200 && travel.y > board_scale*4 )
+	if( velocity_y > board_scale/3 )
 		drop_fast = true;
+		
+	last_time = now;
 	
 	return false;
 }
@@ -87,11 +99,12 @@ touch_area.ontouchend = function(evt) {
 	var travel_dist = mag(travel);
 
 	if(touch_dur < 200
-	&& travel_dist > board_scale
+	&& travel_dist > board_scale*3
 	&& travel.y > 0 
-	&& travel.y > Math.abs(travel.x))
+	&& travel.y > Math.abs(travel.x)
+	&& get_time() - last_tap > 100)
 		drop();
-	else if(touch_dur < 200 && travel_dist < board_scale)
+	else if(touch_dur < 200 && travel_dist < board_scale/4)
 		tap(evt);
 		
 	drop_fast = false;

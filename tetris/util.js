@@ -13,6 +13,10 @@ Array.matrix = function(numrows, numcols, initial)
     return arr;
 }
 
+function get_time() { return (new Date()).getTime(); }
+
+function numberWithCommas(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+
 function remap_hashmap(hashmap,callback)
 {
 	var new_map = {};
@@ -22,34 +26,19 @@ function remap_hashmap(hashmap,callback)
 	return new_map;
 }
 
+function loop_hashmap(hashmap, callback)
+{
+	for (var i = 0, keys = Object.keys(hashmap), ii = keys.length; i < ii; i++) {
+		var key = keys[i];
+		var value = hashmap[key];
+		callback(key, value);
+	}
+}
+
 function rand_int(ceiling)
 {
 	return Math.floor(Math.random()*ceiling);
 }
-
-function LayeredAudio(file_name, num_layers)
-{
-	this.num_layers = num_layers || 10;
-	
-	this.audio_arr = [];
-	while(this.audio_arr.length < this.num_layers)
-	{
-		var snd = new Audio();
-		snd.src = file_name;
-		this.audio_arr.push( snd );
-	}
-	
-	this.cur_sound = 0;
-	
-	var self = this;
-	this.play = function()
-	{	
-		var snd = self.audio_arr[ self.cur_sound ];
-		snd.play();
-		self.cur_sound = (self.cur_sound+1) % self.num_layers;
-	}
-}
-var shift_sound = new LayeredAudio("res/shift.wav");
 
 function fade(col,percent,opt_to)
 {
@@ -234,9 +223,14 @@ function init_pieces()
 	});
 }
 
-function reset()
+function clear_game_board()
 {
 	game_board = Array.matrix(10, 20, null);
+}
+
+function reset()
+{
+	clear_game_board();
 	level = 0, score = 0;
 	update_score();
 	drop_fast = false;
@@ -341,6 +335,11 @@ var next_pieces = [];
 var held_piece = null;
 var can_hold = true;
 
+function generate_piece(name)
+{
+	return {type:pieces[name], rotation:0};
+}
+
 // generate a random permutation of the 7 tetris pieces
 function generate_permutation()
 {
@@ -355,10 +354,7 @@ function generate_permutation()
 			choose = (choose + 1) % len;
 		perm.push(shape_names[choose]);
 	}
-	return perm.map(function(name){
-		var type = pieces[name];
-		return {type:type, rotation:0};
-	});
+	return perm.map(generate_piece);
 }
 
 function get_next_piece()
@@ -511,6 +507,7 @@ function move_piece(x)
 		cur_pos.x -= x;
 		return false;
 	}
+	click_sound.play();
 	draw_board();
 	return true;
 }
@@ -600,6 +597,7 @@ function place_on_board(piece)
 	});
 	if(valid_pos)
 	{
+		click_sound.play();
 		check_clearable_lines();
 	}
 	return valid_pos;
