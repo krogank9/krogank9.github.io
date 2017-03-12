@@ -14,7 +14,7 @@ function get_center_width() { return board_width_px + board_padding; }
 
 function calc_board_size()
 {
-	var max_height = window.innerHeight * 0.70;
+	var max_height = window.innerHeight * 0.8;
 
 	var goal_height = max_height;
 	
@@ -35,7 +35,7 @@ function calc_top_height()
 }
 function position_canvases()
 {
-	var board_canvas = get("board_canvas");
+	board_canvas = get("board_canvas");
 	board_canvas.width = board_width_px;
 	board_canvas.height = board_height_px;
 	
@@ -48,7 +48,7 @@ function position_canvases()
 	
 	preview_offset = (box_size - preview_size)/2;
 	
-	var hold_canvas = get("hold_canvas");
+	hold_canvas = get("hold_canvas");
 	var hold = get("hold");
 	hold_canvas.width = hold_canvas.height = box_size;
 	for(var i=1; i<=4; i++)
@@ -57,16 +57,16 @@ function position_canvases()
 		next_canvas.width = next_canvas.height = box_size;
 	}
 	
-	var board_canvas = get("board_canvas");
-	var hold_canvas = get("hold_canvas");
+	board_canvas = get("board_canvas");
+	hold_canvas = get("hold_canvas");
 	var next_canvas = [
 		get("next_canvas_1"), get("next_canvas_2"),
 		get("next_canvas_3"), get("next_canvas_4")
 	];
 	
-	board_context = new Renderer( board_canvas );
-	hold_context = new Renderer( hold_canvas );
-	next_context = next_canvas.map(function(c){return new Renderer(c)});
+	board_context = new Renderer( board_canvas, 10*20 * 20*2 );
+	hold_context = new Renderer( hold_canvas, 4*20*2);
+	next_context = next_canvas.map(function(c){return new Renderer(c, 4*20*2)});
 }
 
 function calc_box_size()
@@ -83,17 +83,20 @@ function maximize_text()
 	var next_text_container = get("next_text_container");
 	var hold_text = get("hold_text");
 	var hold_text_container = get("hold_text_container");
-	var bottom = get("bottom");
-	var font_size = 0;
-	
+	var top = get("top");
+
+	var font_size = 0;	
 	document.body.style.fontSize = font_size + "px";
+	score_text.style.fontSize = font_size + "px";
 	
 	while(score_text.offsetHeight < bottom.offsetHeight*0.85)
+		score_text.style.fontSize = ++font_size + "px";
+	score_text.style.fontSize = --font_size + "px";
+	
+	font_size = 0;
+	while(next_text.offsetWidth < next_text_container.offsetWidth)
 		document.body.style.fontSize = ++font_size + "px";
 	document.body.style.fontSize = --font_size + "px";
-
-	while(next_text.offsetWidth > next_text_container.offsetWidth)
-		document.body.style.fontSize = --font_size + "px";
 	
 	document.body.style.fontSize = font_size + "px";	
 }
@@ -102,7 +105,7 @@ function center_text()
 	//center all
 	score_text.style.position = "absolute";
 	score_text.style.left = "0px";
-	score_text.style.top = Math.round(bottom.offsetHeight/2 - score_text.offsetHeight/2) + "px";
+	score_text.style.top = Math.round(get("bottom").offsetHeight/2 - score_text.offsetHeight/2) + "px";
 	
 	hold_text.style.position = "absolute";
 	hold_text.style.left = Math.round(hold_text_container.offsetWidth/2 - hold_text.offsetWidth/2) + "px";
@@ -147,6 +150,8 @@ function resize_bot()
 	var height = Math.round( get("score_text").offsetHeight * 1.3 );
 	get("bottom").className = "flexdiv_end " + "height=" + height + "px";
 	height = touch_area.offsetHeight - board_height_px - height;
+	if( height < 0 )
+		height = 0;
 	get("touch_area_spacer").className = "height="+ height +"px";
 }
 function init_layout()
@@ -155,14 +160,16 @@ function init_layout()
 	update_flexdiv(game_div);
 	update_flexdiv(get("pause_overlay"));
 	update_flexdiv(get("highscore_overlay"));
+	update_flexdiv(get("ask_exit_overlay"));
+	update_flexdiv(get("ask_restart_overlay"));
 	
 	maximize_text();
 	
 	if(first_run == true)
 	{
 		first_run = false;
-		resize_bot();
-		update_flexdiv(game_div);
+		//resize_bot();
+		//update_flexdiv(game_div);
 	}
 	
 	center_text();

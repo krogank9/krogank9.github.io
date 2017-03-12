@@ -24,20 +24,30 @@ function update_score()
 	score_text.innerHTML = "SCORE "+numberWithCommas(score)+"<br>LEVEL "+level;
 }
 
+function hide_overlays()
+{
+	pause_div.style.visibility = "hidden";
+	highscore_div.style.visibility = "hidden";
+	ask_exit_overlay.style.visibility = "hidden";
+	ask_restart_overlay.style.visibility = "hidden";
+}
+
 var pause_div = get("pause_overlay");
 function toggle_pause()
 {
 	if(!paused)
 	{
 		paused = true;
-		pause_div.style.visibility = "visible";
+		show_pause();
 	}
 	else if(paused)
 	{
 		paused = false;
-		pause_div.style.visibility = "hidden";
+		hide_overlays();
 	}
 }
+function unpause() { if(paused) toggle_pause() }
+function pause() { if(!paused) toggle_pause() }
 
 function save_highscore()
 {
@@ -58,25 +68,38 @@ var highscore = 0;
 var highscore_div = get("highscore_overlay");
 var highscore_span = get("highscore_span");
 var yourscore_span = get("yourscore_span");
-function toggle_highscore()
+
+function show_highscore()
 {
-	if(!paused)
+	hide_overlays();
+	
+	paused = true;
+	if(score > highscore)
 	{
-		paused = true;
-		if(score > highscore)
-		{
-			highscore = score;
-			save_highscore();
-		}
-		yourscore_span.innerHTML = "YOUR SCORE<br>"+numberWithCommas(score);
-		highscore_span.innerHTML = "HIGH SCORE<br>"+numberWithCommas(highscore);
-		highscore_div.style.visibility = "visible";
+		highscore = score;
+		save_highscore();
 	}
-	else if(paused)
-	{
-		paused = false;
-		highscore_div.style.visibility = "hidden";
-	}
+	yourscore_span.innerHTML = "YOUR SCORE<br>"+numberWithCommas(score);
+	highscore_span.innerHTML = "HIGH SCORE<br>"+numberWithCommas(highscore);
+	highscore_div.style.visibility = "visible";
+}
+
+var ask_exit_overlay = get("ask_exit_overlay");
+function show_ask_exit()
+{
+	hide_overlays();
+	ask_exit_overlay.style.visibility = "visible";
+}
+var ask_restart_overlay = get("ask_restart_overlay");
+function show_ask_restart()
+{
+	hide_overlays();
+	ask_restart_overlay.style.visibility = "visible";
+}
+function show_pause()
+{
+	hide_overlays();
+	pause_div.style.visibility = "visible";
 }
 
 var max_speed = 50;
@@ -88,16 +111,16 @@ var drop_fast = false;
 function get_tick_speed() {
 	var speed = min_speed - (min_speed-max_speed) * (level/max_level);
 	if(drop_fast)
-		speed = max_speed;
+		speed = max_speed/1.5;
 	return speed;
 }
 
 var tick_gap = 250;
 var tick_gap_fast = 50;
-var last_tick = get_time();
+var last_tick = Date.now();
 function tick()
 {
-	last_tick = get_time();
+	last_tick = Date.now();
 	
 	if(check_touching_bottom())
 	{
@@ -106,7 +129,7 @@ function tick()
 		
 		if(!result)
 		{
-			toggle_highscore();
+			show_highscore();
 			for(var x=0; x<board_width; x++)
 			{
 				for(var y=0; y<board_height; y++)
@@ -131,11 +154,11 @@ function tick()
 }
 
 var window_focus = true;
-window.onfocus = function(){window_focus = true; draw_all();}
-window.onblur = function(){window_focus = false}
+window.onfocus = function(){window_focus = true; draw_all(); init_layout();}
+window.onblur = function(){window_focus = false; }
 function main_loop()
 {
-	var now = get_time();
+	var now = Date.now();
 	var elapsed = now - last_tick;
 	
 	var tick_gap = check_touching_bottom() ? place_delay : get_tick_speed();

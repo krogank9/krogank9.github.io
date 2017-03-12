@@ -1,9 +1,18 @@
 // Animation for the label radio buttons used
 $(".custom_label_button").mousedown( function() {
 	this.style.background = "linear-gradient(#ffffff,#dddddd)";
+	this.held_down = true;
 });
 $(".custom_label_button").mouseup( function() {
 	this.style.background = "";
+	this.held_down = false;
+});
+$( window ).mouseup(function(){
+	$(".custom_label_button").each(function(){
+		if(this.held_down)
+			this.style.background = "";
+		this.held_down = false;
+	});
 });
 
 function get_radio_value(radio_name) {

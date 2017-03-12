@@ -13,8 +13,6 @@ Array.matrix = function(numrows, numcols, initial)
     return arr;
 }
 
-function get_time() { return (new Date()).getTime(); }
-
 function numberWithCommas(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
 
 function remap_hashmap(hashmap,callback)
@@ -245,7 +243,7 @@ function reset()
 	reset_pos();
 	total_lines_cleared = 0;
 	
-	last_tick = get_time();
+	last_tick = Date.now();
 	draw_all();
 }
 
@@ -580,6 +578,7 @@ function check_clearable_lines()
 	update_score();
 }
 
+var last_placed = 0;
 function place_on_board(piece)
 {
 	var valid_pos = true;
@@ -599,6 +598,7 @@ function place_on_board(piece)
 	{
 		click_sound.play();
 		check_clearable_lines();
+		last_placed = Date.now();
 	}
 	return valid_pos;
 }

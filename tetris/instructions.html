@@ -11,7 +11,13 @@
 				src: url(DejaVuSans.ttf) format("truetype");
 			}
 			
-			*{margin:0;padding:0;font-family: "FreeSans";}
+			*{
+				margin:0;
+				padding:0;
+				font-family: "FreeSans";
+				color: white;
+				-webkit-user-select: none;
+			}
 			
 			body, html
 			{
@@ -30,21 +36,25 @@
 				top: 0px; left: 0px;
 				visibility: hidden;
 			}
+			
+			.catris_button
+			{
+				background: -webkit-linear-gradient(top, #161674, #4d4da4);
+			}
 		</style>
 	</head>
 	<body>
-		<div id="game_div" class="flexdiv_root vertical fullscreen">
-			<img id="cursor" src="cursor.png" style="position: fixed; z-index: 9999999;">
-			<img id="cat" src="cat.png">
-			<div id="top" class="height=calc_top_height()">
-				<div class="center width=-15px height=-10px" style="background-color: #4d4da4; border-radius: 10px;">
+		<div id="help_overlay" class="flexdiv_root fullscreen vertical" style="z-index: 999;">
+			<div class="height=5px"></div>
+			<div>
+				<div class="center_horizontal width=-10px height=0.25ar" style="background-color: #4d4da4; border-radius: 10px;">
 					<div class="center width=-15px height=-15px">
 						<div style="background-color: #161674;">
 							<div id="help_text" class="center width=-10px height=-10px" style="color: white;">
 							</div>
 						</div>
 						<div class="width=1ar" style="background-color: #4d4da4;" onclick="next_lesson();">
-							<div class="center width=-15px height=-15px" 
+							<div class="catris_button center width=-15px height=-15px" 
 							style="background-color: #161674; border-radius: 5px; color: white; display: flex; align-items: center;">
 								<span style="text-align: center; width: 100%;">OK</span>
 							</div>
@@ -52,23 +62,34 @@
 					</div>
 				</div>
 			</div>
+		</div>
+		<div id="game_div" class="flexdiv_root vertical fullscreen">
+			<img id="cursor" src="cursor.png" style="position: fixed; z-index: 9999999;">
+			<img id="cat" src="cat.png">
+			<div id="top" class="height=calc_top_height() vertical">
+			</div>
 			<div id="touch_area" class="vertical">
-				<div id="touch_area_spacer" class="height=0px"></div>
+				<div id="touch_area_spacer"></div>
 				<div id="middle" class="height=get_center_height()">
-					<div id="left">
-						<div class="center_horizontal width=calc_box_size() vertical">
-							<div class="height=10%"></div>
-							<div class="flexdiv_end height=0.5ar" id="hold_text_container">
-								<div id="hold_text" style="color: white; text-align: center; display: inline-block;">HOLD</div>
+					<div id="left" class="vertical">
+						<div class="height=10%"></div>
+						<div>
+							<div class="center_horizontal vertical width=calc_box_size()">
+								<div class="flexdiv_end height=0.5ar" id="hold_text_container">
+									<div id="hold_text" style="color: white; text-align: center; display: inline-block;">HOLD</div>
+								</div>
+								<div id="hold" class="height=1ar" style="background-color: black">
+									<canvas id="hold_canvas" style="width:100%; height:100%"></canvas>
+								</div>
 							</div>
-							<div id="hold" class="height=1ar" style="background-color: black">
-								<canvas id="hold_canvas" style="width:100%; height:100%"></canvas>
-							</div>
-							<div class="height=20%"></div>
-							<div id="paw_div" class="height=1ar" style="text-align: center">
+						</div>
+						<div></div>
+						<div id="paw_div" class="height=calc_box_size()">
+							<div class="center_horizontal width=1ar" style="text-align: center">
 								<img src="paw.png" style="height: 100%; width: auto;">
 							</div>
 						</div>
+						<div></div>
 					</div>
 					<div id="center" class="width=get_center_width()" style="background-color: #000000;">
 						<canvas id="board_canvas"></canvas>
@@ -96,7 +117,7 @@
 						</div>
 					</div>
 				</div>
-				<div id="bottom" class="flexdiv_end">
+				<div id="bottom" class="flexdiv_end height=10%">
 					<div id="score_text" style="color: white; text-align: center; width: 100%;">
 						SCORE 0<br>LEVEL 0
 					</div>
@@ -114,11 +135,11 @@
 					<span id="resume_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="toggle_pause()">
 						RESUME
 					</span>
-					<span id="quit_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="reset(); toggle_pause()">
+					<span id="quit_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="show_ask_restart()">
 						RESTART
 					</span>
-					<span id="quit_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="window.close()">
-						QUIT
+					<span id="quit_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="show_ask_exit()">
+						EXIT
 					</span>
 					<span></span>
 				</div>
@@ -142,14 +163,51 @@
 						<br>
 						0
 					</span>
-					<span id="ok_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="reset(); toggle_highscore();">
+					<span id="ok_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="reset(); unpause();">
 						&nbsp;&nbsp; OK &nbsp;&nbsp;
 					</span>
 					<span></span>
 				</div>
 			</div>
 		</div>
+		<div id="ask_exit_overlay" class="flexdiv_root fullscreen" style="z-index: 999; background-color: rgba(0,0,0, 0.5)">
+			<div class="center vertical width=75% height=1ar" style="border-radius: 10px; border: solid 10px #4d4da4; background-color: #4d4da4; color:white">
+				<div class="height=10%" style="text-align: center; background-color: #4d4da4; display: flex; justify-content: center; align-items: center;">
+					EXIT?
+				</div>
+				<div class="height=10px"></div>
+				<div class="flexdiv_end" style="background-color: #161674; text-align: center; display: flex; justify-content: space-between; align-items: center; flex-direction: column">
+					<span></span>
+					<span id="resume_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="window.location.href = 'main_menu.html'">
+						YES
+					</span>
+					<span id="quit_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="show_pause()">
+						NO
+					</span>
+					<span></span>
+				</div>
+			</div>
+		</div>
+		<div id="ask_restart_overlay" class="flexdiv_root fullscreen" style="z-index: 999; background-color: rgba(0,0,0, 0.5)">
+			<div class="center vertical width=75% height=1ar" style="border-radius: 10px; border: solid 10px #4d4da4; background-color: #4d4da4; color:white">
+				<div class="height=10%" style="text-align: center; background-color: #4d4da4; display: flex; justify-content: center; align-items: center;">
+					RESTART?
+				</div>
+				<div class="height=10px"></div>
+				<div class="flexdiv_end" style="background-color: #161674; text-align: center; display: flex; justify-content: space-between; align-items: center; flex-direction: column">
+					<span></span>
+					<span id="resume_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="reset(); toggle_pause()">
+						YES
+					</span>
+					<span id="quit_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="show_pause()">
+						NO
+					</span>
+					<span></span>
+				</div>
+			</div>
+		</div>
 	</body>
+	<script src="jquery-3.1.0.min.js"></script>
 	<script src="flexdiv.js"></script>
 	<script src="layout.js"></script>
 	
@@ -161,4 +219,14 @@
 	<script src="tetris.js"></script>
 	
 	<script src="instructions.js"></script>
+	
+	<script>
+		// buttons
+		$(".catris_button").on("touchstart", function() {
+			this.style.background= "-webkit-linear-gradient(top, #161674, #3d3d94)";
+		});
+		$(".catris_button").on("touchend", function() {
+			this.style.background= "";
+		});
+	</script>
 </html>

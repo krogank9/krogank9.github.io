@@ -35,76 +35,102 @@ function tap(evt)
 	else
 		rotate();
 		
-	last_tap = get_time();
+	last_tap = Date.now();
 }
 
 var last = get_touch_pos();
 var start = get_touch_pos();
 var cur = get_touch_pos();
+var prev = get_touch_pos();
 var start_time = 0;
+var start_placed = 0;
+var last_drop_placed = 0;
 var last_tap = 0;
 var last_time = 0;
+var started_dropping = 0;
 
 var velocity_x = 0;
 var velocity_y = 0;
 
+var moved = false;
+
 touch_area.ontouchstart = function(evt) {
-	start_time = last_time = get_time();
+	start_time = last_time = Date.now();
+	start_placed = last_placed;
 	
 	start = get_touch_pos(evt);
 	cur = get_touch_pos(evt);
+	prev = get_touch_pos(evt);
 	last = get_touch_pos(evt);
+	
+	velocity_x = velocity_y = 0;
+	
+	moved = false;
 	
 	return false;
 }
 
 touch_area.ontouchmove = function(evt)
 {
-	var now = get_time();
+	var now = Date.now();
 	var touch_dur = now - start_time;
 	cur = get_touch_pos(evt);
-	var travel = diff(cur, start);
+	var travel = diff(cur, prev);
 	velocity_x = travel.x / (now - last_time); // px / s
 	velocity_y = travel.y / (now - last_time);
 	
+	
+	var can_move = (now - started_dropping) > 400
+				|| last_drop_placed < start_placed;
+				
 	var move = diff(cur, last);
 	// shift block left to right
-	if(move.x > board_width_px/10)
+	if(move.x > board_scale)
 	{
-		if(Math.abs(move.x) > Math.abs(move.y))
+		if( Math.abs(velocity_x) > velocity_y && can_move )
+		{
 			move_piece(1);
-		last = cur;
+			moved = true;
+			drop_fast = false;
+			last = cur;
+		}
 	}
-	else if(move.x < -board_width_px/10)
+	else if(move.x < -board_scale)
 	{
-		if(Math.abs(move.x) > Math.abs(move.y))
+		if( Math.abs(velocity_x) > velocity_y && can_move )
+		{
 			move_piece(-1);
-		last = cur;
+			moved = true;
+			drop_fast = false;
+			last = cur;
+		}
 	}
 	
-	console.log(velocity_y + ", " + (board_scale*4/200));
-	// fast dropping
-	//if( touch_dur < 200 && travel.y > board_scale*4 )
-	if( velocity_y > board_scale/3 )
+	if( !drop_fast && velocity_y > board_scale/30 )
+	{
 		drop_fast = true;
+		started_dropping = Date.now();
+		last_drop_placed = start_placed;
+	}
 		
 	last_time = now;
+	prev = cur;
 	
 	return false;
 }
 
 touch_area.ontouchend = function(evt) {
-	var touch_dur = get_time() - start_time;
+	var now = Date.now();
+	
+	last_drop_placed--;
+	
+	var touch_dur = now - start_time;
 	var travel = diff(cur, start);
 	var travel_dist = mag(travel);
 
-	if(touch_dur < 200
-	&& travel_dist > board_scale*3
-	&& travel.y > 0 
-	&& travel.y > Math.abs(travel.x)
-	&& get_time() - last_tap > 100)
+	if(drop_fast && (now - started_dropping) < 400 && start_placed == last_placed)
 		drop();
-	else if(touch_dur < 200 && travel_dist < board_scale/4)
+	else if(drop_fast == false && moved == false && start_placed == last_placed)
 		tap(evt);
 		
 	drop_fast = false;
@@ -133,7 +159,7 @@ window.onkeydown = function(evt)
 			break;
 		case 40: //down
 			if(down_held == false)
-				down_key_time = get_time();
+				down_key_time = Date.now();
 			drop_fast = true;
 			down_held = true;
 			break;
@@ -147,10 +173,9 @@ window.onkeydown = function(evt)
 
 window.onkeyup = function(evt)
 {
-	var now = get_time();
 	if(evt.keyCode == 40) //down arrow
 	{
-		var elapsed = now - down_key_time;
+		var elapsed = Date.now() - down_key_time;
 		if(elapsed < 120 && drop_fast)
 			drop();
 			

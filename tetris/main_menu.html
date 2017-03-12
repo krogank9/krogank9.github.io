@@ -11,7 +11,13 @@
 				src: url(DejaVuSans.ttf) format("truetype");
 			}
 			
-			*{margin:0;padding:0;font-family: "FreeSans";color: white;}
+			*{
+				margin:0;
+				padding:0;
+				font-family: "FreeSans";
+				color: white;
+				-webkit-user-select: none;
+			}
 			
 			body, html
 			{
@@ -30,49 +36,67 @@
 				top: 0px; left: 0px;
 				visibility: hidden;
 			}
+			
+			.catris_button
+			{
+				background: -webkit-linear-gradient(top, #161674, #4d4da4);
+				padding: 15px;
+				border: solid 7px #4d4da4;
+				border-radius: 5px;
+			}
 		</style>
 	</head>
 	<body>
-		<div id="menu" class="fullscreen">
-			<div id="buttons" style="width: 100%; height: 65%; text-align: center; display: flex; justify-content: space-around; align-items: center; flex-direction: column">
-				<span id="play" style="padding: 15px; border: solid 7px #4d4da4; border-radius: 5px;"
-				onclick="window.location.href = 'index.html'">
+		<div id="menu" class="fullscreen" style="display: flex; flex-flow: column; height: 100%;">
+			<div>
+				<img src="logo.png" style="width: 100%; height: auto;" />
+			</div>
+			<div id="buttons" style="width: 100%; height: 65%; text-align: center; flex: 1; display: flex; justify-content: space-around; align-items: center; flex-direction: column">
+				<span id="play" class="catris_button" onclick="window.location.href = 'index.html'">
 					&nbsp; &nbsp; PLAY &nbsp; &nbsp;
 				</span>
-				<span style="padding: 15px; border: solid 7px #4d4da4; border-radius: 5px;"
-				onclick="window.location.href = 'instructions.html'">
+				<span id="play" class="catris_button" onclick="window.location.href = 'instructions.html'">
 					&nbsp; &nbsp; HELP &nbsp; &nbsp;
 				</span>
-				<span style="padding: 15px; border: solid 7px #4d4da4; border-radius: 5px;"
-				onclick="window.close();">
+				<span id="play" class="catris_button" onclick="Android.quit_app();">
 					&nbsp; &nbsp; QUIT &nbsp; &nbsp;
 				</span>
-			</div>
-			<div style="width: 100%; height: 35%;">
-				CAT
 			</div>
 		</div>
 	</body>
 	
 	<script src="webaudio.js"></script>
+	<script src="jquery-3.1.0.min.js"></script>
 	
 	<script>
-		function get(id) { return document.getElementById(id) }
+		var play = document.getElementById("play");
+		var div = document.getElementById("buttons");
+		var menu = document.getElementById("menu");
+
+		window.onload = size_text;
+		window.onresize = size_text;
+		window.onfocus = size_text;
+
 		//maximize text
-		window.onload = function()
+		function size_text()
 		{
 			var font_size = 0;
 
 			document.body.style.fontSize = font_size + "px";
 			
-			var play = get("play");
-			var div = get("buttons");
-			
 			while(play.offsetHeight < div.offsetHeight/5)
 				document.body.style.fontSize = ++font_size + "px";
 			document.body.style.fontSize = --font_size + "px";
 			
-			get("menu").style.visibility = "visible";
+			menu.style.visibility = "visible";
 		}
+		
+		// buttons
+		$(".catris_button").on("touchstart", function() {
+			this.style.background= "-webkit-linear-gradient(top, #161674, #3d3d94)";
+		});
+		$(".catris_button").on("touchend", function() {
+			this.style.background = "";
+		});
 	</script>
 </html>

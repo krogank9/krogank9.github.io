@@ -1,3 +1,7 @@
+var help_overlay = document.getElementById("help_overlay");
+update_flexdiv(help_overlay);
+help_overlay.style.visibility = "visible";
+
 function hookFunction(object, functionName, callback) {
     (function(originalFunction) {
         object[functionName] = function () {
@@ -34,7 +38,7 @@ var incr = 0;
 // moving left and right
 var movement =
 {
-	help_text: "Drag left and right to move the piece",
+	help_text: "Drag left and right to move",
 	setup: function()
 	{
 		clear_game_board();
@@ -48,7 +52,7 @@ var movement =
 	},
 	think: function()
 	{
-		var now = get_time();
+		var now = Date.now();
 		var elapsed = now - last_move;
 		if(elapsed > 200)
 		{
@@ -68,7 +72,7 @@ var movement =
 // rotation
 var rotation =
 {
-	help_text: "Tap to rotate the piece",
+	help_text: "Tap to rotate",
 	setup: function()
 	{
 		reset();
@@ -91,7 +95,7 @@ var rotation =
 	},
 	think: function()
 	{
-		var now = get_time();
+		var now = Date.now();
 		var elapsed = now - last_move;
 		if(elapsed > 1300)
 			show_cursor();
@@ -111,11 +115,11 @@ var set_show = false;
 // instant dropping
 var instant_drop = 
 {
-	help_text: "Swipe down quickly to drop the piece",
+	help_text: "Swipe down quickly to drop",
 	setup: function()
 	{
 		reset();
-		last_drop = get_time();
+		last_drop = Date.now();
 		set_show = set_dest = false;
 	},
 	placed: function()
@@ -129,7 +133,7 @@ var instant_drop =
 	},
 	think: function()
 	{
-		var now = get_time();
+		var now = Date.now();
 		if( !set_show && now - last_drop > 2500 )
 		{
 			set_show = true;
@@ -160,14 +164,14 @@ var fast_drop =
 	{
 		drop_count = 0;
 		clear_game_board();
-		start_time = get_time();
+		start_time = Date.now();
 		
 		hide_cursor();
 		set_show = set_dest = false;
 	},
 	placed: function()
 	{
-		start_time = get_time();
+		start_time = Date.now();
 		drop_count++;
 		if(drop_count > 3)
 		{
@@ -180,7 +184,7 @@ var fast_drop =
 	},
 	think: function()
 	{
-		var now = get_time();
+		var now = Date.now();
 		if( !set_show && now - start_time > 2500 )
 		{
 			set_show = true;
@@ -199,11 +203,11 @@ var fast_drop =
 //hold
 var holding = 
 {
-	help_text: "Use the hold function to store a piece",
+	help_text: "Tap the hold box to store a piece",
 	setup: function()
 	{
 		reset();
-		start_time = get_time();
+		start_time = Date.now();
 		hide_cursor();
 		set_show = false;
 		incr = 0;
@@ -211,7 +215,7 @@ var holding =
 	placed: function(){},
 	think: function()
 	{
-		var now = get_time();
+		var now = Date.now();
 		if( !set_show && now - start_time > 2800 )
 		{
 			set_show = true;
@@ -259,7 +263,7 @@ function load_state_small()
 }
 var small_clear = 
 {
-	help_text: "Stack rows to clear lines and earn points",
+	help_text: "Clear lines to earn points",
 	placed: function()
 	{
 		load_state_small();
@@ -299,7 +303,7 @@ function load_state_big()
 }
 var big_clear = 
 {
-	help_text: "Clear 4 lines at once for max points",
+	help_text: "Clear 4 at once for max points",
 	placed: function()
 	{
 		load_state_big();
@@ -354,7 +358,7 @@ var c_time = 0;
 var c_pos = {x: 0, y: 0}
 function set_cursor_dest(x, y, ms)
 {
-	c_start = get_time();
+	c_start = Date.now();
 	c_end = c_start + ms;
 	
 	c_start_pos.x = c_pos.x;
@@ -384,7 +388,7 @@ function update_cursor()
 	if(!c_moving)
 		return;
 		
-	var now = get_time();
+	var now = Date.now();
 	var percent_finished = (now - c_start)/c_time;
 	if(percent_finished > 1)
 		percent_finished = 1;
