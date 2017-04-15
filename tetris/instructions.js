@@ -2,6 +2,10 @@ var help_overlay = document.getElementById("help_overlay");
 update_flexdiv(help_overlay);
 help_overlay.style.visibility = "visible";
 
+hookFunction(window, "onload", function(){
+	muted = true;
+});
+
 function hookFunction(object, functionName, callback) {
     (function(originalFunction) {
         object[functionName] = function () {

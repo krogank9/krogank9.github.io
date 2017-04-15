@@ -1,16 +1,35 @@
+var muted = false;
+
 var webaudio = new WebAudio();
 var click_sound = webaudio.createSound();
-click_sound.load("click1.wav");
+click_sound.load("click1.mp3");
+
+var bgmusic = document.getElementById("bgmusic");
+function play_bgmusic() {
+	if( !muted )
+		bgmusic.play();
+}
+function pause_bgmusic() {
+	bgmusic.pause();
+}
 
 window.onload = function()
 {
-	load_highscore();
+
 	init_layout();
 	init_pieces();
 	
 	reset();
 	draw_all();
 	requestAnimationFrame(main_loop);
+	
+	load_vars();
+	if(muted)
+	{
+		muted = false;
+		toggle_mute();
+	}
+	play_bgmusic();
 }
 
 var game_board;
@@ -32,36 +51,58 @@ function hide_overlays()
 	ask_restart_overlay.style.visibility = "hidden";
 }
 
+var mute_button = get("mute_button");
+function toggle_mute()
+{
+	if(!muted)
+	{
+		muted = true;
+		pause_bgmusic();
+		mute_button.src = "sound_off.png";
+	}
+	else
+	{
+		muted = false;
+		play_bgmusic();
+		mute_button.src = "sound_on.png";
+	}
+	save_vars();
+}
+
 var pause_div = get("pause_overlay");
 function toggle_pause()
 {
 	if(!paused)
 	{
 		paused = true;
+		bgmusic.volume = 0.1;
 		show_pause();
 	}
 	else if(paused)
 	{
 		paused = false;
+		bgmusic.volume = 1.0;
 		hide_overlays();
 	}
 }
 function unpause() { if(paused) toggle_pause() }
 function pause() { if(!paused) toggle_pause() }
 
-function save_highscore()
+function save_vars()
 {
 	if(typeof(Storage) === "undefined" || !localStorage)
 		return;
 
 	localStorage.setItem("catris_highscore", highscore);
+	localStorage.setItem("catris_muted", muted);
 }
-function load_highscore()
+function load_vars()
 {
 	if(typeof(Storage) === "undefined" || !localStorage)
 		return;
 
-	highscore = localStorage.catris_highscore || 0;
+	highscore = parseInt(localStorage.catris_highscore) || 0;
+	muted = localStorage.catris_muted=="true";
 }
 
 var highscore = 0;
@@ -77,7 +118,7 @@ function show_highscore()
 	if(score > highscore)
 	{
 		highscore = score;
-		save_highscore();
+		save_vars();
 	}
 	yourscore_span.innerHTML = "YOUR SCORE<br>"+numberWithCommas(score);
 	highscore_span.innerHTML = "HIGH SCORE<br>"+numberWithCommas(highscore);
@@ -154,8 +195,19 @@ function tick()
 }
 
 var window_focus = true;
-window.onfocus = function(){window_focus = true; draw_all(); init_layout();}
-window.onblur = function(){window_focus = false; }
+window.onfocus = function() {
+	window_focus = true;
+	init_layout();
+	draw_all();
+	
+	play_bgmusic();
+}
+window.onblur = function() {
+	window_focus = false;
+	
+	pause_bgmusic();
+}
+
 function main_loop()
 {
 	var now = Date.now();

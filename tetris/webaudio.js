@@ -473,6 +473,8 @@ WebAudio.Sound.prototype.isPlayable	= function(){
  * @param {Number} [time] time when to play the sound
 */
 WebAudio.Sound.prototype.play		= function(time){
+	if(muted)
+		return;
 	// handle parameter polymorphism
 	if( time ===  undefined )	time	= 0;
 	// if not yet playable, ignore

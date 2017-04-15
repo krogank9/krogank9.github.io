@@ -44,6 +44,8 @@
 		</style>
 	</head>
 	<body>
+		<audio id="bgmusic">
+		</audio>
 		<div id="help_overlay" class="flexdiv_root fullscreen vertical" style="z-index: 999;">
 			<div class="height=5px"></div>
 			<div>
@@ -67,6 +69,15 @@
 			<img id="cursor" src="cursor.png" style="position: fixed; z-index: 9999999;">
 			<img id="cat" src="cat.png">
 			<div id="top" class="height=calc_top_height() vertical">
+				<div class="height=95%">
+					<div></div>
+					<div class="flexdiv_end width=1ar" onclick="toggle_mute()">
+						<img id="mute_button" src="sound_on.png" style="width: 100%; height:100%;">
+					</div>
+					<div class="flexdiv_end width=1ar" onclick="toggle_pause()">
+						<img src="pause.png" style="width: 100%; height:100%;">
+					</div>
+				</div>
 			</div>
 			<div id="touch_area" class="vertical">
 				<div id="touch_area_spacer"></div>
@@ -132,13 +143,13 @@
 				<div class="height=10px"></div>
 				<div class="flexdiv_end" style="background-color: #161674; text-align: center; display: flex; justify-content: space-between; align-items: center; flex-direction: column">
 					<span></span>
-					<span id="resume_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="toggle_pause()">
+					<span class="catris_button" id="resume_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="toggle_pause()">
 						RESUME
 					</span>
-					<span id="quit_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="show_ask_restart()">
+					<span class="catris_button" id="quit_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="show_ask_restart()">
 						RESTART
 					</span>
-					<span id="quit_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="show_ask_exit()">
+					<span class="catris_button" id="quit_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="show_ask_exit()">
 						EXIT
 					</span>
 					<span></span>
@@ -163,7 +174,7 @@
 						<br>
 						0
 					</span>
-					<span id="ok_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="reset(); unpause();">
+					<span class="catris_button" id="ok_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="reset(); unpause();">
 						&nbsp;&nbsp; OK &nbsp;&nbsp;
 					</span>
 					<span></span>
@@ -178,10 +189,10 @@
 				<div class="height=10px"></div>
 				<div class="flexdiv_end" style="background-color: #161674; text-align: center; display: flex; justify-content: space-between; align-items: center; flex-direction: column">
 					<span></span>
-					<span id="resume_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="window.location.href = 'main_menu.html'">
+					<span class="catris_button" id="resume_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="window.location.href = 'main_menu.html'">
 						YES
 					</span>
-					<span id="quit_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="show_pause()">
+					<span class="catris_button" id="quit_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="show_pause()">
 						NO
 					</span>
 					<span></span>
@@ -196,10 +207,10 @@
 				<div class="height=10px"></div>
 				<div class="flexdiv_end" style="background-color: #161674; text-align: center; display: flex; justify-content: space-between; align-items: center; flex-direction: column">
 					<span></span>
-					<span id="resume_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="reset(); toggle_pause()">
+					<span class="catris_button" id="resume_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="reset(); toggle_pause()">
 						YES
 					</span>
-					<span id="quit_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="show_pause()">
+					<span class="catris_button" id="quit_button" style="border: solid 6px #4d4da4; border-radius: 10px; padding: 10px;" onclick="show_pause()">
 						NO
 					</span>
 					<span></span>
