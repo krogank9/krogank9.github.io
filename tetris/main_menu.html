@@ -24,6 +24,11 @@
 				-webkit-user-select: none;
 			}
 			
+			@keyframes animatedBackground {
+				from { background-position: 0 0; }
+				to { background-position: 1280px 1280px; }
+			}
+			
 			body, html
 			{
 				margin:0;
@@ -34,6 +39,7 @@
 				background-color: #161674;
 				background-image: url("menu_bg.png");
 				background-repeat: repeat;
+				animation: animatedBackground 40s linear infinite;
 			}
 			
 			.fullscreen
@@ -50,6 +56,7 @@
 				padding: 15px;
 				border: solid 7px #4d4da4;
 				border-radius: 5px;
+				box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 			}
 		</style>
 	</head>

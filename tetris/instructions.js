@@ -103,7 +103,7 @@ var rotation =
 		var elapsed = now - last_move;
 		if(elapsed > 1300)
 			show_cursor();
-		if(elapsed > 1500)
+		if(elapsed > 1800)
 		{
 			last_move = now;
 			rotate();
@@ -220,7 +220,7 @@ var holding =
 	think: function()
 	{
 		var now = Date.now();
-		if( !set_show && now - start_time > 2800 )
+		if( !set_show && now - start_time > 2500 )
 		{
 			set_show = true;
 			if(incr++%2==0)
@@ -340,7 +340,7 @@ var c_size;
 function setup_cursor()
 {
 	cursor = get("cursor")
-	c_size = Math.round(get("hold").offsetWidth*0.6);
+	c_size = Math.round(get("hold").offsetWidth*1.5);
 	cursor.style.width = c_size + "px";
 	cursor.style.height = c_size + "px";
 }
