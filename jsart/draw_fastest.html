@@ -1,0 +1,154 @@
+
+<!-- saved from url=(0045)http://krogank9.appspot.com/draw_fastest.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252"><script language="javascript" type="text/javascript">
+		function rotatePoint(xPos,yPos,ang) 
+		{
+            var addAng = 0;
+            while(ang<0) { ang+=360; }
+            while(ang>=90) { ang-=90; addAng++; }
+        	
+        	var slope = Math.tan(ang/57.2957795);
+        	var distPrep = Math.pow(xPos,2) + Math.pow(yPos,2);
+        	var returnPos = {
+        		x: 1, y: slope
+        	}
+        	
+        	if(distPrep>0) { //dividing by 0 protection
+        	    var a = Math.sqrt(distPrep/(1+(slope*slope)));
+        	    returnPos.x = returnPos.x*a;
+        	    returnPos.y = returnPos.y*a;
+        	}
+        	else { //in the case of no rotation needing to be done, pt at origin
+        	    returnPos.x = 0;
+        	    returnPos.y = 0;
+        	}
+        	while(addAng>0) {  addAng--; var tmpX = returnPos.x; returnPos.x = -1*returnPos.y; returnPos.y = tmpX; }
+        	return returnPos;
+		}
+		
+		function coordsToAng(xPos,yPos) {
+			var addAng = 0;
+			while(yPos < 0 || xPos < 0) { // rotate the point 90 degrees clockwise till in first quadrant
+				var tmpX = xPos;
+				xPos = yPos;
+				yPos = -1*tmpX;
+				addAng += 90; // add 90 degrees for every clockwise rotation
+			}
+			var ang = Math.atan(yPos/xPos)*57.2957795 + addAng;
+			return ang;
+		}
+		
+		function rotClockwise(xPos,yPos,times) {
+			while(times<0) { var tmpx = xPos; xPos = -1*yPos; yPos = tmpx; times++; }
+			while(times>0) { var tmpx = xPos; xPos = yPos; yPos = -1*tmpx; times--; }
+			var newPos = {
+				x: xPos, y: yPos
+			}
+			return newPos;
+		}
+	</script>
+	<script>
+		var left = 0;
+		var right = 0;
+		var up = 0;
+		var down = 0;
+		var pgup = 0;
+		var pgdown = 0;
+
+		function keydown(e) {
+		var key = e.keyCode;
+			if(key == 37) { left = 1; }
+			if(key == 38) { up = 1; }
+			if(key == 39) { right = 1; }
+			if(key == 40) { down = 1; }
+			if(key == 33) { pgup = 1; }
+			if(key == 34) { pgdown = 1; }
+		}
+		function keyup(e) {
+			var key = e.keyCode;
+			if(key == 37) { left = 0; }
+			if(key == 38) { up = 0; }
+			if(key == 39) { right = 0; }
+			if(key == 40) { down = 0; }
+			if(key == 33) { pgup = 0; }
+			if(key == 34) { pgdown = 0; }
+		}
+
+		window.addEventListener('keydown',this.keydown,false);
+		window.addEventListener('keyup',this.keyup,false);
+	</script>
+	</head><body><canvas id="logan" width="1024" height="768" style="border: 1px solid red;"></canvas>
+	<script>
+		var canvas = document.getElementById("logan");
+        var divdiv = document.getElementById("divdiv");
+		var ctx = canvas.getContext("2d");
+		canvas.style.border = "solid 1px red";
+        
+        var pts = [];
+    
+		var mousePos = {
+			x: 0, y: 0
+		}
+		
+		canvas.onmousemove = function (evt) { //get mouse coordinates on canvas
+			mousePos.x = evt.pageX - this.offsetLeft;
+			mousePos.y = evt.pageY - this.offsetTop;
+		}
+		
+		var yaw = 0;
+
+		var mainloop = function () {
+			ctx.clearRect(0,0,canvas.width,canvas.height);
+			ctx.fillStyle = 'black';
+            if(up == 1) {
+                newMouseC = rotatePoint(mousePos.x,mousePos.y,coordsToAng(mousePos.x,mousePos.y)-yaw);
+    			var newPt = {
+					x: Math.round(newMouseC.x), y: Math.round(newMouseC.y), z: 0,
+				}
+				pts.push(newPt);
+            }
+			if(left == 1) {
+				yaw--;
+			}
+			else if(right == 1) {
+				yaw++;
+			}
+			
+			//rotate a square then use each side to slide points along as a percent so you only have to do trig calculations once
+			var rightPt = rotatePoint(canvas.width,0,yaw);
+			var botLeftPt = rotatePoint(0,canvas.height,yaw+90);
+			
+			for(var i=0;i<pts.length;i++){
+				if(pts[i] != null && pts[i].z < 1000) {
+					ctx.fillStyle = 'black';
+					
+					var xptPercent = pts[i].x/canvas.width; //percent across the screen the pts are
+					var yptPercent = pts[i].y/canvas.height;
+
+					var xAxisRefPtX = rightPt.x*xptPercent;
+					var xAxisRefPtY = rightPt.y*xptPercent;
+					var yAxisRefPtX = botLeftPt.x*yptPercent;
+					var yAxisRefPtY = botLeftPt.y*yptPercent;
+					
+					var newxy = {
+						x: xAxisRefPtX+yAxisRefPtX, y: xAxisRefPtY+yAxisRefPtY
+					}
+					
+					if(newxy.x > -4 && newxy.y > -4 && newxy.x < canvas.width && newxy.y < canvas.height) {
+						var xDist = Math.abs(newxy.x - mousePos.x);
+						var yDist = Math.abs(newxy.y - mousePos.y);
+						/*if((xDist<8 && yDist<8)) {
+							ctx.fillStyle = 'red';
+						}*/
+						ctx.fillRect(Math.round(newxy.x),Math.round(newxy.y),4,4);
+					}
+				}
+			}
+			ctx.fill();
+		}
+		
+		var ONE_FRAME_TIME = 1;
+		setInterval( mainloop, ONE_FRAME_TIME );
+	</script>
+
+</body></html>

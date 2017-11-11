@@ -1,0 +1,121 @@
+
+<html>
+	<canvas id="logan" width=640 height=480></canvas>
+	<script>
+		var canvas=document.getElementById("logan");
+		var ctx=canvas.getContext("2d");
+		
+		//code to draw circle on canvas
+		function drawCircle(xpos,ypos,rad) {
+			xpos = Math.round(xpos);
+			ypos = Math.round(ypos);
+			var radtimestwo = rad*2;
+			var radPrep = Math.pow(rad,2); //for distance calculations
+			for(var xprog=0;xprog<radtimestwo;xprog++) {
+				for(var yprog=0;yprog<radtimestwo;yprog++) {
+					if((Math.pow(xpos-(xpos-rad+xprog),2)+Math.pow(ypos-(ypos-rad+yprog),2))<radPrep) {
+						ctx.fillRect(xpos-rad+xprog,ypos-rad+yprog,1,1);
+					}
+				}
+			}
+		}
+		
+		function rotatePoint(xPos,yPos,ang) 
+		{
+            var addAng = 0;
+            while(ang<0) { ang+=360; }
+            while(ang>=90) { ang-=90; addAng++; }
+        	
+        	var slope = Math.tan(ang/57.2957795);
+        	var distPrep = Math.pow(xPos,2) + Math.pow(yPos,2);
+        	var returnPos = {
+        		x: 1, y: slope
+        	}
+        	
+        	if(distPrep>0) { //dividing by 0 protection
+        	    var a = Math.sqrt(distPrep/(1+(slope*slope)));
+        	    returnPos.x = returnPos.x*a;
+        	    returnPos.y = returnPos.y*a;
+        	}
+        	else { //in the case of no rotation needing to be done, pt at origin
+        	    returnPos.x = 0;
+        	    returnPos.y = 0;
+        	}
+        	while(addAng>0) {  addAng--; var tmpX = returnPos.x; returnPos.x = -1*returnPos.y; returnPos.y = tmpX; }
+        	return returnPos;
+		}
+		
+		var ptList = [];
+		
+		var camPtList = []; //pt list rearranged & positioned for cam
+		var cam = {
+			x: 100, y: 0, z: 100,
+			pitch: 1, yaw: 0, roll: 0
+		}
+		
+		var flick = false;
+		
+		function newPt(xPos,yPos,zPos,radiusSize,optionalArgColor) {
+			this.x = xPos;
+			this.y = yPos;
+			this.z = zPos;
+			this.size = radiusSize;
+			this.color = "rgb(255,255,255)";
+			if(optionalArgColor != null) {
+				this.color = optionalArgColor;
+			}
+			ptList.push(this);
+		}
+		
+        var left = 0;
+        var right = 0;
+        var up = 0;
+        var down = 0;
+        var pgup = 0;
+        var pgdown = 0;
+        
+        function keydown(e) {
+            var key = e.keyCode;
+            if(key == 37) { left = 1; }
+            if(key == 38) { up = 1; }
+            if(key == 39) { right = 1; }
+            if(key == 40) { down = 1; }
+            if(key == 33) { pgup = 1; }
+            if(key == 34) { pgdown = 1; }
+        }
+        function keyup(e) {
+            var key = e.keyCode;
+            if(key == 37) { left = 0; }
+            if(key == 38) { up = 0; }
+            if(key == 39) { right = 0; }
+            if(key == 40) { down = 0; }
+            if(key == 33) { pgup = 0; }
+            if(key == 34) { pgdown = 0; }
+        }
+        
+        window.addEventListener('keydown',this.keydown,false);
+        window.addEventListener('keyup',this.keyup,false);
+		var yawadd = 0.3; // 0.1 for star pentagram 0.3 for pentagon spiraly type deal
+		var mainloop = function() {
+			while(cam.yaw > 360) { cam.yaw-=360; }
+			while(cam.yaw < 0) { cam.yaw+=360; }
+			while(yawadd > 360) { yawadd-=360; }
+			while(yawadd < 0) { yawadd+=360; }
+			yawadd += 1;
+			cam.yaw+=yawadd;
+			var moveToPt = rotatePoint(0,2.9,cam.yaw);
+			cam.x+=moveToPt.x;
+			cam.z+=moveToPt.y;
+			drawCircle(cam.x*3,cam.z*3,1);
+			ctx.beginPath();
+			ctx.moveTo(cam.x*3,cam.z*3);
+			var lineEnd = rotatePoint(0,5,cam.yaw);
+			ctx.lineTo((lineEnd.x+cam.x)*3,(lineEnd.y+cam.z)*3);
+			ctx.stroke();
+			ctx.fill();
+		}
+		
+		var ONE_FRAME_TIME = 1000 / 256;
+		setInterval( mainloop, ONE_FRAME_TIME );
+	</script>
+</html>
