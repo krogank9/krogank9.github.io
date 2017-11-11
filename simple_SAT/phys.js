@@ -120,6 +120,7 @@ shapes.push( makeBox(310,310,100,100) );
 shapes.push( rotateShape( makeBox(450,80,40,40), angToRad(25) ) );
 
 shapes.push( [vec2(300,50), vec2(400,50), vec2(350,115)] );
+shapes.push( [vec2(230,50), vec2(315,75), vec2(255,120)] );
 
 // Render loop
 
