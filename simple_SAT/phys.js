@@ -124,7 +124,11 @@ window.requestAnimationFrame(step);
 
 shapes.push( rotateShapeA( makeBox(40,10,100,100), 10 ));
 shapes.push(makeBox(120,120,100,100));
-shapes.push( rotateShapeA( makeBox(200,200,100,100), 6.2 ) );
+
+shapes.push( rotateShapeA( makeBox(200,210,100,100), 6.2 ) );
+shapes.push( rotateShapeA( makeBox(250,150,100,100), -6.2 ) );
+
+shapes.push( rotateShapeA( makeBox(25,250,100,100), 0 ) );
 
 shapes.push(makeBox(310,310,100,100));
 shapes.push( rotateShapeA(makeBox(450,80,40,40), 25));
