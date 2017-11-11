@@ -29,7 +29,7 @@ function drawShapes() {
 	for(var i=0; i<shapes.length; i++) {
 		for(var j=0; j<shapes.length; j++) {
 			if(i == j) continue;
-			if(testCollide(shapes[i], shapes[j])) {
+			if(findSeparatingAxis(shapes[i], shapes[j])) {
 				ctx.fillStyle = "red";
 				break;
 			}
@@ -99,11 +99,10 @@ function checkSeparateX(shapeA, shapeB) {
 	return maxA < minB || minA > maxB;
 }
 
-function testCollide(shapeA, shapeB) {
+function findSeparatingAxis(shapeA, shapeB) {
 	var testAxes = getPerpAxes(shapeA).concat(getPerpAxes(shapeB));
 	var testAngles = testAxes.map((s) => Math.atan(s));
 	
-	// test all axes: if found a separating axis, return not colliding
 	for(var i=0; i<testAngles.length; i++) {
 		var shapeAR = rotateShape( shapeA, -testAngles[i] );
 		var shapeBR = rotateShape( shapeB, -testAngles[i] );
