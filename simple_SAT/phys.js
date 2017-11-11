@@ -2,19 +2,14 @@ canvas = document.getElementById("canvas");
 ctx = canvas.getContext("2d");
 shapes = [];
 
-// base
+// Base
 
 function vec2(x,y) {
-	return {x:x||0, y:y||0}
+	return {x:x, y:y}
 }
 
 function makeBox(x,y,w,h) {
 	return [ vec2(x,y), vec2(x+w,y), vec2(x+w,y+h), vec2(x,y+h) ];
-}
-
-function roundTo(num, pos) {
-	var t = Math.pow(10, pos);
-	return Math.round(num*t)/t;
 }
 
 function drawShape(shape) {
@@ -25,11 +20,13 @@ function drawShape(shape) {
 	ctx.closePath();
 	ctx.fill();
 }
+
 function drawShapes() {
 	for(var i=0; i<shapes.length; i++) {
 		for(var j=0; j<shapes.length; j++) {
-			if(i == j) continue;
-			if(findSeparatingAxis(shapes[i], shapes[j])) {
+			if(i == j)
+				continue;
+			else if(findSeparatingAxis(shapes[i], shapes[j])) {
 				ctx.fillStyle = "red";
 				break;
 			}
@@ -66,19 +63,12 @@ function rotateVec(vec, rad) {
 		vec.y*cos + vec.x*sin
 	);
 }
-function rotateVecA(vec, ang) {
-	return rotateVec(vec, ang * Math.PI/180);
-}
 
 function rotateShape(shape, rad) {
 	var nShape = [];
 	for(var i=0; i<shape.length; i++)
 		nShape.push( rotateVec( shape[i], rad ) );
 	return nShape;
-}
-
-function rotateShapeA(shape, ang) {
-	return rotateShape(shape, ang * Math.PI/180);
 }
 
 function checkSeparateX(shapeA, shapeB) {
@@ -112,7 +102,24 @@ function findSeparatingAxis(shapeA, shapeB) {
 	return true;
 }
 
-// loop
+// Create some boxes
+
+function angToRad(ang) {
+	return ang * Math.PI/180;
+}
+
+shapes.push( rotateShape( makeBox(40,10,100,100), angToRad(10) ) );
+shapes.push( makeBox(120,120,100,100) );
+
+shapes.push( rotateShape( makeBox(200,210,100,100), angToRad(6.2) ) );
+shapes.push( rotateShape( makeBox(250,150,100,100), angToRad(-6.2) ) );
+
+shapes.push( makeBox(25,250,100,100) );
+
+shapes.push( makeBox(310,310,100,100) );
+shapes.push( rotateShape( makeBox(450,80,40,40), angToRad(25) ) );
+
+// Render loop
 
 function step() {
 	window.requestAnimationFrame(step);
@@ -120,14 +127,3 @@ function step() {
 	drawShapes();
 }
 window.requestAnimationFrame(step);
-
-shapes.push( rotateShapeA( makeBox(40,10,100,100), 10 ));
-shapes.push(makeBox(120,120,100,100));
-
-shapes.push( rotateShapeA( makeBox(200,210,100,100), 6.2 ) );
-shapes.push( rotateShapeA( makeBox(250,150,100,100), -6.2 ) );
-
-shapes.push( rotateShapeA( makeBox(25,250,100,100), 0 ) );
-
-shapes.push(makeBox(310,310,100,100));
-shapes.push( rotateShapeA(makeBox(450,80,40,40), 25));
