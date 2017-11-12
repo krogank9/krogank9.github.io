@@ -5,19 +5,19 @@ sat_world = world();
 // Base
 
 function drawEnts() {
-	var world = sat_world;
-	for(var i=0; i<world.ents.length; i++) {
-		for(var j=0; j<world.ents.length; j++) {
+	var ents = sat_world.ents;
+	for(var i=0; i<ents.length; i++) {
+		for(var j=0; j<ents.length; j++) {
 			if(i == j)
 				continue;
-			else if( world.ents[i].isOverlapping(world.ents[j]) ) {
+			else if( ents[i].isOverlapping(ents[j]) ) {
 				ctx.fillStyle = "red";
 				break;
 			}
 			else
 				ctx.fillStyle = "black";
 		}
-		world.ents[i].draw(ctx);
+		ents[i].draw(ctx);
 	}
 }
 
