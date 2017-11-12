@@ -2,9 +2,7 @@ canvas = document.getElementById("canvas");
 ctx = canvas.getContext("2d");
 sat_world = world();
 
-// Base
-
-function drawEnts() {
+function drawAll() {
 	var ents = sat_world.ents;
 	for(var i=0; i<ents.length; i++) {
 		for(var j=0; j<ents.length; j++) {
@@ -41,7 +39,7 @@ sat_world.createEnt( ent({ poly: tri, x: 400, y: 180, rotVelDeg: -10 }) );
 function step() {
 	window.requestAnimationFrame(step);
 	ctx.clearRect(0,0,canvas.width,canvas.height);
-	drawEnts();
+	drawAll();
 	sat_world.step();
 }
 window.requestAnimationFrame(step);
