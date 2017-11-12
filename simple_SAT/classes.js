@@ -143,14 +143,14 @@ poly.makeBox = function(w,h) {
 function ent(opts) {
 	if (!(this instanceof ent)) return new ent(opts);
 	this.poly = opts.poly;
-	if(this.poly instanceof Array)
-		this.poly = poly(this.poly);
 	this.pos = opts.pos || vec2(opts.x || 0, opts.y || 0);
 	this.rot = opts.rot || 0;
-	if(!opts.rot && !!opts.rotDeg)
-		this.rot = opts.rotDeg*DEG_TO_RAD;
 	this.vel = opts.vel || vec2(opts.xVel || 0, opts.yVel || 0);
 	this.rotVel = opts.rotVel || 0;
+	if(this.poly instanceof Array)
+		this.poly = poly(this.poly);
+	if(!opts.rot && !!opts.rotDeg)
+		this.rot = opts.rotDeg*DEG_TO_RAD;
 	if(!opts.rotVel && !!opts.rotVelDeg)
 		this.rotVel = opts.rotVelDeg*DEG_TO_RAD;
 }
