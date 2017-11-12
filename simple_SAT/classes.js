@@ -34,6 +34,10 @@ vec2.prototype.sub = function(other) {
 	return vec2( this.x - other.x, this.y - other.y );
 }
 
+vec2.prototype.scale = function(scalar) {
+	return vec2(this.x*scalar, this.y*scalar);
+}
+
 vec2.prototype.dot = function(other) {
 	return this.x*other.x + this.y*other.y;
 }
@@ -147,6 +151,7 @@ function ent(opts) {
 	this.rot = opts.rot || 0;
 	this.vel = opts.vel || vec2(opts.xVel || 0, opts.yVel || 0);
 	this.rotVel = opts.rotVel || 0;
+	
 	if(this.poly instanceof Array)
 		this.poly = poly(this.poly);
 	if(!opts.rot && !!opts.rotDeg)
@@ -169,9 +174,39 @@ ent.prototype.isOverlapping = function(other) {
 
 ent.prototype.setX = function(x) { this.pos.x = x; }
 ent.prototype.setY = function(y) { this.pos.y = y; }
+ent.prototype.addX = function(x) { this.pos.x += x; }
+ent.prototype.addY = function(y) { this.pos.y += y; }
 ent.prototype.setRot = function(r) { this.rot = r; }
 ent.prototype.setRotDeg = function(d) { this.rot = d*DEG_TO_RAD; }
 ent.prototype.setRotVel = function(rv) { this.rotVel = rv; }
 ent.prototype.setRotVelDeg = function(rvd) { this.rotVel = rvd*DEG_TO_RAD; }
 ent.prototype.addRot = function(r) { this.rot = (this.rot + r) % TWO_PI; }
 ent.prototype.addRotDeg = function(d) { this.addRot(d*DEG_TO_RAD); }
+
+///////////
+// World //
+///////////
+
+function world() {
+	if (!(this instanceof world)) return new world();
+	this.ents = [];
+}
+
+world.prototype.createEnt = function(opts) {
+	this.ents.push( ent(opts) );
+}
+
+world.prototype.step = function() {
+	if( !this.lastStep )
+		this.lastStep = Date.now();
+	var elapsed = Math.min(Date.now() - this.lastStep, 500);
+	for(var i=0; i<this.ents.length; i++) {
+		var ent = this.ents[i];
+		var tm = elapsed/1000;
+		var moved = ent.vel.scale(tm);
+		var rotated = ent.rotVel * tm;
+		ent.pos = ent.pos.add(moved);
+		ent.rot += rotated;
+	}
+	this.lastStep = Date.now();
+}
