@@ -140,6 +140,14 @@ poly.makeBox = function(w,h) {
 	]);
 }
 
+poly.makeTriangle = function(b,h) {
+	return poly([
+		vec2(0, -h/2), // tip
+		vec2(-b/2, h/2), // bot left
+		vec2(b/2, h/2) // bot right
+	]);
+}
+
 ////////////
 // Entity //
 ////////////
