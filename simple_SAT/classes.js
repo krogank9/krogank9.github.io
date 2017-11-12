@@ -1,21 +1,5 @@
-TWO_PI = Math.PI * 2;
-HALF_PI = Math.PI / 2;
 DEG_TO_RAD = Math.PI / 180;
 RAD_TO_DEG = 180 / Math.PI;
-
-function radNormal(rad) {
-	rad %= TWO_PI;
-	rad += TWO_PI;
-	rad %= TWO_PI;
-	return rad;
-}
-
-function degNormal(deg) {
-	deg %= 360;
-	deg += 360;
-	deg %= 360;
-	return deg;
-}
 
 //////////
 // Vec2 //
