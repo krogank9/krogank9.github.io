@@ -1,3 +1,5 @@
+TWO_PI = Math.PI * 2;
+HALF_PI = Math.PI / 2;
 DEG_TO_RAD = Math.PI / 180;
 RAD_TO_DEG = 180 / Math.PI;
 
@@ -171,5 +173,5 @@ ent.prototype.setRot = function(r) { this.rot = r; }
 ent.prototype.setRotDeg = function(d) { this.rot = d*DEG_TO_RAD; }
 ent.prototype.setRotVel = function(rv) { this.rotVel = rv; }
 ent.prototype.setRotVelDeg = function(rvd) { this.rotVel = rvd*DEG_TO_RAD; }
-ent.prototype.addRot = function(r) { this.rot = radNormal(this.rot + r); }
+ent.prototype.addRot = function(r) { this.rot = (this.rot + r) % TWO_PI; }
 ent.prototype.addRotDeg = function(d) { this.addRot(d*DEG_TO_RAD); }
