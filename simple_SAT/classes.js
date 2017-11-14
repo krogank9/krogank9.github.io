@@ -42,6 +42,15 @@ vec2.prototype.dot = function(other) {
 	return this.x*other.x + this.y*other.y;
 }
 
+vec2.prototype.mag = function() {
+	return Math.sqrt(this.x*this.x + this.y*this.y);
+}
+
+vec2.prototype.normal = function() {
+	var mag = this.mag();
+	return vec2(this.x/mag, this.y/mag);
+}
+
 vec2.prototype.getPerpVec = function() {
 	return vec2(-this.y, this.x);
 }
@@ -83,23 +92,13 @@ poly.prototype.draw = function(ctx) {
 	ctx.fill();
 }
 
-poly.prototype.getPerpAngles = function() {
-	var angs = [];
-	for(var i=0; i<this.verts.length; i++) {
-		var v1 = this.verts[i];
-		var v2 = this.verts[ (i+1)%this.verts.length ];
-		var ang = v2.sub(v1).perpAng();
-		angs.push( ang );
-	}
-	return angs;
-}
-
-poly.prototype.getPerpVecs = function() {
+poly.prototype.getNormals = function() {
 	var vecs = [];
 	for(var i=0; i<this.verts.length; i++) {
 		var v1 = this.verts[i];
 		var v2 = this.verts[ (i+1)%this.verts.length ];
-		vecs.push( v2.sub(v1).getPerpVec() );
+		var perp = v2.sub(v1).getPerpVec();
+		vecs.push( perp.normal() );
 	}
 	return vecs;
 }
@@ -115,6 +114,11 @@ poly.prototype.getProjection = function(vec) {
 	return {min:min, max:max};
 }
 
+poly.prototype.getProjectionMTV = function(vec, other) {
+	var thisProj = this.getProjection(vec);
+	var otherProj = other.getProjection(vec); 	
+}
+
 poly.prototype.checkProjectionsSeparate = function(vec, other) {
 	var thisProj = this.getProjection(vec);
 	var otherProj = other.getProjection(vec);
@@ -122,10 +126,10 @@ poly.prototype.checkProjectionsSeparate = function(vec, other) {
 }
 
 poly.prototype.isOverlapping = function(other) {
-	var testVecs = this.getPerpVecs().concat(other.getPerpVecs());
+	var testAxes = this.getNormals().concat(other.getNormals());
 	// try to find separating axis
-	for(var i=0; i<testVecs.length; i++)
-		if( this.checkProjectionsSeparate(testVecs[i], other) )
+	for(var i=0; i<testAxes.length; i++)
+		if( this.checkProjectionsSeparate(testAxes[i], other) )
 			return false;
 	// couldn't find axis, they are overlapping
 	return true;
@@ -153,7 +157,7 @@ poly.makeTriangle = function(b,h) {
 ////////////
 
 function ent(opts) {
-	if (!(this instanceof ent)) return new ent(opts);
+	if ( !(this instanceof ent) ) return new ent(opts);
 	this.poly = opts.poly;
 	this.pos = opts.pos || vec2(opts.x || 0, opts.y || 0);
 	this.rot = opts.rot || 0;
@@ -180,10 +184,16 @@ ent.prototype.isOverlapping = function(other) {
 	return this.getPoly().isOverlapping(other.getPoly());
 }
 
+ent.prototype.applyImpulse = function(vec) {
+	this.vel = this.vel.add(vec);
+}
+
 ent.prototype.setX = function(x) { this.pos.x = x; }
 ent.prototype.setY = function(y) { this.pos.y = y; }
 ent.prototype.addX = function(x) { this.pos.x += x; }
 ent.prototype.addY = function(y) { this.pos.y += y; }
+ent.prototype.setPos = function(vec) { this.pos = vec; }
+ent.prototype.addPos = function(vec) { this.pos = this.pos.add(vec); }
 ent.prototype.setRot = function(r) { this.rot = r; }
 ent.prototype.setRotDeg = function(d) { this.rot = d*DEG_TO_RAD; }
 ent.prototype.setRotVel = function(rv) { this.rotVel = rv; }
@@ -196,7 +206,7 @@ ent.prototype.addRotDeg = function(d) { this.addRot(d*DEG_TO_RAD); }
 ///////////
 
 function world() {
-	if (!(this instanceof world)) return new world();
+	if ( !(this instanceof world) ) return new world();
 	this.ents = [];
 }
 
@@ -213,8 +223,8 @@ world.prototype.step = function() {
 		var tm = elapsed/1000;
 		var moved = ent.vel.scale(tm);
 		var rotated = ent.rotVel * tm;
-		ent.pos = ent.pos.add(moved);
-		ent.rot += rotated;
+		ent.addPos(moved);
+		ent.addRot(rotated);
 	}
 	this.lastStep = Date.now();
 }
