@@ -351,7 +351,7 @@ function setup_cursor()
 	cursor.style.width = c_size + "px";
 	cursor.style.height = c_size + "px";
 }
-function show_cursor() {cursor.style.visibility = "visible"}
+function show_cursor() {cursor.style.visibility = isMobile?"visible":"hidden"}
 function hide_cursor() {cursor.style.visibility = "hidden"}
 
 var c_moving = false;
