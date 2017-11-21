@@ -2,6 +2,7 @@ TWO_PI = Math.PI * 2;
 HALF_PI = Math.PI / 2;
 DEG_TO_RAD = Math.PI / 180;
 RAD_TO_DEG = 180 / Math.PI;
+function sign(n) { n>=0?1:-1; }
 
 //////////
 // Vec2 //
@@ -38,6 +39,10 @@ vec2.prototype.scale = function(scalar) {
 	return vec2(this.x*scalar, this.y*scalar);
 }
 
+vec2.prototype.divide = function(scalar) {
+	return vec2(this.x/scalar, this.y/scalar);
+}
+
 vec2.prototype.dot = function(other) {
 	return this.x*other.x + this.y*other.y;
 }
@@ -70,12 +75,14 @@ vec2.prototype.perpAng = function() {
 function poly(verts) {
 	if ( !(this instanceof poly) ) return new poly(verts);
 	this.verts = verts;
+	this.center = vec2(0,0);
 	if(this.verts[0] instanceof Array)
 		for(var i=0; i<this.verts.length; i++)
 			this.verts[i] = vec2(this.verts[i][0], this.verts[i][1]);
 }
 
 poly.prototype.translate = function(vec) {
+	this.center = this.center.add(vec);
 	return poly( this.verts.map( (v) => v.add(vec) ) );
 }
 
@@ -103,53 +110,60 @@ poly.prototype.getNormals = function() {
 	return vecs;
 }
 
-poly.prototype.getProjection = function(vec) {
-	var min = this.verts[0].dot(vec);
-	var max = min;
-	for(var i=0; i<this.verts.length; i++) {
-		var d = this.verts[i].dot(vec);
+poly.prototype.getProjection = function(normalVec) {
+	var projs = [ this.verts[0].dot(normalVec) ];
+	var min = projs[0];
+	var max = projs[0];
+	for(var i=1; i<this.verts.length; i++) {
+		var d = this.verts[i].dot(normalVec);
 		min = Math.min(d, min);
 		max = Math.max(d, max);
+		projs.push(d);
 	}
-	return {min:min, max:max};
+	return {min:min, max:max, projs:projs};
 }
 
-poly.prototype.getProjectionMTV = function(vec, other) {
-	var thisProj = this.getProjection(vec);
-	var otherProj = other.getProjection(vec); 	
+poly.prototype.getProjectionInfo = function(normalVec, other) {
+	var p1 = this.getProjection(normalVec);
+	var p2 = other.getProjection(normalVec);
+	
+	// minimum translation vector for body 1
+	var mtv;
+	if(p1.max < p2.max)
+		mtv = normalVec.scale(p2.min - p1.max);
+	else // if(p1.min > p2.min)
+		mtv = normalVec.scale(p2.max - p1.min);
+	mtv.calcMag = mtv.mag();
+	
+	var separate = p1.max < p2.min || p1.min > p2.max;
+	return {mtv:mtv, separate:separate, normal: normalVec}
 }
 
-poly.prototype.checkProjectionsSeparate = function(vec, other) {
-	var thisProj = this.getProjection(vec);
-	var otherProj = other.getProjection(vec);
-	return thisProj.max < otherProj.min || otherProj.max < thisProj.min;
+poly.prototype.getCollisionInfo = function(other) {
+	var testAxes = this.getNormals().concat(other.getNormals());
+	var projInfo = this.getProjectionInfo(testAxes[0], other);
+	var mtv = projInfo.mtv;
+	var separate = projInfo.separate;
+	// try to find separating axis
+	for(var i=1; i<testAxes.length; i++) {
+		projInfo = this.getProjectionInfo(testAxes[i], other);
+		if(separate || (projInfo.mtv.calcMag < mtv.calcMag && !projInfo.separate)) {
+			mtv = projInfo.mtv;
+		}
+		separate = separate || projInfo.separate;
+	}
+	// couldn't find axis, they are overlapping
+	return {mtv:mtv, normal:mtv.normal().scale(-1), separate:separate};
 }
 
 poly.prototype.isOverlapping = function(other) {
 	var testAxes = this.getNormals().concat(other.getNormals());
 	// try to find separating axis
 	for(var i=0; i<testAxes.length; i++)
-		if( this.checkProjectionsSeparate(testAxes[i], other) )
+		if( this.getProjectionInfo(testAxes[i], other).separate )
 			return false;
 	// couldn't find axis, they are overlapping
 	return true;
-}
-
-poly.makeBox = function(w,h) {
-	return poly([
-		vec2(-w/2, -h/2), // top left
-		vec2(w/2, -h/2), // top right
-		vec2(w/2, h/2), // bot right
-		vec2(-w/2, h/2) // bot left
-	]);
-}
-
-poly.makeTriangle = function(b,h) {
-	return poly([
-		vec2(0, -h/2), // tip
-		vec2(-b/2, h/2), // bot left
-		vec2(b/2, h/2) // bot right
-	]);
 }
 
 ////////////
@@ -163,6 +177,8 @@ function ent(opts) {
 	this.rot = opts.rot || 0;
 	this.vel = opts.vel || vec2(opts.xVel || 0, opts.yVel || 0);
 	this.rotVel = opts.rotVel || 0;
+	this.mass = opts.mass || 0;
+	this.restitution = opts.restitution || 0.5;
 	
 	if(this.poly instanceof Array)
 		this.poly = poly(this.poly);
@@ -184,8 +200,44 @@ ent.prototype.isOverlapping = function(other) {
 	return this.getPoly().isOverlapping(other.getPoly());
 }
 
+ent.prototype.getCollisionInfo = function(other) {
+	return this.getPoly().getCollisionInfo(other.getPoly());
+}
+
 ent.prototype.applyImpulse = function(vec) {
 	this.vel = this.vel.add(vec);
+}
+
+ent.prototype.handleCollision = function(other) {
+	var collisionInfo = this.getCollisionInfo(other);
+	if(!collisionInfo.separate) {
+		var relVel = this.vel.sub(other.vel);
+		var velAlongNormal = collisionInfo.normal.dot(relVel);
+		
+		// Don't handle if objects are separating
+		if(velAlongNormal < 0)
+			return;
+		
+		var massSum = this.mass + other.mass;
+		var massRatioThis = this.mass / massSum;
+		var massRatioOther = other.mass / massSum;
+		
+		if(this.mass == 0) {
+			massRatioThis = 1;
+			massRatioOther = 0;
+		}
+		if(other.mass == 0) {
+			massRatioThis = 0;
+			massRatioOther = 1;
+		}
+		
+		var e = Math.min(this.restitution, other.restitution);
+		var j = -(1 + e) * velAlongNormal;
+		var cVel = collisionInfo.normal.scale(j);
+		
+		this.vel = this.vel.add(cVel.scale(massRatioOther));
+		other.vel = other.vel.sub(cVel.scale(massRatioThis));
+	}
 }
 
 ent.prototype.setX = function(x) { this.pos.x = x; }
@@ -217,7 +269,7 @@ world.prototype.createEnt = function(opts) {
 world.prototype.step = function() {
 	if( !this.lastStep )
 		this.lastStep = Date.now();
-	var elapsed = Math.min(Date.now() - this.lastStep, 500);
+	var elapsed = Math.min(Date.now() - this.lastStep, 100);
 	for(var i=0; i<this.ents.length; i++) {
 		var ent = this.ents[i];
 		var tm = elapsed/1000;
@@ -225,6 +277,40 @@ world.prototype.step = function() {
 		var rotated = ent.rotVel * tm;
 		ent.addPos(moved);
 		ent.addRot(rotated);
+		
+		if(ent.mass != 0)
+			ent.vel.y = Math.max( ent.vel.y + 9.8, -100) // gravity
+			
+		for(var j=i+1; j<this.ents.length; j++) {
+			ent.handleCollision(this.ents[j]);
+		}
 	}
 	this.lastStep = Date.now();
+}
+
+world.prototype.makeBox = function(opts) {
+	var w = opts.w || 0;
+	var h = opts.h || 0;
+	opts.poly = poly([
+		vec2(-w/2, -h/2), // top left
+		vec2(w/2, -h/2), // top right
+		vec2(w/2, h/2), // bot right
+		vec2(-w/2, h/2) // bot left
+	]);
+	if(opts.mass != 0)
+		opts.mass = opts.mass || (w*h*(opts.density||1));
+	this.ents.push( ent(opts) );
+}
+
+world.prototype.makeTriangle = function(opts) {
+	var h = opts.h || 0;
+	var b = opts.b || 0;
+	opts.poly = poly([
+		vec2(0, -h/2), // tip
+		vec2(-b/2, h/2), // bot left
+		vec2(b/2, h/2) // bot right
+	]);
+	if(opts.mass != 0)
+		opts.mass = opts.mass || (0.5*b*h*(opts.density||1));
+	this.ents.push( ent(opts) );
 }

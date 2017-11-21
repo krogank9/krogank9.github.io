@@ -139,11 +139,6 @@ function determine_pivot_leg(center, l_foot_contact, r_foot_contact) {
 var r_last = new vec(0,0);
 var l_last = new vec(0,0);
 
-function lowest_vert_pos(body)
-{
-	return b2vec2_to_vec(body.GetPosition()).add(predict_contact(body));
-}
-
 function set_feet_position()
 {
 	set_joint_speeds( r_leg.joints, 0 );
@@ -180,101 +175,6 @@ function set_feet_position()
 	rotate_joint( step_leg.joints[0], absolute_ang_to_rel(step_leg.joints[0], step_leg_angles[0]) );
 	rotate_joint( step_leg.joints[1], absolute_ang_to_rel(step_leg.joints[1], step_leg_angles[1]) );
 }
-
-/*
-
-this old function's pretty interesting. i noticed if you rotate the pivot leg
-to the angles meant for the stepping leg, it almost balances.
-
-function set_feet_position()
-{
-	set_joint_speeds( r_leg.joints, 0 );
-	set_joint_speeds( l_leg.joints, 0 );
-	
-	var center = get_center_mass(ragdoll);
-	var l_foot_contact = get_contact(l_leg.bodies[2], ground);
-	var r_foot_contact = get_contact(r_leg.bodies[2], ground);
-	l_last = avg_contact_point(l_foot_contact) || lowest_vert_pos(l_leg.bodies[2]);
-	r_last = avg_contact_point(r_foot_contact) || lowest_vert_pos(r_leg.bodies[2]);
-
-	var pivot_leg = determine_pivot_leg(center, l_foot_contact, r_foot_contact);
-	if(pivot_leg == null)
-		return;
-	var step_leg = pivot_leg===r_leg ? l_leg : r_leg;
-		
-	pivot_leg.contact_pos = avg_contact_point( get_contact(pivot_leg.bodies[2], ground) );
-	
-	pivot_leg.contact_pos.x -= center.x;
-
-	var step_leg_goal = copy_vec(pivot_leg.contact_pos);
-	// both legs equidistant from center of mass
-	step_leg_goal.x *= -1;
-	// IK positions relative to bodies center, predict which corner
-	// of body makes contact with ground and position relative to that
-	step_leg_goal = step_leg_goal.subtract( predict_contact(step_leg.bodies[2]) );
-	step_leg_goal.x += center.x;
-	
-	var step_rel = step_leg_goal.subtract( get_joint_pos(step_leg.joints[0]) );
-	var step_leg_angles = fabrIK([upper_leg_length, lower_leg_length], step_rel);
-	
-	rotate_joint( pivot_leg.joints[0], absolute_ang_to_rel(step_leg.joints[0], step_leg_angles[0]) );
-	rotate_joint( pivot_leg.joints[1], absolute_ang_to_rel(step_leg.joints[1], step_leg_angles[1]) );
-	
-	// make the pivot leg's foot always point towards ground
-	rotate_joint( pivot_leg.joints[1], absolute_ang_to_rel(pivot_leg.joints[1], -90/rad2deg) );
-}
-*/
-/*function set_feet_position()
-{
-	var center = get_center_mass(ragdoll);
-	
-	var l_hip = get_joint_pos(l_leg.joints[0]);
-	var r_hip = get_joint_pos(r_leg.joints[0]);
-	
-	var l_foot = get_joint_pos(l_leg.joints[2]);
-	var r_foot = get_joint_pos(r_leg.joints[2]);
-	
-	l_foot.x -= center.x;
-	r_foot.x -= center.x;
-
-	if( bodies_colliding(l_foot_body, ground) )
-	{
-		r_foot.x = l_foot.x * -1;
-		r_foot.y = l_foot.y;
-	}
-	else if(bodies_colliding(r_foot_body, ground) )
-	{
-		l_foot.x = r_foot.x * -1;
-		l_foot.y = r_foot.y;
-	}
-		
-	// make legs as extended as possible to stay standing
-	//l_foot.y = l_hip.y - get_y_pos_circle(leg_length, l_foot.x);
-	//r_foot.y = r_hip.y - get_y_pos_circle(leg_length, r_foot.x);
-	
-	// turn x position back to absolute
-	l_foot.x += center.x;
-	r_foot.x += center.x;
-	
-	l_last.set_equal_to(l_foot);
-	r_last.set_equal_to(r_foot);
-	
-	l_hip_last.set_equal_to(l_hip);
-	r_hip_last.set_equal_to(r_hip);
-	
-	var l_rel = l_foot.subtract(l_hip);
-	var r_rel = r_foot.subtract(r_hip);
-	
-	// use inverse kinematics to iterate and find what angles are needed to reach the desired positions
-	var l_goal = fabrIK([upper_leg_length, lower_leg_length], l_rel);
-	var r_goal = fabrIK([upper_leg_length, lower_leg_length], r_rel);
-
-	rotate_joint(l_leg.joints[0], absolute_ang_to_rel(l_leg.joints[0], l_goal[0]));
-	rotate_joint(l_leg.joints[1], absolute_ang_to_rel(l_leg.joints[1], l_goal[1]));
-
-	rotate_joint(r_leg.joints[0], absolute_ang_to_rel(r_leg.joints[0], r_goal[0]));
-	rotate_joint(r_leg.joints[1], absolute_ang_to_rel(r_leg.joints[1], r_goal[1]));
-}*/
 
 function step_world()
 {
