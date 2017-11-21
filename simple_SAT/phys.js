@@ -4,7 +4,7 @@ sat_world = new world();
 
 // Create some boxes and a triangle
 
-sat_world.makeBox({ w:100, h:100, x: 110, y: -50, xVel: 0 });
+//sat_world.makeBox({ w:40, h:40, x: 400, y: -50, xVel: 0 });
 
 sat_world.makeTriangle({b: 50, h: 100, x: 300, y: 100, rotDeg: 45});
 
