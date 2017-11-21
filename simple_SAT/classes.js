@@ -136,7 +136,7 @@ poly.prototype.getProjectionInfo = function(normalVec, other) {
 	mtv.calcMag = mtv.mag();
 	
 	var separate = p1.max < p2.min || p1.min > p2.max;
-	return {mtv:mtv, separate:separate, normal: normalVec}
+	return {mtv:mtv, separate:separate}
 }
 
 poly.prototype.getCollisionInfo = function(other) {
@@ -153,7 +153,7 @@ poly.prototype.getCollisionInfo = function(other) {
 		separate = separate || projInfo.separate;
 	}
 	// couldn't find axis, they are overlapping
-	return {mtv:mtv, normal:mtv.normal().scale(-1), separate:separate};
+	return {mtv:mtv, normal:mtv.normal(), separate:separate};
 }
 
 poly.prototype.isOverlapping = function(other) {
@@ -215,7 +215,7 @@ ent.prototype.handleCollision = function(other) {
 		var velAlongNormal = collisionInfo.normal.dot(relVel);
 		
 		// Don't handle if objects are separating
-		if(velAlongNormal < 0)
+		if(velAlongNormal > 0)
 			return;
 		
 		var massSum = this.mass + other.mass;
