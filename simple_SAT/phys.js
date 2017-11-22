@@ -4,6 +4,12 @@ sat_world = new world();
 
 // Create some boxes and a triangle
 
+sat_world.makeBox({ w:50, h:50, x: 200, y: -400, xVel: 0 });
+
+sat_world.makeBox({ w:70, h:70, x: 240, y: -250, xVel: 0 });
+
+sat_world.makeBox({ w:80, h:80, x: 230, y: -100, xVel: 0 });
+
 sat_world.makeBox({ w:100, h:100, x: 240, y: 10, xVel: 0 });
 
 sat_world.makeTriangle({b: 50, h: 100, x: 300, y: 100, rotDeg: 45});

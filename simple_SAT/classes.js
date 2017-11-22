@@ -252,7 +252,7 @@ ent.prototype.handleCollision = function(other) {
 		other.vel = other.vel.sub(cVel.scale(massRatioThis));
 		
 		// Positional correction to prevent sinking
-		var penetrate = Math.max(collisionInfo.mtv.mag(0 - 0.01, 0));
+		var penetrate = Math.max(collisionInfo.mtv.mag() - 0.01, 0);
 		var correction = collisionInfo.normal.scale(penetrate * 0.4);
 		this.addPos( correction.scale(massRatioOther) );
 		other.subPos( correction.scale(massRatioThis) );
