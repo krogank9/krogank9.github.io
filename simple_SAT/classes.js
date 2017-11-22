@@ -35,6 +35,16 @@ vec2.prototype.sub = function(other) {
 	return vec2( this.x - other.x, this.y - other.y );
 }
 
+vec2.prototype.setAdd = function(other) {
+	this.x += other.x;
+	this.y += other.y;
+}
+
+vec2.prototype.setSub = function(other) {
+	this.x -= other.x;
+	this.y -= other.y;
+}
+
 vec2.prototype.scale = function(scalar) {
 	return vec2(this.x*scalar, this.y*scalar);
 }
@@ -209,6 +219,9 @@ ent.prototype.applyImpulse = function(vec) {
 }
 
 ent.prototype.handleCollision = function(other) {
+	if(this.mass == 0 && other.mass == 0)
+		return;
+	
 	var collisionInfo = this.getCollisionInfo(other);
 	if(!collisionInfo.separate) {
 		var relVel = this.vel.sub(other.vel);
@@ -237,6 +250,12 @@ ent.prototype.handleCollision = function(other) {
 		
 		this.vel = this.vel.add(cVel.scale(massRatioOther));
 		other.vel = other.vel.sub(cVel.scale(massRatioThis));
+		
+		// Positional correction to prevent sinking
+		var penetrate = Math.max(collisionInfo.mtv.mag(0 - 0.01, 0));
+		var correction = collisionInfo.normal.scale(penetrate * 0.4);
+		this.addPos( correction.scale(massRatioOther) );
+		other.subPos( correction.scale(massRatioThis) );
 	}
 }
 
@@ -245,7 +264,8 @@ ent.prototype.setY = function(y) { this.pos.y = y; }
 ent.prototype.addX = function(x) { this.pos.x += x; }
 ent.prototype.addY = function(y) { this.pos.y += y; }
 ent.prototype.setPos = function(vec) { this.pos = vec; }
-ent.prototype.addPos = function(vec) { this.pos = this.pos.add(vec); }
+ent.prototype.addPos = function(vec) { this.pos.setAdd(vec); }
+ent.prototype.subPos = function(vec) { this.pos.setSub(vec); }
 ent.prototype.setRot = function(r) { this.rot = r; }
 ent.prototype.setRotDeg = function(d) { this.rot = d*DEG_TO_RAD; }
 ent.prototype.setRotVel = function(rv) { this.rotVel = rv; }
