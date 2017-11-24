@@ -2,9 +2,7 @@ TWO_PI = Math.PI * 2;
 HALF_PI = Math.PI / 2;
 DEG_TO_RAD = Math.PI / 180;
 RAD_TO_DEG = 180 / Math.PI;
-epsilon = 1 / 1000000
 function sign(n) { n>=0?1:-1; }
-function equals0(n) { return Math.abs(n) < epsilon; }
 
 //////////
 // Vec2 //
@@ -12,8 +10,8 @@ function equals0(n) { return Math.abs(n) < epsilon; }
 
 function vec2(x, y) {
 	if ( !(this instanceof vec2) ) return new vec2(x, y);
-	this.x = x || 0;
-	this.y = y || 0;
+	this.x = x;
+	this.y = y;
 }
 
 vec2.prototype.rotate = function(rad) {
@@ -35,16 +33,6 @@ vec2.prototype.add = function(other) {
 
 vec2.prototype.sub = function(other) {
 	return vec2( this.x - other.x, this.y - other.y );
-}
-
-vec2.prototype.set = function(vec_or_x, y) {
-	if(vec_or_x instanceof vec2) {
-		this.x = other.x;
-		this.y = other.y;
-		return;
-	}
-	this.x = vec_or_x || 0;
-	this.y = y || 0;
 }
 
 vec2.prototype.setAdd = function(other) {
@@ -69,10 +57,6 @@ vec2.prototype.dot = function(other) {
 	return this.x*other.x + this.y*other.y;
 }
 
-vec2.prototype.cross = function(other) {
-	return this.x*other.y - this.y*other.x;
-}
-
 vec2.prototype.mag = function() {
 	return Math.sqrt(this.x*this.x + this.y*this.y);
 }
@@ -86,7 +70,7 @@ vec2.prototype.normal = function() {
 }
 
 vec2.prototype.getPerpVec = function() {
-	return vec2(this.y, -this.x);
+	return vec2(-this.y, this.x);
 }
 
 vec2.prototype.ang = function() {
@@ -95,84 +79,6 @@ vec2.prototype.ang = function() {
 
 vec2.prototype.perpAng = function() {
 	return Math.atan2( -this.x, this.y );
-}
-
-vec2.prototype.closeTo = function(other) {
-	return Math.abs(this.x-other.x)<3
-		&& Math.abs(this.y-other.y)<3;
-}
-
-//////////
-// Line //
-//////////
-
-function line(a, b) {
-	if ( !(this instanceof line) ) return new line(a, b);
-	this.a = a;
-	this.b = b;
-	this.a_to_b = b.sub(a);
-	this.intersects = [];
-}
-
-line.prototype.lineOverlapColinear = function(other) {
-	var dir = this.a_to_b.normal();
-	var pts = [this.a, this.b, other.a, other.b];
-	var pjs = [this.a.dot(dir), this.b.dot(dir),
-			   other.a.dot(dir), other.b.dot(dir)];
-
-	var min = 0;
-	var max = 0;
-	for(var i=0; i<pjs.length; i++) {
-		if( pjs[min] > pjs[i] )
-			min = i;
-		if( pjs[max] < pjs[i] )
-			max = i;
-	}
-	if(max == min)
-		max = (max+1)%4;
-	
-	pts.splice(min, 1);
-	if(max > min)
-		max--;
-	pts.splice(max, 1);
-	
-	return line(pts[0], pts[1]);
-}
-
-// adapted from https://gist.github.com/tp/75cb619a7e40e6ad008ef2a6837bbdb2
-// https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
-line.prototype.checkIntersection = function(other) {
-	var p = this.a;
-	var r = this.a_to_b;
-	var q = other.a;
-	var s = other.a_to_b;
-	
-	var q_sub_p = q.sub(p);
-	
-	var r_s = r.cross(s);
-	var q_p_r = q_sub_p.cross(r);
-	var q_p_s = q_sub_p.cross(s);
-	
-	if(equals0(r_s) && !equals0(q_p_r))
-		return { type: 'no-intersection' };
-	if(equals0(r_s) && equals0(q_p_r)) {
-		var rr = r.dot(r);
-		
-		var t0 = q_sub_p.dot(r) / rr;
-		var t1 = t0 + s.dot(r) / rr;
-		if ( (t0 >= 0 && t0 <= 1) || (t1 >= 0 && t1 <= 1) ) {
-			var overlap = this.lineOverlapColinear(other);
-			return {type: 'intersection-colinear-overlapping', at: overlap.a, at2: overlap.b};
-		}
-	}
-	
-	var t = q_p_s / r_s;
-	var u = q_p_r / r_s;
-	
-	if (!equals0(r_s) && t >= 0 && t <= 1 && u >= 0 && u <= 1)
-		return { type: 'intersection', at: p.add(r.scale(t)) };
-	
-	return { type: 'no-intersection' };
 }
 
 //////////
@@ -189,9 +95,8 @@ function poly(verts) {
 }
 
 poly.prototype.translate = function(vec) {
-	var p = poly( this.verts.map( (v) => v.add(vec) ) );
-	p.center = this.center.add(vec);
-	return p;
+	this.center = this.center.add(vec);
+	return poly( this.verts.map( (v) => v.add(vec) ) );
 }
 
 poly.prototype.rotate = function(rad) {
@@ -204,17 +109,7 @@ poly.prototype.draw = function(ctx) {
 	for(var i=1; i<this.verts.length; i++)
 		ctx.lineTo(this.verts[i].x, this.verts[i].y);
 	ctx.closePath();
-	ctx.stroke();
-}
-
-poly.prototype.getLines = function() {
-	var lines = [];
-	for(var i=0; i<this.verts.length; i++) {
-		var v1 = this.verts[i];
-		var v2 = this.verts[ (i+1)%this.verts.length ];
-		lines.push( new line(v1, v2) );
-	}
-	return lines;
+	ctx.fill();
 }
 
 poly.prototype.getNormals = function() {
@@ -257,78 +152,6 @@ poly.prototype.getProjectionInfo = function(normalVec, other) {
 	return {mtv:mtv, separate:separate}
 }
 
-poly.prototype.getIntersections = function(other) {
-	var thisSides = this.getSides();
-	var otherSides = this.getSides();
-}
-
-poly.prototype.getCollisionPoint = function(other) {
-	// find the points of intersection
-	var intersectPts = [];
-	var thisLines = this.getLines();
-	var otherLines = other.getLines();
-	for(var i=0; i<thisLines.length; i++) {
-		var thisLine = thisLines[i];
-		for(var j=0; j<otherLines.length; j++) {
-			var otherLine = otherLines[j];
-			var intersectInfo = thisLine.checkIntersection(otherLine);
-			if(intersectInfo.type.startsWith('intersection-colinear')) {
-				var p1 = intersectInfo.at;
-				var p2 = intersectInfo.at2;
-				// wish there was a more elegant way to do this
-				if( !intersectPts.some( (p) => p.closeTo(p1) ) && !intersectPts.some( (p) => p.closeTo(p2) ) ) {
-					thisLine.intersects.push({other:otherLine, at:intersectInfo.at});
-					otherLine.intersects.push({other:thisLine, at:intersectInfo.at});
-					thisLine.intersects.push({other:otherLine, at:intersectInfo.at2});
-					otherLine.intersects.push({other:thisLine, at:intersectInfo.at2});
-					intersectPts.push(intersectInfo.at);
-					intersectPts.push(intersectInfo.at2);
-				}
-			}
-			else if(intersectInfo.type.startsWith('intersection')) {
-				if( !intersectPts.some( (p) => p.closeTo(intersectInfo.at) ) ) {
-					thisLine.intersects.push({other:otherLine, at:intersectInfo.at});
-					otherLine.intersects.push({other:thisLine, at:intersectInfo.at});
-					intersectPts.push(intersectInfo.at);
-				}
-			}
-		}
-	}
-	
-	// one poly is inside the other
-	if(intersectPts.length == 0) {
-		if(this.contains(other.verts[0]))
-			return other.center;
-		else
-			return this.center;
-	}
-	
-	if(intersectPts.length == 1)
-		return intersectPts[0];
-	
-	// find all overlapping points between the intersection points on both polys
-	var thisOverlapPts = [];
-	var otherOverlapPts = [];
-	for(var i=0; i<this.verts.length; i++) {
-		if(other.contains(this.verts[i]) && !intersectPts.some( (p2) => this.verts[i].closeTo(p2) ))
-			thisOverlapPts.push(this.verts[i]);
-	}
-	for(var i=0; i<other.verts.length; i++) {
-		if(this.contains(other.verts[i]) && !intersectPts.some( (p2) => other.verts[i].closeTo(p2) ))
-			otherOverlapPts.push(other.verts[i]);
-	}
-	
-	// avg all those points for contact
-	var pt = vec2(0,0);
-	thisOverlapPts.forEach( (p) => pt.setAdd(p) );
-	otherOverlapPts.forEach( (p) => pt.setAdd(p) );
-	intersectPts.forEach( (p) => pt.setAdd(p) );
-	//console.log( "num contact weights: " + (intersectPts.length + thisOverlapPts.length + otherOverlapPts.length) );
-	pt = pt.divide( intersectPts.length + thisOverlapPts.length + otherOverlapPts.length );
-	
-	return pt;
-}
-
 poly.prototype.getCollisionInfo = function(other) {
 	var testAxes = this.getNormals().concat(other.getNormals());
 	var projInfo = this.getProjectionInfo(testAxes[0], other);
@@ -342,19 +165,18 @@ poly.prototype.getCollisionInfo = function(other) {
 		}
 		separate = separate || projInfo.separate;
 	}
-	return {mtv:mtv, normal:mtv.normal(), separate:separate, contact:this.getCollisionPoint(other)};
+	// couldn't find axis, they are overlapping
+	return {mtv:mtv, normal:mtv.normal(), separate:separate};
 }
 
-poly.prototype.contains = function(test) {
-	var points = this.verts;
-	var result = false;
-	for (var i = 0, j = points.length - 1; i < points.length; j = i++) {
-		if ((points[i].y > test.y) != (points[j].y > test.y) &&
-			(test.x < (points[j].x - points[i].x) * (test.y - points[i].y) / (points[j].y-points[i].y) + points[i].x)) {
-			result = !result;
-		}
-	}
-	return result;
+poly.prototype.isOverlapping = function(other) {
+	var testAxes = this.getNormals().concat(other.getNormals());
+	// try to find separating axis
+	for(var i=0; i<testAxes.length; i++)
+		if( this.getProjectionInfo(testAxes[i], other).separate )
+			return false;
+	// couldn't find axis, they are overlapping
+	return true;
 }
 
 ////////////
@@ -369,7 +191,7 @@ function ent(opts) {
 	this.vel = opts.vel || vec2(opts.xVel || 0, opts.yVel || 0);
 	this.rotVel = opts.rotVel || 0;
 	this.mass = opts.mass || 0;
-	this.restitution = opts.restitution || 0.2;
+	this.restitution = opts.restitution || 0.5;
 	
 	if(this.poly instanceof Array)
 		this.poly = poly(this.poly);
@@ -383,19 +205,20 @@ ent.prototype.getPoly = function() {
 	return this.poly.rotate(this.rot).translate(this.pos);
 }
 
+ent.prototype.draw = function(ctx) {
+	this.getPoly().draw(ctx);
+}
+
+ent.prototype.isOverlapping = function(other) {
+	return this.getPoly().isOverlapping(other.getPoly());
+}
+
 ent.prototype.getCollisionInfo = function(other) {
 	return this.getPoly().getCollisionInfo(other.getPoly());
 }
 
-ent.prototype.applyImpulse = function(vec, offset) {
-	var offsetNormal = offset.normal().scale(-1);
-	var perpOffsetNormal = offsetNormal.getPerpVec();
-	var radius = offset.mag() || 1;
-	var lin_vel = offsetNormal.scale(vec.dot(offsetNormal));
-	var p_ang_vel = vec.dot(perpOffsetNormal);
-	var ang_vel = p_ang_vel / radius;
-	this.addVel(lin_vel);
-	this.addRotVel(ang_vel);
+ent.prototype.applyImpulse = function(vec) {
+	this.vel = this.vel.add(vec);
 }
 
 ent.prototype.handleCollision = function(other) {
@@ -404,10 +227,7 @@ ent.prototype.handleCollision = function(other) {
 	
 	var collisionInfo = this.getCollisionInfo(other);
 	if(!collisionInfo.separate) {
-		var contact = collisionInfo.contact;
-		var contactVelThis = this.getVelOfPoint(contact);
-		var contactVelOther = other.getVelOfPoint(contact);
-		var relVel = contactVelThis.sub(contactVelOther);
+		var relVel = this.vel.sub(other.vel);
 		var velAlongNormal = collisionInfo.normal.dot(relVel);
 		
 		// Don't handle if objects are separating
@@ -429,26 +249,17 @@ ent.prototype.handleCollision = function(other) {
 		
 		var e = Math.min(this.restitution, other.restitution);
 		var j = -(1 + e) * velAlongNormal;
-		var cVel = collisionInfo.normal.scale(j);
+		var cVel = collisionInfo.normal.scale(j);	
 		
-		this.applyImpulse(cVel.scale(massRatioOther), contact.sub(this.pos));
-		other.applyImpulse(cVel.scale(-massRatioThis), contact.sub(other.pos));
+		this.vel = this.vel.add(cVel.scale(massRatioOther));
+		other.vel = other.vel.sub(cVel.scale(massRatioThis));
 		
 		// Positional correction to prevent sinking
 		var penetrate = Math.max(collisionInfo.mtv.mag() - 0.01, 0);
-		var correction = collisionInfo.normal.scale(penetrate * 0.2);
+		var correction = collisionInfo.normal.scale(penetrate * 0.4);
 		this.addPos( correction.scale(massRatioOther) );
 		other.subPos( correction.scale(massRatioThis) );
 	}
-}
-
-ent.prototype.getVelOfPoint = function(pt) {
-	var rel = pt.sub(this.pos);
-	var radius = rel.mag();
-	var lin_vel = radius*this.rotVel;
-	var dir_vec = rel.getPerpVec().normal();
-	var rel_vel = dir_vec.scale(lin_vel);
-	return rel_vel.add( this.vel );
 }
 
 ent.prototype.setX = function(x) { this.pos.x = x; }
@@ -464,8 +275,6 @@ ent.prototype.setRotVel = function(rv) { this.rotVel = rv; }
 ent.prototype.setRotVelDeg = function(rvd) { this.rotVel = rvd*DEG_TO_RAD; }
 ent.prototype.addRot = function(r) { this.rot = (this.rot + r) % TWO_PI; }
 ent.prototype.addRotDeg = function(d) { this.addRot(d*DEG_TO_RAD); }
-ent.prototype.addVel = function(vec) { this.vel.setAdd(vec); }
-ent.prototype.addRotVel = function(r) { this.rotVel += r; }
 
 ///////////
 // World //
@@ -495,7 +304,7 @@ world.prototype.step = function() {
 		}
 		
 		if(ent.mass != 0) {
-			//ent.vel.y += 9.8; // gravity
+			ent.vel.y = Math.max( ent.vel.y + 9.8, 100 ) // gravity
 		}
 			
 		for(var j=i+1; j<this.ents.length; j++) {
@@ -516,18 +325,5 @@ world.prototype.makeBox = function(opts) {
 	]);
 	if(opts.mass != 0)
 		opts.mass = opts.mass || (w*h*(opts.density||1));
-	this.ents.push( ent(opts) );
-}
-
-world.prototype.makeTriangle = function(opts) {
-	var h = opts.h || 0;
-	var b = opts.b || 0;
-	opts.poly = poly([
-		vec2(0, -h/2), // tip
-		vec2(-b/2, h/2), // bot left
-		vec2(b/2, h/2) // bot right
-	]);
-	if(opts.mass != 0)
-		opts.mass = opts.mass || (0.5*b*h*(opts.density||1));
 	this.ents.push( ent(opts) );
 }
