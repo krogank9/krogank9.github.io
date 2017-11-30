@@ -2,7 +2,7 @@ TWO_PI = Math.PI * 2;
 HALF_PI = Math.PI / 2;
 DEG_TO_RAD = Math.PI / 180;
 RAD_TO_DEG = 180 / Math.PI;
-epsilon = 1 / 1000000
+epsilon = 1 / 1000000;
 function sign(n) { n>=0?1:-1; }
 function equals0(n) { return Math.abs(n) < epsilon; }
 
@@ -39,8 +39,8 @@ vec2.prototype.sub = function(other) {
 
 vec2.prototype.set = function(vec_or_x, y) {
 	if(vec_or_x instanceof vec2) {
-		this.x = other.x;
-		this.y = other.y;
+		this.x = vec_or_x.x;
+		this.y = vec_or_x.y;
 		return;
 	}
 	this.x = vec_or_x || 0;
@@ -369,7 +369,7 @@ function ent(opts) {
 	this.vel = opts.vel || vec2(opts.xVel || 0, opts.yVel || 0);
 	this.rotVel = opts.rotVel || 0;
 	this.mass = opts.mass || 0;
-	this.restitution = opts.restitution || 0.2;
+	this.restitution = opts.restitution || 0.1;
 	
 	if(this.poly instanceof Array)
 		this.poly = poly(this.poly);
@@ -388,7 +388,7 @@ ent.prototype.getCollisionInfo = function(other) {
 }
 
 ent.prototype.applyImpulse = function(vec, offset) {
-	var offsetNormal = offset.normal().scale(-1);
+	var offsetNormal = offset.scale(-1).normal();
 	var perpOffsetNormal = offsetNormal.getPerpVec();
 	var radius = offset.mag() || 1;
 	var lin_vel = offsetNormal.scale(vec.dot(offsetNormal));
@@ -410,9 +410,15 @@ ent.prototype.handleCollision = function(other) {
 		var relVel = contactVelThis.sub(contactVelOther);
 		var velAlongNormal = collisionInfo.normal.dot(relVel);
 		
+		//drawArrow(contact, contact.add(contactVelOther));
+		
 		// Don't handle if objects are separating
-		if(velAlongNormal > 0)
+		if(velAlongNormal > 0) {
+			//console.log("skipping");
 			return;
+		}
+			
+		//console.log("solving");
 		
 		var massSum = this.mass + other.mass;
 		var massRatioThis = this.mass / massSum;
@@ -446,7 +452,7 @@ ent.prototype.getVelOfPoint = function(pt) {
 	var rel = pt.sub(this.pos);
 	var radius = rel.mag();
 	var lin_vel = radius*this.rotVel;
-	var dir_vec = rel.getPerpVec().normal();
+	var dir_vec = rel.getPerpVec().scale(-1).normal();
 	var rel_vel = dir_vec.scale(lin_vel);
 	return rel_vel.add( this.vel );
 }

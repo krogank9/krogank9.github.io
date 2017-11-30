@@ -29,7 +29,8 @@ function get_angle_closeness(ang1, ang2) {
 
 //problem: sometimes it tries to reach the given angle by rotating in the wrong direction
 //so it hits the joint's limits.
-function rotate_joint(j, ang) {
+function rotate_joint(j, ang, max_t) {
+	var max_torq = max_t || MAX_TORQUE;
 	var dest = normalize_ang(ang);
 	var cur = normalize_ang(j.GetJointAngle());
 	
@@ -37,9 +38,9 @@ function rotate_joint(j, ang) {
 	var direction = diff > 0 ? 1 : -1;
 	
 	var straightness = get_angle_closeness(dest, cur);
-	j.SetMaxMotorTorque(MAX_TORQUE);
+	j.SetMaxMotorTorque(max_torq);
 	var intensity = 1.0-straightness;
-	j.SetMotorSpeed( intensity*MAX_TORQUE*direction );
+	j.SetMotorSpeed( intensity*max_torq*direction );
 }
 
 function straighten_joint(j)
@@ -172,8 +173,10 @@ function set_feet_position()
 	var step_rel = step_leg_goal.subtract( get_joint_pos(step_leg.joints[0]) );
 	var step_leg_angles = fabrIK([upper_leg_length, lower_leg_length], step_rel);
 	
+	rotate_joint( pivot_leg.joints[1], pivot_leg.joints[1].start_angle, 3 );
 	rotate_joint( step_leg.joints[0], absolute_ang_to_rel(step_leg.joints[0], step_leg_angles[0]) );
 	rotate_joint( step_leg.joints[1], absolute_ang_to_rel(step_leg.joints[1], step_leg_angles[1]) );
+	//rotate_joint( step_leg.joints[1], step_leg.joints[1].start_angle, 3 );
 }
 
 function step_world()
