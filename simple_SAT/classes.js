@@ -86,7 +86,7 @@ vec2.prototype.normal = function() {
 }
 
 vec2.prototype.getPerpVec = function() {
-	return vec2(this.y, -this.x);
+	return vec2(-this.y, this.x);
 }
 
 vec2.prototype.ang = function() {
@@ -369,7 +369,7 @@ function ent(opts) {
 	this.vel = opts.vel || vec2(opts.xVel || 0, opts.yVel || 0);
 	this.rotVel = opts.rotVel || 0;
 	this.mass = opts.mass || 0;
-	this.restitution = opts.restitution || 0.1;
+	this.restitution = opts.restitution || 0.5;
 	
 	if(this.poly instanceof Array)
 		this.poly = poly(this.poly);
@@ -388,9 +388,9 @@ ent.prototype.getCollisionInfo = function(other) {
 }
 
 ent.prototype.applyImpulse = function(vec, offset) {
-	var offsetNormal = offset.scale(-1).normal();
+	var offsetNormal = offset.normal();
 	var perpOffsetNormal = offsetNormal.getPerpVec();
-	var radius = offset.mag() || 1;
+	var radius = offset.mag();
 	var lin_vel = offsetNormal.scale(vec.dot(offsetNormal));
 	var p_ang_vel = vec.dot(perpOffsetNormal);
 	var ang_vel = p_ang_vel / radius;
@@ -452,7 +452,8 @@ ent.prototype.getVelOfPoint = function(pt) {
 	var rel = pt.sub(this.pos);
 	var radius = rel.mag();
 	var lin_vel = radius*this.rotVel;
-	var dir_vec = rel.getPerpVec().scale(-1).normal();
+	// not sure why have to multiply by -1 here but not in applyImpulse
+	var dir_vec = rel.getPerpVec().normal();
 	var rel_vel = dir_vec.scale(lin_vel);
 	return rel_vel.add( this.vel );
 }
