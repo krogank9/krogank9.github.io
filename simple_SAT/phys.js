@@ -6,7 +6,7 @@ sat_world = new world();
 
 //sat_world.makeBox({ w:100, h:100, x: 240, y: 50, xVel: 0 });
 
-//sat_world.makeTriangle({b: 50, h: 100, x: 230, y: 150, rotDeg: 60});
+sat_world.makeTriangle({b: 50, h: 100, x: 230, y: 270, rotDeg: 60});
 
 //sat_world.makeBox({ w:100, h:100, x: 200, y: 400, xVel: 0, yVel: -100, rotDeg: 30 });
 

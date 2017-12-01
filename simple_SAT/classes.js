@@ -57,6 +57,11 @@ vec2.prototype.setSub = function(other) {
 	this.y -= other.y;
 }
 
+vec2.prototype.setDivide = function(scalar) {
+	this.x /= scalar;
+	this.y /= scalar;
+}
+
 vec2.prototype.scale = function(scalar) {
 	return vec2(this.x*scalar, this.y*scalar);
 }
@@ -534,6 +539,13 @@ world.prototype.makeTriangle = function(opts) {
 		vec2(-b/2, h/2), // bot left
 		vec2(b/2, h/2) // bot right
 	]);
+
+	// fix center of mass
+	var com = vec2(0,0);
+	opts.poly.verts.forEach( (v) => com.setAdd(v) );
+	com.setDivide(3);
+	opts.poly.verts = opts.poly.verts.map( (v) => v.sub(com) );
+	
 	if(opts.mass != 0)
 		opts.mass = opts.mass || (0.5*b*h*(opts.density||1));
 	this.ents.push( ent(opts) );
