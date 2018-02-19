@@ -91,7 +91,7 @@ canvas.onmousedown = function(event) {
 }
 
 canvas.onmouseup = function(event) {
-	if(grabbedEnt != null && Date.now() - lastTime < 30) {
+	if(grabbedEnt != null && Date.now() - lastTime < 30 && grabbedEnt.mass > 0) {
 		grabbedEnt.vel.set(releaseVel.scale(-1));
 	}
 	grabbedEnt = null;
