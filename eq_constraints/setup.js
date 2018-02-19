@@ -13,9 +13,11 @@ sat_world.makeBox({w:100, h:1000, x: 550, y: 250, mass: 0});
 var ceiling = sat_world.makeBox({w:300, h:50, x: 250, y: 25, mass: 0});
 
 //chains
-var ch1 = sat_world.makeBox({w:50, h:50, x: 250, y: 75, rotDeg: 45, xVel: 500, yVel: 0});
+var ch1 = sat_world.makeBox({w:50, h:50, x: 250, y: 75, rotDeg: 45, xVel: 200, yVel: 0});
+//var ch2 = sat_world.makeBox({w:50, h:50, x: 250, y: 125, rotDeg: 45, xVel: 100, yVel: 0});
 
 sat_world.makeJointConstraint(ceiling, ch1, vec2(0,0), vec2(-25,-25));
+//sat_world.makeJointConstraint(ch1, ch2, vec2(25,25), vec2(-25,-25));
 
 // Render loop
 

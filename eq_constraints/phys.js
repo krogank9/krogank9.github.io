@@ -495,8 +495,8 @@ constraint.prototype.solve = function() {
 		var massSum = this.entA.mass + this.entB.mass;
 		var aWeight = this.entA.mass / massSum;
 		var bWeight = 1 - aWeight;
-		var aChange = relVel.scale(-bWeight).scale(100);
-		var bChange = relVel.scale(aWeight).scale(100);
+		var aChange = relVel.scale(-bWeight);
+		var bChange = relVel.scale(aWeight);
 	}
 	
 	if(aChange.x != 0 || aChange.y != 0) {
