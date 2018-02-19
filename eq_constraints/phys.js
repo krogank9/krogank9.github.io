@@ -434,6 +434,10 @@ ent.prototype.getVelOfPoint = function(pt) {
 	return rel_vel.add( this.vel );
 }
 
+ent.prototype.getAbsolutePos = function(offset) {
+	return offset.rotate(this.rot).add(this.pos);
+}
+
 ent.prototype.setX = function(x) { this.pos.x = x; }
 ent.prototype.setY = function(y) { this.pos.y = y; }
 ent.prototype.addX = function(x) { this.pos.x += x; }
@@ -473,6 +477,10 @@ constraint.prototype.solve = function() {
 	var aVel = this.entA.getVelOfPointRel(this.offsetA);
 	var bVel = this.entB.getVelOfPointRel(this.offsetB);
 	var relVel = bVel.sub(aVel);
+	var relPos = this.entB.getAbsolutePos(this.offsetB).sub(this.entA.getAbsolutePos(this.offsetA));
+
+	var driftCorrection = relPos.normal().scale(5);
+	relVel = relVel.add(driftCorrection);
 	
 	var aChange = vec2(0,0);
 	var bChange = vec2(0,0);
@@ -487,8 +495,8 @@ constraint.prototype.solve = function() {
 		var massSum = this.entA.mass + this.entB.mass;
 		var aWeight = this.entA.mass / massSum;
 		var bWeight = 1 - aWeight;
-		var aChange = relVel.scale(-bWeight);
-		var bChange = relVel.scale(aWeight);
+		var aChange = relVel.scale(-bWeight).scale(100);
+		var bChange = relVel.scale(aWeight).scale(100);
 	}
 	
 	if(aChange.x != 0 || aChange.y != 0) {
