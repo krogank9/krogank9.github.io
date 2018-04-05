@@ -304,7 +304,7 @@ function generateList(src)
 			this.mySpan.style.border = "1px dotted black";
 		}
 		chk.onclick = function(evt) {
-			if(chk.myPath.length > 0) {
+			if(this.myPath.length > 0) {
 				justManuallyChangedHash = true;
 				console.log("setting page "+this.myPath);
 				set_page(this.myPath);
