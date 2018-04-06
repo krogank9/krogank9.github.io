@@ -1,7 +1,7 @@
 ﻿<html>
 
 <head>
-<title>KBEngine - Docs</title>
+<title>KBEngine API</title>
 
 <style>
     html, #body1 { margin: 0 !important; padding: 0 !important; border: 0 !important; overflow: hidden !important;}
@@ -369,7 +369,7 @@ function expandAndSelectFile(hash_path, _checkbox_list, _element) {
 		}
 		else if(child.tagName == "INPUT" && child.type == "checkbox") {
 			last_checkbox = child;
-			if( !child.isFolder && child.myPath == hash_path ) {
+			if( !child.isFolder && child.myPath.toLowerCase() == hash_path.toLowerCase() ) {
 				// expand each folder and click the file
 				_checkbox_list.forEach(function(c){c.checked = true;})
 				child.highlight_select();
