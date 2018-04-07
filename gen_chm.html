@@ -298,13 +298,14 @@ function generateList(src)
 		chk.myPath = src[i][1];
 		
 		chk.highlight_select = function() {
-			allContentSpans.forEach(function(s){s.style.backgroundColor="";s.style.color=""; s.style.border=""});
+			allContentSpans.forEach(function(s){s.style.backgroundColor="";s.style.color=""; s.style.border="";s.isHighlighted = false;});
+			this.mySpan.isHighlighted = true;
 			this.mySpan.style.backgroundColor = "#5790ff";
 			this.mySpan.style.color = "white";
 			this.mySpan.style.border = "1px dotted black";
 		}
 		chk.onclick = function(evt) {
-			if(this.myPath.length > 0) {
+			if(this.myPath.length > 0 && !this.mySpan.isHighlighted) {
 				justManuallyChangedHash = true;
 				console.log("setting page "+this.myPath);
 				set_page(this.myPath);
