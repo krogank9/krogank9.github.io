@@ -442,7 +442,7 @@ function replaceAllLinks(div, path) {
 			var tmp = scrollIds[curScrollId+1];
 			delete scrollIds[curScrollId+1];
 			saveScrollInfo();
-			var linkOpenedInNewTab = (evt.button == 2) || evt.ctrlKey;
+			var linkOpenedInNewTab = evt && (evt.button == 2 || evt.ctrlKey);
 			if(linkOpenedInNewTab)
 				scrollIds[curScrollId+1] = tmp;
 		}
