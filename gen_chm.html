@@ -438,9 +438,13 @@ function replaceAllLinks(div, path) {
 		}
 		
 		l.onmouseup = l.onkeyup = function() {
-			saveScrollInfo();
 			this.href = this.initHref + "?id=" + (curScrollId+1);
+			var tmp = scrollIds[curScrollId+1];
 			delete scrollIds[curScrollId+1];
+			saveScrollInfo();
+			var linkOpenedInNewTab = (evt.button == 2) || evt.ctrlKey;
+			if(linkOpenedInNewTab)
+				scrollIds[curScrollId+1] = tmp;
 		}
 	}
 	return div;
