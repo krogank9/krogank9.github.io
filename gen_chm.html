@@ -437,7 +437,7 @@ function replaceAllLinks(div, path) {
 			l.href = l.initHref = "#"+prefix + (prefix.length>0?"/":"") + href.replace(/\.\.\//g, "");
 		}
 		
-		l.onmouseup = l.onkeyup = function() {
+		l.onmouseup = l.onkeyup = function(evt) {
 			this.href = this.initHref + "?id=" + (curScrollId+1);
 			var tmp = scrollIds[curScrollId+1];
 			delete scrollIds[curScrollId+1];
