@@ -437,7 +437,8 @@ function replaceAllLinks(div, path) {
 			l.href = l.initHref = "#"+prefix + (prefix.length>0?"/":"") + href.replace(/\.\.\//g, "");
 		}
 		
-		l.onclick = function() {
+		l.onmouseup = l.onkeyup = function() {
+			saveScrollInfo();
 			this.href = this.initHref + "?id=" + (curScrollId+1);
 			delete scrollIds[curScrollId+1];
 		}
@@ -767,7 +768,9 @@ window.getCookie = function(name) {
 }
 
 //save scrolls between refresh
-window.onbeforeunload = function() {
+window.onbeforeunload = function(){saveScrollInfo()}
+
+function saveScrollInfo() {
 	localStorage.setItem("scroll_info", JSON.stringify({
 		curScrollId:curScrollId,
 		scrollIds:scrollIds
