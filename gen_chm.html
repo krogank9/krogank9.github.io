@@ -191,7 +191,7 @@
 	<div class="tab">
 		<button id="defaultopen" class="tablinks active" onclick="openTab(event, 'tab_contents')"><span class="tab_txt">Contents</span></button>
 		<button class="tablinks" onclick="openTab(event, 'tab_index')"><span class="tab_txt">Index</span></button>
-		<button class="tablinks" onclick="openTab(event, 'tab_search')"><span class="tab_txt">Search</span></button>
+		<button id="searchtabbutton" class="tablinks" onclick="openTab(event, 'tab_search')"><span class="tab_txt">Search</span></button>
 	</div>
 	<div style="border: 1px solid #9da1a5; margin-top: -1px; flex: 1; display: flex; flex-direction: column; background-color: #fff;">
 		<div style="margin: 7px; flex: 1; display: flex; flex-direction: column; background-color: #fff; border: 1px solid #819bbc; overflow: auto;">
@@ -384,7 +384,6 @@ function expandAndSelectFile(hash_path, _checkbox_list, _element) {
 function scrollElemToAnchor(inside_elem, anchor_name) {
 	anchor_lower = anchor_name.toLowerCase();
 	var all = Array.from(inside_elem.getElementsByTagName("*"));
-	console.log(all)
 	var allMatches = []
 	var caseMatches = []
 	all.forEach(function(e){
@@ -522,9 +521,7 @@ function makeHashFromInfo(hashInfo) {
 	var jumpto = (hashInfo.jumpto?"#":"")+(hashInfo.jumpto||"")
 	var GET = ""
 	
-	console.log(hashInfo.GET)
 	var keys = Object.keys(hashInfo.GET)
-	console.log(keys)
 	for(var i=0; i<keys.length; i++){
 		var key = keys[i]
 		var val = hashInfo.GET[key]
@@ -546,6 +543,7 @@ function getHashInfo(hash) {
 	
 	if(hash.charAt(0) == "#")
 		page = hash.substring(1);
+	
 	if(page.indexOf("?") > -1) {
 		GET = page.substring(page.indexOf("?")+1);
 		var GETkv = {}
@@ -568,14 +566,10 @@ document.addEventListener("click", function(evnt){
     lastClickTime = Date.now();
 });
 
-var justLoaded = true
 var justManuallyChangedHash = false;
 window.onhashchange = function() {
 	var hashInfo = getHashInfo(location.hash);
 	curScrollId = parseInt(hashInfo.GET.id)||0;
-	
-	if(!justLoaded && !("id" in hashInfo.GET))
-		window.history.back()
 	
 	if(!justManuallyChangedHash)
 		expandAndSelectFile(hashInfo.page);
@@ -583,10 +577,9 @@ window.onhashchange = function() {
 	
 	if(location.hash.charAt(0) == "#") {
 		openFileAtPos(location.hash.slice(1), scrollIds[curScrollId]);
-		if(!curDiv || justLoaded || curScrollId <= 0) {
-			justLoaded = false
+		if(!curDiv || curScrollId <= 0)
 			return;
-		}
+		
 		// new GET scroll id exists, scroll to saved position
 		if(curScrollId in scrollIds) {
 			console.log("scroll id "+ curScrollId +" exists. scrolling to "+scrollIds[curScrollId]);
@@ -824,6 +817,22 @@ function saveScrollInfo() {
 	}));
 }
 
+var didLinkedSearch = false
+function linkedSearch() {
+	var GETLoc = window.location.href.indexOf("?")
+	var hashLoc = window.location.href.indexOf("#")
+	if(GETLoc > hashLoc) {
+		var GET = window.location.href.substring(GETLoc+1)
+		if(GET.startsWith("search=")) {
+			var searchText = GET.split("&")[0].split("=")[1]
+			document.getElementById("searchtabbutton").click();
+			search_text.value = searchText
+			search_text.oninput()
+			didLinkedSearch = true
+		}
+	}
+}
+
 window.onload = function() {
 	var scroll_info = localStorage.getItem("scroll_info");
 	if(scroll_info) {
@@ -834,6 +843,8 @@ window.onload = function() {
 	document.getElementById("tstlist").appendChild( gendList = generateList(list_src) );
 	setup_divs();
 	populateIndex();
+	
+	linkedSearch()
 	
 	var originalHash = location.hash
 	var newHash = originalHash
