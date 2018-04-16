@@ -851,7 +851,10 @@ window.onload = function() {
 	var hashInfo = getHashInfo(location.hash)
 	hashInfo.page = hashInfo.page || "index.html"
 	hashInfo.jumpto = hashInfo.jumpto || ""
-	hashInfo.GET.id = hashInfo.GET.id || 1
+	if(!hashInfo.GET.id) {
+		hashInfo.GET.id = 1
+		delete scrollIds[1];
+	}
 	var newHash = makeHashFromInfo(hashInfo)
 	
 	if(originalHash == newHash)
