@@ -181,6 +181,10 @@
   width    : 100%;
   height   : 4em;
 }
+
+.hide_text_with_css:before {
+	content: attr(data-text)
+}
 </style>
 
 </head>
@@ -189,9 +193,9 @@
 
 <div id="navigation_window" class="noselect">
 	<div class="tab">
-		<button id="defaultopen" class="tablinks active" onclick="openTab(event, 'tab_contents')"><span class="tab_txt">Contents</span></button>
-		<button class="tablinks" onclick="openTab(event, 'tab_index')"><span class="tab_txt">Index</span></button>
-		<button id="searchtabbutton" class="tablinks" onclick="openTab(event, 'tab_search')"><span class="tab_txt">Search</span></button>
+		<button id="defaultopen" class="tablinks active" onclick="openTab(event, 'tab_contents')"><span class="tab_txt hide_text_with_css" data-text="Contents"></span></button>
+		<button class="tablinks" onclick="openTab(event, 'tab_index')"><span class="tab_txt hide_text_with_css" data-text="Index"></span></button>
+		<button id="searchtabbutton" class="tablinks" onclick="openTab(event, 'tab_search')"><span class="tab_txt hide_text_with_css" data-text="Search"></span></button>
 	</div>
 	<div style="border: 1px solid #9da1a5; margin-top: -1px; flex: 1; display: flex; flex-direction: column; background-color: #fff;">
 		<div style="margin: 7px; flex: 1; display: flex; flex-direction: column; background-color: #fff; border: 1px solid #819bbc; overflow: auto;">
@@ -258,6 +262,20 @@ function makeLowerCase(str) {
 	return str;
 }
 
+function hide_text_with_css(elem) {
+	elem.setAttribute("data-text", elem.textContent)
+	elem.textContent = ""
+	elem.classList.add("hide_text_with_css")
+}
+function mk_hidden_span(text, bgcolor) {
+	var span = document.createElement("span")
+	span.innerText = text
+	if(bgcolor)
+		span.style.backgroundColor = bgcolor
+	hide_text_with_css(span)
+	return span
+}
+
 // Recursively iterate list src and generate
 var tmplid = 0;
 const dom_parser = new DOMParser();
@@ -289,8 +307,7 @@ function generateList(src)
 		chk.myLabel = label;
 		li.appendChild(label);
 		
-		var span = document.createElement("span");
-		span.innerHTML = src[i][0];
+		var span = mk_hidden_span(src[i][0]);
 		label.appendChild(span);
 		chk.mySpan = span;
 		allContentSpans.push(span);
@@ -674,15 +691,13 @@ function set_page(path) {
 function getLastElementBeforePos(pos, parent) {
 	var text_nodes = getTextNodesIn(parent);
 	var text_len = 0;
-	var last_node = text_nodes[i];
 	for(var i=0; i<text_nodes.length; i++) {
 		var node = text_nodes[i];
 		if(node.data.length + text_len < pos) {
 			text_len += node.data.length
-			last_node = node;
 		}
 		else {
-			return last_node.parentNode;
+			return node.parentNode;
 		}
 	}
 }
@@ -749,9 +764,9 @@ function add_search_result(path, div, text_start, text_end, pre, mid, post) {
 	path_div.style.overflow = "hidden";
 	path_div.style.color = "#bbb";
 	path_div.style.backgroundColor = "transparent";
-	text_div.innerHTML = pre+"<span style='background-color: #b0befc;'>"+mid+"</span>"+post;
+	text_div.innerHTML = mk_hidden_span(pre).outerHTML+mk_hidden_span(mid, "#b0befc").outerHTML+mk_hidden_span(post).outerHTML;
 	//text_div.className += "fade_sides_div";
-	path_div.innerHTML = path;
+	path_div.innerHTML = mk_hidden_span(path).outerHTML;
 	tr.appendChild(td);
 	td.appendChild(text_div);
 	td.appendChild(path_div);
@@ -817,7 +832,6 @@ function saveScrollInfo() {
 	}));
 }
 
-var didLinkedSearch = false
 function linkedSearch() {
 	var GETLoc = window.location.href.indexOf("?")
 	var hashLoc = window.location.href.indexOf("#")
@@ -826,9 +840,8 @@ function linkedSearch() {
 		if(GET.startsWith("search=")) {
 			var searchText = GET.split("&")[0].split("=")[1]
 			document.getElementById("searchtabbutton").click();
-			search_text.value = searchText
+			search_text.value = decodeURI(searchText)
 			search_text.oninput()
-			didLinkedSearch = true
 		}
 	}
 }
