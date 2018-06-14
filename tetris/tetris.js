@@ -72,6 +72,9 @@ function toggle_mute()
 var pause_div = get("pause_overlay");
 function toggle_pause()
 {
+	if (window.IS_INSTRUCTIONS)
+		return
+		
 	if(!paused)
 	{
 		paused = true;
@@ -86,7 +89,13 @@ function toggle_pause()
 	}
 }
 function unpause() { if(paused) toggle_pause() }
-function pause() { if(!paused) toggle_pause() }
+function pause(stopaudio)
+{
+	if(!paused)
+		toggle_pause();
+	if (stopaudio)
+		bgmusic.volume = 0;
+}
 
 function save_vars()
 {

@@ -9,6 +9,8 @@ var help_overlay = document.getElementById("help_overlay");
 update_flexdiv(help_overlay);
 help_overlay.style.visibility = "visible";
 
+window.IS_INSTRUCTIONS = true
+
 hookFunction(window, "onload", function(){
 	muted = true;
 });
@@ -347,7 +349,7 @@ var c_size;
 function setup_cursor()
 {
 	cursor = get("cursor")
-	c_size = Math.round(get("hold").offsetWidth*1.5);
+	c_size = Math.round(get("hold").offsetWidth*2.5);
 	cursor.style.width = c_size + "px";
 	cursor.style.height = c_size + "px";
 }
