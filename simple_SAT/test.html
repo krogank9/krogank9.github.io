@@ -1,6 +1,12 @@
 <html>
 	<body bgcolor="#f8f7fd">
 		<canvas id="canvas" width=500 height=500></canvas>
+		<br>
+		I got curious how Box2D actually worked, so I tried my hand at making my own very basic physics engine.
+		<br>
+		<br>This demo uses the Separating axis theorem to calculate if any polygons are colliding, and if so it applies a force at the collision point.
+		<br>Linear momentum is converted to angular using dot products. The more head-on the collision is to an object's center of mass, the more linear and the less angular force is applied.
+		<br>Using these 2 basic principles I created a physics simulation (much less sophisticated than Box2D's though).
 		<script src="classes.js"></script>
 		<script src="phys.js"></script>
 	</body>
