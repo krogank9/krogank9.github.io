@@ -1,2 +1,2 @@
 # krogank9.github.io
-sandbox to try out web stuff
+This is a sandbox to try out web stuff and host anything
