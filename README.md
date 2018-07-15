@@ -2,13 +2,7 @@
 This is a sandbox to try out web stuff and host anything
 
 ------------
-Swait 5+ minutes
+Swait 5+ mGH
 A
-asdasd
-asdasdDD
-
-SS
-sdfgS
-sdfg
 sdfgsdf
 VDSFG
