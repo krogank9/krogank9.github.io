@@ -1,6 +1,6 @@
 {
 "companyName": "d.city",
-"productName": "bloons",
+"productName": "Balloon Shooter",
 "dataUrl": "Export.data.unityweb",
 "asmCodeUrl": "Export.asm.code.unityweb",
 "asmMemoryUrl": "Export.asm.memory.unityweb",
@@ -9,5 +9,5 @@
 "graphicsAPI": ["WebGL 2.0", "WebGL 1.0"],
 "webglContextAttributes": {"preserveDrawingBuffer": false},
 "splashScreenStyle": "Dark",
-"backgroundColor": "#231F20"
+"backgroundColor": "#000000"
 }
