@@ -1,0 +1,172 @@
+<html>
+<head>
+    <title>Wifi-Mouse</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link href="font/gfont.css" rel="stylesheet" type="text/css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: Lato, sans-serif;
+        }
+        #parallax-header { 
+            background-image: url("cover.jpg");
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+
+            width: 100%;
+            height: 100%;
+            
+            display: table;
+        }
+        
+        #parallax-title {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
+    
+            font-size: 700%;
+            font-family: Lato, sans-serif;
+            letter-spacing: 2px;
+            font-weight: 100;
+            font-variant-ligatures: none;
+            -webkit-font-variant-ligatures: no-common-ligatures;
+            
+            /* Create the parallax scrolling effect */
+            background-image: url("cover.jpg");
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            
+            position: relative;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            -webkit-filter: invert(100%) grayscale(100%) drop-shadow(4px 7px 6px rgba(0,0,0,1.0));
+            filter: invert(100%) grayscale(100%) drop-shadow(4px 7px 6px rgba(0,0,0,1.0));
+        }
+        
+        #parallax-header2 {
+            width: 100%;
+            height: 50px;
+            
+            background-color: rgba(0,0,0, 0.25);
+            position: absolute;
+            top: 0;
+        }
+        
+        #parallax-header2-title {
+            display: table;
+            
+            height: 50px;
+            
+            padding-left: 25px;
+        }
+        
+        #parallax-header2-text {
+            display: table-cell;
+            vertical-align: middle;
+            color: white;
+        }
+        
+        #page-body {
+            margin: auto;
+            text-align:center;
+            width: 85%;
+            padding-top: 15px;
+            padding-bottom: 80px;
+        }
+        
+        h1 {
+            color: rgba(0,115,223,1);
+            font-weight: 400;
+            font-size: 155%;
+        }
+        
+        hr {
+            margin-top: 42px;
+            margin-bottom: 30px;
+            
+            display: block;
+            height: 1px;
+            border: 0;
+            border-top: 2px solid rgba(211,211,211,1);
+        }
+        
+        .card {
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            background-color: #f1f1f1;
+            width: 50vmin;
+            height: 24vmin;
+            font-size: medium;
+            margin: 10px 10px;
+            transition: 0.3s;
+            border-radius: 5px;
+        }
+        .card:hover {
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+<div style="width: 100%; height: 50%;">
+    <div id="parallax-header">
+        <div id="parallax-title">MegaPoster</div>
+    </div>
+    <div id="parallax-header2">
+        <div id="parallax-header2-title">
+            <div id="parallax-header2-text">
+                Social Media MegaPoster
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="page-body">
+    <h1>Coming soon</h1>
+</div>
+
+<footer style="text-align: center; padding: 3px; border-top: 1px solid rgba(160,160,160,1);"><p><a href="https://www.youtube.com/channel/UCpH93goetR0u9ejeAR8M4Nw">youtube</a> / <a href="https://twitter.com/LoganKrumbhaar">twitter</a> / <a href="https://www.bitchute.com/channel/logan/">bitchute</a></p></footer>
+
+<script>
+function isMobile() {
+    return navigator.userAgent.indexOf("Android") != -1
+    || navigator.userAgent.indexOf("webOS") != -1
+    || navigator.userAgent.indexOf("iPhone") != -1
+    || navigator.userAgent.indexOf("iPad") != -1
+    || navigator.userAgent.indexOf("iPod") != -1
+    || navigator.userAgent.indexOf("BlackBerry") != -1
+    || navigator.userAgent.indexOf("IEMobile") != -1
+    || navigator.userAgent.indexOf("Opera Mini") != -1;
+}
+
+if( isMobile() ) {
+    document.documentElement.style.fontSize = "150%";
+    document.getElementById("page-body").style.fontSize = "150%";
+}
+
+function testStyle(css) {
+    el = document.createElement('div');
+    el.style.cssText = css;
+    return el.style.length != 0;
+}
+function testNeededStyles() {
+    return (
+        (testStyle("-webkit-filter: invert(100%)") || testStyle("filter: invert(100%)"))
+    &&
+        (testStyle("-webkit-background-clip: text") || testStyle("background-clip: text"))
+    );
+}
+
+// invert title effect doesn't work right on edge
+if(!testNeededStyles() || window.navigator.userAgent.indexOf("Edge") > -1) {
+    document.getElementById("parallax-title").style.color = "black";
+}
+</script>
+
+</body>
+</html>
