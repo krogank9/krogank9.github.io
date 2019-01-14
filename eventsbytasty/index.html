@@ -24,12 +24,30 @@
         top: 0;
       }
 
-      .tasty-logo-mobile {
-        width: 50%;
-        height: auto;
-        position: absolute;;
-        left: 25%;
-        top: 0;
+      @media (orientation: portrait) {
+        .tasty-logo {
+          width: 50%;
+          height: auto;
+          position: absolute;
+          left: 25%;
+          top: 0;
+        }
+      }
+
+      .d-block-portrait {
+        display: none;
+      }
+      .d-block-landscape {
+        display: block;
+      }
+
+      @media (orientation: portrait) {
+        .d-block-portrait {
+          display: block;
+        }
+        .d-block-landscape {
+          display: none;
+        }
       }
 
       .main-menu {
@@ -43,7 +61,7 @@
         font-size: 2.8vh;
       }
 
-      @media (max-width: 767px) {
+      @media (orientation: portrait) {
         .main-menu {
           background-color: #000000aa;
           padding-top: 6vh;
@@ -169,7 +187,7 @@
         width: 40%;
       }
 
-      @media (max-width: 992px) {
+      @media (orientation: portrait) {
         .lg-55-md-75 {
           width: 75%;
         }
@@ -224,8 +242,7 @@
           <div class="text-center" style="position: absolute; top: 0; left: 0; color: white; width: 100%; font-family: serif; font-weight: lighter;">
             (610) 251-0265 - Tasty Table Catering - Event Catering for the Main Line
           </div>
-          <img class="d-none d-md-block tasty-logo" src="img/events-by-tasty.png" alt="Main Line Event Catering By Tasty">
-          <img class="d-md-none tasty-logo-mobile" src="img/events-by-tasty.png" alt="Main Line Event Catering By Tasty">
+          <img class="tasty-logo" src="img/events-by-tasty.png" alt="Main Line Event Catering By Tasty">
           <div class="main-menu">
             <ul>
               <li class="fly-in-text"><a href="#about" class="animated-underline-link">&nbsp;About Us&nbsp;</a></li>
@@ -258,7 +275,7 @@
             <div class="section-heading">Venues</div>
             <div style="flex: 1; position: relative; overflow: hidden; box-sizing: border-box; padding-bottom: 10px;">
 
-              <div class="d-md-none container-fluid h-100">
+              <div class="d-block-portrait container-fluid h-100">
                 <div class="row h-100 no-gutters d-flex no-gutters">
                   <div class="row col-12 no-gutters">
                     <div class="col-6 d-inline-block venue-bordered-picture" style="background: url('img/barn-bournelyf.jpg'); background-position: center; background-size: cover;">
@@ -294,7 +311,7 @@
                 </div>
               </div>
 
-              <div class="d-none d-md-block container-fluid h-100">
+              <div class="d-block-landscape container-fluid h-100">
                 <div class="row h-100 no-gutters">
                   <div class="col-3 h-100 venue-bordered-picture" style="background: url('img/grace-winery.jpg'); background-position: center; background-size: cover; display: inline-block;">
                     <a href="#" class="venue-hover-name">
