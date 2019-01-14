@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="fullpage/fullpage.css" />
+    <link rel="stylesheet" type="text/css" href="fonts/copperplatelight.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+    <link href="https://fonts.googleapis.com/css?family=Balthazar" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Alegreya+SC" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Meie+Script" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond:600" rel="stylesheet">
+
+    <link rel="stylesheet" href="themify-icons.css">
+
+
+    <style type="text/css">
+      .tasty-logo {
+        width: 25%;
+        height: auto;
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+
+      .tasty-logo-mobile {
+        width: 50%;
+        height: auto;
+        position: absolute;;
+        left: 25%;
+        top: 0;
+      }
+
+      .main-menu {
+        position: absolute;
+        left: 0;
+        bottom: 16vh;
+        width: 25%;
+        text-align: center;
+        color: white;
+        font-family: 'Copperplate Gothic';
+        font-size: 2.8vh;
+      }
+
+      @media (max-width: 767px) {
+        .main-menu {
+          background-color: #000000aa;
+          padding-top: 6vh;
+          padding-bottom: 6vh;
+          position: absolute;
+          left: 15%;
+          bottom: 8vh;
+          width: 70%;
+          text-align: center;
+          font-size: 2.8vh;
+        }
+      }
+
+      .main-menu ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+      }
+      .main-menu li {
+        margin: 15px 0;
+      }
+
+      .animated-underline-link {
+        position: relative;
+        color: #fff;
+        text-decoration: none !important;
+      }
+      .animated-underline-link:hover {
+        color: #fff;
+      }
+      .animated-underline-link:before {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 2px;
+        bottom: -5px;
+        left: 0;
+        background-color: #fff;
+        visibility: hidden;
+        -webkit-transform: scaleX(0);
+        transform: scaleX(0);
+        -webkit-transition: all 0.3s ease-in-out 0s;
+        transition: all 0.3s ease-in-out 0s;
+      }
+
+      .animated-underline-link:hover:before {
+        visibility: visible;
+        -webkit-transform: scaleX(1);
+        transform: scaleX(1);
+      }
+
+      @keyframes mover {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(0%);
+        }
+      }
+      .fly-in-text {
+        animation-name: fly-from-left;
+        animation-duration: 1.5s;
+        -webkit-animation: mover 1.5s ease-in-out forwards;
+        -moz-animation: mover 1.5s ease-in-out forwards;
+        -o-animation: mover 1.5s ease-in-out forwards;
+        animation: mover 1.5s ease-in-out forwards;
+      }
+      .anim-delay-1 { animation-delay: 0.5s; transform: translateX(-100%); }
+      .anim-delay-2 { animation-delay: 1.0s; transform: translateX(-100%); }
+      .anim-delay-3 { animation-delay: 1.5s; transform: translateX(-100%); }
+      .anim-delay-4 { animation-delay: 2.0s; transform: translateX(-100%); }
+
+      .section-heading {
+        background-color: black;
+        color: white;
+        text-align: center;
+        font-family: 'Meie Script', cursive;
+        font-size: 10vmin;
+        border-bottom: 10px solid white;
+        border-top: 10px solid white;
+      }
+    </style>
+
+
+    <style type="text/css">
+
+      .flip_horizontal {
+        -webkit-transform:scaleX(-1);
+        -moz-transform:scaleX(-1);
+        -ms-transform:scaleX(-1);
+        -o-transform:scaleX(-1);
+        transform:scaleX(-1);
+      }
+
+      .social-icon {
+        color: white !important;
+        height: 70px;
+        min-width: 70px;
+        max-width: 70px;
+        border-radius: 50%;
+        background: #1F1F1F;
+        text-align: center;
+        line-height: 70px !important;
+        vertical-align: middle !important;
+        text-decoration: none !important;
+        font-size: 24px;
+        padding: 12px;
+        margin: 6px;
+      }
+
+      .venue-bordered-picture {
+        border: 3px solid white;
+        opacity: 0;
+        box-sizing: border-box;
+        padding: 0;
+      }
+
+      .lg-55-md-75 {
+        width: 55%;
+      }
+
+      .lg-40-md-75 {
+        width: 40%;
+      }
+
+      @media (max-width: 992px) {
+        .lg-55-md-75 {
+          width: 75%;
+        }
+        .lg-40-md-75 {
+          width: 75%;
+        }
+      }
+
+      .coral-button {
+        margin: 50px;
+        text-decoration: none;
+        background-color: #F88379;
+        border-radius: 15px;
+        padding: 15px 25px;
+        font-weight: bold;
+        color: white;
+        font-size: 32px;
+        font-family: serif;
+        white-space: nowrap;
+      }
+      .coral-button:hover {
+        text-decoration: none;
+        color: white;
+        background-color: #F9938F;
+      }
+
+      .venue-hover-name {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: serif;
+        font-size: 30px;
+        text-align: center;
+        width: 100%;
+        height: 100%;
+        color: #00000000;
+        -webkit-transition: all 0.3s ease-in-out 0s;
+        transition: all 0.3s ease-in-out 0s;
+      }
+
+      .venue-hover-name:hover {
+        color: white;
+        background-color: #00000088;
+        text-decoration: none;
+      }
+		</style>
+
+  </head>
+    <body>
+      <div id="fullpage">
+        <div class="section" style="background-image: url('img/cover.jpg'); background-size: cover; background-position: center;">
+          <div class="text-center" style="position: absolute; top: 0; left: 0; color: white; width: 100%; font-family: serif; font-weight: lighter;">
+            (610) 251-0265 - Tasty Table Catering - Event Catering for the Main Line
+          </div>
+          <img class="d-none d-md-block tasty-logo" src="img/events-by-tasty.png" alt="Main Line Event Catering By Tasty">
+          <img class="d-md-none tasty-logo-mobile" src="img/events-by-tasty.png" alt="Main Line Event Catering By Tasty">
+          <div class="main-menu">
+            <ul>
+              <li class="fly-in-text"><a href="#about" class="animated-underline-link">&nbsp;About Us&nbsp;</a></li>
+              <li class="fly-in-text anim-delay-1"><a href="#about" class="animated-underline-link">&nbsp;Services&nbsp;</a></li>
+              <li class="fly-in-text anim-delay-2"><a href="#venues" class="animated-underline-link">&nbsp;Venues&nbsp;</a></li>
+              <li class="fly-in-text anim-delay-3"><a href="#contact" class="animated-underline-link">&nbsp;Bookings&nbsp;</a></li>
+              <li class="fly-in-text anim-delay-4"><a href="#venues" class="animated-underline-link">&nbsp;Gallery&nbsp;</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section" style="text-align: center; padding: 0 !important;">
+          <div style="height: 100%;">
+            <div class="section-heading">
+              About Us
+            </div>
+            <div style="padding: 3%; text-align: center;">
+              <img src="img/tasty-table-black.png" alt="Tasty Table Catering" style="width: 40%;">
+              <p style="width: 60%; margin: auto; font-size: 2.2vmin;">
+                As food people who are driven to excel, we understand that companies in all industries complete 90% of the task, but forget about the last 10%. It’s that last 10% that revolves around being on-time, on-budget, attentive to details, and most importantly how we handle the customer. Our team is well-versed not only in catering and hospitality, but are also experts at taking care of the customer. We’re foodies just like you, and our carefully thought-out dishes are sure to please. Tasty Table Catering is devoted to exceptional presentation for any occasion.
+              </p>
+              <br><br>
+              <a href="https://www.tastytablecatering.com/" class="coral-button">LEARN MORE</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div style="height: 100%; display: flex; flex-direction: column;">
+            <div class="section-heading">Venues</div>
+            <div style="flex: 1; position: relative; overflow: hidden; box-sizing: border-box; padding-bottom: 10px;">
+
+              <div class="d-md-none container-fluid h-100">
+                <div class="row h-100 no-gutters d-flex no-gutters">
+                  <div class="row col-12 no-gutters">
+                    <div class="col-6 d-inline-block venue-bordered-picture" style="background: url('img/barn-bournelyf.jpg'); background-position: center; background-size: cover;">
+                      <a href="#" class="venue-hover-name">
+                        The Barn at Bournelyf
+                      </a>
+                    </div>
+                    <div class="col-6 d-inline-block venue-bordered-picture" style="background: url('img/grace-winery-2.jpg'); background-position: center; background-size: cover;">
+                      <a href="#" class="venue-hover-name">
+                        Grace Winery
+                      </a>
+                    </div>
+                  </div>
+                  <div class="row col-12 no-gutters">
+                    <div class="col-12 d-inline-block venue-bordered-picture" style="background: url('img/ballroom-westside-2.jpg'); background-position: center; background-size: cover;">
+                      <a href="#" class="venue-hover-name">
+                        The Ballroom at Westside
+                      </a>
+                    </div>
+                  </div>
+                  <div class="row col-12 no-gutters">
+                    <div class="col-6 d-inline-block venue-bordered-picture" style="background: url('img/ballroom-westside.jpg'); background-position: center; background-size: cover;">
+                      <a href="#" class="venue-hover-name">
+                        The Ballroom at Westside
+                      </a>
+                    </div>
+                    <div class="col-6 d-inline-block venue-bordered-picture" style="background: url('img/milestone-events.png'); background-position: center; background-size: cover;">
+                      <a href="#" class="venue-hover-name">
+                        Milestone Events
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-none d-md-block container-fluid h-100">
+                <div class="row h-100 no-gutters">
+                  <div class="col-3 h-100 venue-bordered-picture" style="background: url('img/grace-winery.jpg'); background-position: center; background-size: cover; display: inline-block;">
+                    <a href="#" class="venue-hover-name">
+                      Grace Winery
+                    </a>
+                  </div>
+                  <div class="col-9 h-100" style="display: inline-block; padding-right: 0 !important;">
+                    <div class="container-fluid row h-50" style="padding: 0 !important; margin: 0 !important;">
+                      <div class="col-4 d-inline-block venue-bordered-picture" style="background: url('img/barn-bournelyf.jpg'); background-position: center; background-size: cover;">
+                        <a href="#" class="venue-hover-name">
+                          The Barn at Bournelyf
+                        </a>
+                      </div>
+                      <div class="col-8 d-inline-block venue-bordered-picture" style="background: url('img/milestone-events.png'); background-position: center; background-size: cover;">
+                        <a href="#" class="venue-hover-name">
+                          Milestone Events
+                        </a>
+                      </div>
+                    </div>
+                    <div class="container-fluid row h-50" style="padding: 0 !important; margin: 0 !important;">
+                      <div class="col-4 d-inline-block venue-bordered-picture" style="background: url('img/grace-winery-2.jpg'); background-position: center; background-size: cover;">
+                        <a href="http://gracewinery.com/" class="venue-hover-name">
+                          Grace Winery
+                        </a>
+                      </div>
+                      <div class="col-4 d-inline-block venue-bordered-picture" style="background: url('img/ballroom-westside.jpg'); background-position: center; background-size: cover;">
+                        <a href="#" class="venue-hover-name">
+                          The Ballroom at Westside
+                        </a>
+                      </div>
+                      <div class="col-4 d-inline-block venue-bordered-picture" style="background: url('img/ballroom-westside-2.jpg'); background-position: center; background-size: cover;">
+                        <a href="#" class="venue-hover-name">
+                          The Ballroom at Westside
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div style="height: 100%; display: flex; flex-direction: column;">
+            <div class="section-heading">Premier Catering</div>
+            <div style="flex: 1; overflow: hidden; display: flex; justify-content: center; position: relative;">
+              <img src="img/florid-flare.png" style="position: absolute; left: -80px; bottom: 0;">
+              <img src="img/florid-flare.png" style="position: absolute; right: -80px; top: 0;">
+              <div class="lg-55-md-75" style="margin: auto;">
+                <div class="text-center" style="font-family: serif; font-size: 22px;">
+                  Recently featured on a TV special where we catered 4 weddings in 4 days...
+                </div>
+                <div style="width: 100%; padding-top: 56.25%; position: relative; margin: 20px 0 20px 0;">
+                  <iframe style="position: absolute; left: 0; top: 0; width: 100%; height: 100%;" src="https://www.youtube.com/embed/oI-CeIeiLbs" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div class="text-center" style="font-family: serif; font-size: 22px;">
+                  We have the expertise to make your wedding perfect!
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div style="height: 100%; display: flex; flex-direction: column;">
+            <div class="section-heading">Book Now</div>
+            <div style="flex: 1; text-align: center;">
+              <img src="img/tasty-table-black-no-symbol.png" alt="Tasty Table Catering" style="width: 40%;">
+              <div class="d-none d-lg-block" style="width: 18%; position: absolute; left: 3.5%; bottom: 6.5%; height: 69%; background-image: url('img/bouquet.jpg'); background-size: cover;" class="flip_horizontal"></div>
+              <div class="d-none d-lg-block" style="width: 18%; position: absolute; right: 3.5%; bottom: 6.5%; height: 69%; background-image: url('img/bouquet.jpg'); background-size: cover;"></div>
+              <p class="lg-40-md-75" style="margin: auto; font-family: serif; font-size: 1.3rem;">
+                Choose Events by Tasty as the preferred caterer for your next celebration!
+                We have a wealth of experience handling weddings, bridal showers, graduations, memorials, and birthdays.
+              </p>
+              <br><br>
+              <p style="font-family: serif; font-size: 22.5px;">
+                <i class="ti-mobile"></i> (610) 251-0256
+                <br>
+                <i class="ti-email"></i> info@tastytablecatering.com
+                <br>
+                <i class="ti-location-pin"></i> 10 Leopard Road, Berwyn
+              </p>
+            </div>
+          </div>
+
+          <div class="text-center" style="position: absolute; bottom: 0; left: 0; padding: 12px; width: 100%; font-family: serif;">
+            <a class="social-icon ti-facebook" target="_blank" href="https://www.facebook.com/TastyTableCatering/"></a><a href="https://www.youtube.com/channel/UCrv63td5TjpaJGl67WAYpbw" target="_blank" class="social-icon ti-youtube"></a><a target="_blank" href="https://www.instagram.com/tastytablecatering/" class="social-icon ti-instagram"></a>
+            <br>
+            (610) 251-0265 - Tasty Table Catering - Event Catering for the Main Line
+          </div>
+        </div>
+
+      </div>
+    <script type="text/javascript" src="fullpage/scrolloverflow.min.js"></script>
+    <script type="text/javascript" src="fullpage/fullpage.min.js"></script>
+
+    <script type="text/javascript">
+      new fullpage('#fullpage', {
+      	//options here
+        sectionsColor: ['#000000', '#ffffff', '#ffffff', '#ffffff'],
+        anchors:['home', 'about', 'venues', 'video_showcase', 'contact'],
+        scrollBar: true,
+        scrollOverflow: true,
+        licenseKey: "B3873E70-B2F54938-A5DE5203-EB0B010F"
+      });
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+
+        /* Every time the window is scrolled ... */
+        $(window).scroll( function(){
+
+            /* Check the location of each desired element */
+            $('.venue-bordered-picture').each( function(i){
+
+                var bottom_of_object = $(this).offset().top + $(this).outerHeight();
+                var bottom_of_window = $(window).scrollTop() + $(window).height();
+
+                /* If the object is completely visible in the window, fade it it */
+                if( bottom_of_window > bottom_of_object ){
+
+                    $(this).animate({'opacity':'1'},Math.random()*800 + 200);
+
+                }
+
+            });
+
+        });
+
+    });
+    </script>
+  </body>
+</html>
