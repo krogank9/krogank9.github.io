@@ -1,16 +1,3 @@
-# krogank9.github.io
-This is a sandbox to try out web stuff and host anything.
+# thinkful_portfolio
 
-Random letters here because making multiple commits causes github site to update faster for some reason
-
-----------
--
-haeoasldka
-hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
-
-asdasdasd
-asd
-aasdasdasd
-bbbbbbbb
-
-hello
+https://krogank9.github.io/thinkful_portfolio/

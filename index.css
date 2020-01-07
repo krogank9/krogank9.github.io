@@ -232,6 +232,10 @@ footer {
 	color: #444;
 }
 
+.row {
+	margin-bottom: 20px;
+}
+
 @media (min-width: 768px) {
 	section.portfolio {
 		padding-top: 1.5%;
