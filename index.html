@@ -20,7 +20,7 @@
 		<nav class="header">
 			<a href="#about-me" class="logo"><img class="logo" src="img/logo.svg" alt="Logan Krumbhaar"></a>
 			<input class="menu-btn" type="checkbox" id="menu-btn" />
-			<label class="menu-icon" for="menu-btn"><span class="navicon"></span></label>
+			<label class="menu-icon" for="menu-btn"><span class="navicon"><span class="sr-only">Menu</span></span></label>
 			<ul class="menu">
 				<li><a href="#about-me">About Me</a></li>
 				<li><a href="#portfolio">Portfolio</a></li>
@@ -29,7 +29,7 @@
 		</nav>
 
 		<main>
-			<header role="banner">
+			<header>
 				<h1>Web Developer and Application Designer</h1>
 				<div>
 					<p>I build solid software from the ground up that people depend on.</p>
@@ -46,7 +46,7 @@
 						I have made several Android apps that many people have found useful with more than 10,000 total downloads.
 						One of the most enjoyable things about programming to me is how each new project is like a puzzle.
 						You have to figure out how the broader project architecture will fit together,
-						as well as find and fix bugs which can be like solving an interesting mystery itself.
+						as well as find and fix bugs, which can be like solving an interesting mystery itself.
 					</p>
 				</div>
 				<div>
@@ -69,7 +69,7 @@
 						<div class="portfolio-card">
 							<img src="img/wifimouse-icon.svg" alt="WifiMouse Icon">
 							<h3>WifiMouse</h3>
-							<p>This is an Android application I developed which turns your phone into a wireless mouse and keyboard with many interesting and useful features.</p>
+							<p>An Android application I developed which turns your phone into a wireless mouse and keyboard with many useful features.</p>
 							<div><span class="portfolio-read-more" data-modal-num="1">Read more...</span></div>
 						</div>
 					</div>
@@ -85,7 +85,7 @@
 					
 					<div class="col-4">
 						<div class="portfolio-card">
-							<img src="img/hiking-app-logo.svg" alt="WifiMouse Icon">
+							<img src="img/hiking-app-logo.svg" alt="Hiking App Icon">
 							<h3>Hiking Trails Search</h3>
 							<p>Tool to find nearby hiking trails and learn about them. Uses hikingproject.com's API as well as the Google Maps API.</p>
 							<div><span class="portfolio-read-more" data-modal-num="3">Read more...</span></div>
@@ -116,7 +116,7 @@
 			</section>
 		</main>
 		
-		<footer role="contentinfo">
+		<footer>
 			<div class="contact-info" id="contact">
 				<div>
 					<h2>Location</h2>
@@ -126,19 +126,19 @@
 					<h2>Around the Web</h2>
 					<div class="circle-button-row">
 						<a class="circle-button" href="https://github.com/krogank9/"  target="_blank">
-							<i class="fa fa-fw fa-github"></i>
+							<i class="fa fa-fw fa-github"><span class="sr-only">GitHub</span></i>
 						</a>
 						<a class="circle-button" href="https://www.linkedin.com/in/logan-krumbhaar-691175153" target="_blank">
-							<i class="fa fa-fw fa-linkedin"></i>
+							<i class="fa fa-fw fa-linkedin"><span class="sr-only">LinkedIn</span></i>
 						</a>
 						<a class="circle-button" href="https://www.youtube.com/channel/UCpH93goetR0u9ejeAR8M4Nw" target="_blank">
-							<i class="fa fa-fw fa-youtube"></i>
+							<i class="fa fa-fw fa-youtube"><span class="sr-only">YouTube</span></i>
 						</a>
 					</div>
 				</div>
 				<div>
 					<h2>Contact</h2>
-					<p>logan_k at live dot com</p>
+					<p><a href="mailto:logan_k@live.com">logan_k@live.com</a></p>
 				</div>
 			</div>
 			
@@ -147,7 +147,7 @@
 			</div>
 		</footer>
 
-		<!-- --------- Portfolio Modals ---------- -->
+		<!-- =========== Portfolio Modals =========== -->
 		
 		<!-- Modal popup #1 -->
 		<div class="portfolio-modal-container hide modal-1">
@@ -166,7 +166,7 @@
 					</div>
 					<img class="portfolio-image" src="img/wifimouse-screenshot.jpg" alt="WifiMouse Screenshot">
 					<p class="long-paragraph mb-5">
-						This app turns your phone into a super compact yet full-featured wireless keyboard for your phone.
+						This app turns your phone into a super compact yet full-featured wireless keyboard for your computer.
 						It has many useful features such as screen mirroring, CPU/process monitoring, wireless file transfer, and an application launcher.
 						This app has 2 components; the Android client and the cross-platform desktop server.
 						Simply download the 2 applications, connect to the same WiFi network (or connect via Bluetooth if on Mac/Linux),
@@ -256,7 +256,8 @@
 					<h2>Forum App</h2>
 					<div class="portfolio-links">
 						<a href="https://forum-client.now.sh/" target="_blank">Live app</a>
-						/ <a href="https://github.com/krogank9/forum-client" target="_blank">Source code</a>
+						/ <a href="https://github.com/krogank9/forum-client" target="_blank">Client code</a>
+						/ <a href="https://github.com/krogank9/forum-server" target="_blank">Server code</a>
 					</div>
 					<img class="portfolio-image" src="img/forum-screenshot.png" alt="Forum App Screenshot">
 					<p class="long-paragraph mb-5">
@@ -285,7 +286,8 @@
 					<h2>Clothing Store Demo App</h2>
 					<div class="portfolio-links">
 						<a href="https://clothing-store-client.now.sh/" target="_blank">Live app</a>
-						/ <a href="https://github.com/krogank9/clothing-store-client" target="_blank">Source code</a>
+						/ <a href="https://github.com/krogank9/clothing-store-client" target="_blank">Client code</a>
+						/ <a href="https://github.com/krogank9/clothing-store-server" target="_blank">Server code</a>
 					</div>
 					<img class="portfolio-image" src="img/clothing-store-screenshot.png" alt="Clothing Store Demo App Screenshot">
 					<p class="long-paragraph mb-5">
