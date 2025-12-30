@@ -31,9 +31,7 @@
         
         function updateCamera() {
             ez.centerOrigin = true;
-            // For first 4 scenes: mobile uses (0, 0), desktop uses (0, 1)
-            const first4Scenes = ["Boxes", "Dominoes", "Stack", "Composite shapes"];
-            const cameraY = first4Scenes.includes(currentScene) ? (isMobile ? 0 : 1) : 1;
+            const cameraY = isMobile ? 0 : 1;
             ez.letterBoxCamera(vec2(0, cameraY), vec2(11.5995, 5.55), true)
         }
         updateCamera();
