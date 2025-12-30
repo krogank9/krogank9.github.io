@@ -414,15 +414,20 @@ ezCapsule.prototype.drawPath = function() {
 ez.capsule = function(pos, rot, length, r1, r2) { return new ezCapsule(pos, rot, length, r1, r2); };
 
 // line
-function ezLine(startPos, endPos) {
+function ezLine(startPos, endPos, options) {
     this.sx = startPos.x !== undefined ? startPos.x : (startPos[0] || 0);
     this.sy = startPos.y !== undefined ? startPos.y : (startPos[1] || 0);
     this.ex = endPos.x !== undefined ? endPos.x : (endPos[0] || 0);
     this.ey = endPos.y !== undefined ? endPos.y : (endPos[1] || 0);
+    this.options = options || {};
 }
 ezLine.prototype.stroke = function(color) {
-    const s = ez.worldToScreen2D(this.sx, this.sy, null);
-    const e = ez.worldToScreen2D(this.ex, this.ey, null);
+    let s = ez.worldToScreen2D(this.sx, this.sy, null);
+    let e = ez.worldToScreen2D(this.ex, this.ey, null);
+    if (this.options.roundToNearestPixel) {
+        s = { x: Math.round(s.x), y: Math.round(s.y) };
+        e = { x: Math.round(e.x), y: Math.round(e.y) };
+    }
     const ctx = ez.ctx;
     ctx.save();
     if (color) ctx.strokeStyle = ez.parseColor(color);
@@ -432,7 +437,78 @@ ezLine.prototype.stroke = function(color) {
     ctx.stroke();
     ctx.restore();
 };
-ez.line = function(startPos, endPos) { return new ezLine(startPos, endPos); };
+ez.line = function(startPos, endPos, options) { return new ezLine(startPos, endPos, options); };
+
+// grid
+function ezGrid(cellSize, numCells, roundToNearestPixel) {
+    this.cellSize = typeof cellSize === 'number' ? { x: cellSize, y: cellSize } : cellSize;
+    this.numCells = typeof numCells === 'number' ? { x: numCells, y: numCells } : numCells;
+    this.roundToNearestPixel = roundToNearestPixel !== false;
+}
+ezGrid.prototype.stroke = function(color) {
+    const ctx = ez.ctx;
+    ctx.save();
+    if (color) ctx.strokeStyle = ez.parseColor(color);
+    ctx.beginPath();
+
+    const halfNumCellsX = Math.floor(this.numCells.x / 2);
+    const halfNumCellsY = Math.floor(this.numCells.y / 2);
+    const gridSizeX = this.cellSize.x * this.numCells.x;
+    const gridSizeY = this.cellSize.y * this.numCells.y;
+
+    // Calculate screen bounds in world coordinates
+    const screenCorners = [
+        ez.screenToWorld({ x: 0, y: 0 }),
+        ez.screenToWorld({ x: ez.canvas.width, y: 0 }),
+        ez.screenToWorld({ x: 0, y: ez.canvas.height }),
+        ez.screenToWorld({ x: ez.canvas.width, y: ez.canvas.height })
+    ];
+
+    const minX = Math.min(screenCorners[0].x, screenCorners[1].x, screenCorners[2].x, screenCorners[3].x);
+    const maxX = Math.max(screenCorners[0].x, screenCorners[1].x, screenCorners[2].x, screenCorners[3].x);
+    const minY = Math.min(screenCorners[0].y, screenCorners[1].y, screenCorners[2].y, screenCorners[3].y);
+    const maxY = Math.max(screenCorners[0].y, screenCorners[1].y, screenCorners[2].y, screenCorners[3].y);
+
+    // Calculate visible grid line indices
+    const startX = Math.max(-halfNumCellsX, Math.floor(minX / this.cellSize.x));
+    const endX = Math.min(halfNumCellsX, Math.ceil(maxX / this.cellSize.x));
+    const startY = Math.max(-halfNumCellsY, Math.floor(minY / this.cellSize.y));
+    const endY = Math.min(halfNumCellsY, Math.ceil(maxY / this.cellSize.y));
+
+    // Vertical lines
+    for (let i = startX; i <= endX; i++) {
+        const pos = i * this.cellSize.x;
+        const sy = Math.max(-gridSizeY / 2, minY);
+        const ey = Math.min(gridSizeY / 2, maxY);
+        let s = ez.worldToScreen({ x: pos, y: sy });
+        let e = ez.worldToScreen({ x: pos, y: ey });
+        if (this.roundToNearestPixel) {
+            s = { x: Math.round(s.x), y: Math.round(s.y) };
+            e = { x: Math.round(e.x), y: Math.round(e.y) };
+        }
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(e.x, e.y);
+    }
+
+    // Horizontal lines
+    for (let i = startY; i <= endY; i++) {
+        const pos = i * this.cellSize.y;
+        const sx = Math.max(-gridSizeX / 2, minX);
+        const ex = Math.min(gridSizeX / 2, maxX);
+        let s = ez.worldToScreen({ x: sx, y: pos });
+        let e = ez.worldToScreen({ x: ex, y: pos });
+        if (this.roundToNearestPixel) {
+            s = { x: Math.round(s.x), y: Math.round(s.y) };
+            e = { x: Math.round(e.x), y: Math.round(e.y) };
+        }
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(e.x, e.y);
+    }
+
+    ctx.stroke();
+    ctx.restore();
+};
+ez.grid = function(cellSize, numCells, roundToNearestPixel) { return new ezGrid(cellSize, numCells, roundToNearestPixel); };
 
 // path
 function ezPath(points, closed, smoothed) {
@@ -538,6 +614,8 @@ vec2.prototype.rotated = vec2.prototype.rotate = function(a) {
 vec2.prototype.angle = function() { return Math.atan2(this.y, this.x); };
 vec2.prototype.abs = function() { return new vec2(Math.abs(this.x), Math.abs(this.y)); };
 vec2.prototype.clone = function() { return new vec2(this.x, this.y); };
+vec2.prototype.floored = function() { return new vec2(Math.floor(this.x), Math.floor(this.y)); };
+vec2.prototype.rounded = function() { return new vec2(Math.round(this.x), Math.round(this.y)); };
 
 function vec3(x, y, z) {
     if (!(this instanceof vec3)) return new vec3(x, y, z);

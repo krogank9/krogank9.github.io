@@ -15,9 +15,10 @@
 </head>
 
 <body>
-    <script src="ezdraw.js"></script>
+    <script src="ezdraw_minimal.js"></script>
+    <script src="ezgui_minimal.js"></script>
     <script src="simple_phys.js"></script>
-    <script src="simple_phys_ezdraw_renderer.js"></script>
+    <script src="simple_phys_ezdraw_renderer_minimal.js"></script>
     <script>
         // Get friction parameter from URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -25,8 +26,11 @@
 
         // Setup canvas with proper scaling (y is up, 100px = 1 unit)
         let canvas = ez.createCanvasAndAddToPage()
-        ez.centerOrigin = true
-        ez.letterBoxCamera(vec2(0, 1), vec2(11.5995, 5.55), true)
+        function updateCamera() {
+            ez.centerOrigin = true;
+            ez.letterBoxCamera(vec2(0, 1), vec2(11.5995, 5.55), true)
+        }
+        updateCamera();
 
         // Utility to create a star composed of convex triangles (CCW order)
         function addStar(
@@ -123,9 +127,9 @@
             world.addBox(0, 8, 20, 1, 1, true)
             // Add floor
             world.addBox(0, -2.5, 20, 2, 1, true)
-            let box = world.addBox(0, 0, 1, 1)
-            let box2 = world.addBox(0, 1, 0.5, 0.5)
-            let box3 = world.addBox(0, 1.5, 0.25, 0.25)
+            let box = world.addBox(0, 1, 2, 2)
+            let box2 = world.addBox(0, 3, 1, 1)
+            let box3 = world.addBox(0, 4, 0.5, 0.5)
 
             if (!useFriction) {
                 world.objects.forEach(obj => {
@@ -349,6 +353,8 @@
         // Main animation function
         function update(dt) {
             ez.clear()
+
+            updateCamera()
 
             // Draw grid for reference
             ez.ctx.lineWidth = 1
