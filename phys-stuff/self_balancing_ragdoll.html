@@ -18,6 +18,7 @@
 </head>
 
 <body>
+	<!-- Logo is drawn on canvas, not as DOM element -->
 	<script src="ezdraw_minimal.js"></script>
 	<script src="simple_phys.js"></script>
 	<script src="simple_phys_ezdraw_renderer_minimal.js"></script>
@@ -1025,6 +1026,10 @@
 			if (!physPaused) {
 				world.step(dt * guiControls["Time scale"], fixedDt, maxSubstepsPerFrame);
 			}
+			
+			// Update logo physics and draw on canvas
+			updateLogoPhysics(dt);
+			drawLogoOnCanvas();
 
 			// Check if ragdoll has fallen too far and reset if needed
 			const com = rig.getCenterOfMass();
@@ -1103,6 +1108,239 @@
 		
 		// Start auto-push on initial spawn
 		startAutoPush();
+
+		// ──────────────────────────────────────────────────────────────
+		// Logo Physics
+		// ──────────────────────────────────────────────────────────────
+		let logoBody = null;
+		let logoActivated = false;
+		let logoScale = 1;
+		let logoScaleTarget = 1.5;
+		let logoScaleSpeed = 3; // scale units per second
+		let logoHovered = false;
+		let logoOffScreenTime = 0;
+		const LOGO_OFFSCREEN_RESET_DELAY = 3.0; // seconds
+		
+		// Logo initial position in screen pixels
+		// X: 2rem (32px) + half logo size (20px) = 52px
+		// Y: Aligned with nav text vertical center (nav padding 1.5rem + half text height)
+		const LOGO_INITIAL_SCREEN_X = 32 + 20;
+		const LOGO_INITIAL_SCREEN_Y = 36; // Moved up to align with nav text midpoint
+		const LOGO_BASE_SIZE = 40; // Base size in pixels
+		
+		// Current logo screen position (for non-physics mode)
+		let logoScreenX = LOGO_INITIAL_SCREEN_X;
+		let logoScreenY = LOGO_INITIAL_SCREEN_Y;
+		let logoRotation = 0;
+		
+		// Pre-load SVG as an image for canvas rendering
+		const logoImage = new Image();
+		const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="44 0 90 90" width="90" height="90">
+			<defs><style>.cls-1{fill:none;stroke:#1a1a1a;stroke-miterlimit:10;stroke-width:4px;}</style></defs>
+			<circle class="cls-1" cx="88.59" cy="45" r="39.43"/>
+			<path class="cls-1" d="M87.53,67.89H79.14C72.85,67.9,68,66.25,64.78,63c-2.92-3-4.32-7-4.17-12V26.87h7V51.15c-.1,3.09.6,5.35,2.15,6.91,2.48,2.5,6.9,2.92,10.17,2.84h7.61"/>
+			<line class="cls-1" x1="88.28" y1="45.34" x2="112.44" y2="24.24"/>
+			<line class="cls-1" x1="112.44" y1="65.76" x2="88.28" y2="44.66"/>
+			<line class="cls-1" x1="88.28" y1="5.25" x2="88.28" y2="84.11"/>
+		</svg>`;
+		const svgBase64 = btoa(unescape(encodeURIComponent(svgString)));
+		logoImage.src = 'data:image/svg+xml;base64,' + svgBase64;
+		let logoImageLoaded = false;
+		logoImage.onload = () => { 
+			logoImageLoaded = true;
+		};
+		
+		// Check if mouse is over logo (for hover effect)
+		function isMouseOverLogo() {
+			if (!ez.mousePos) return false;
+			const mx = ez.mousePos.x;
+			const my = ez.mousePos.y;
+			const size = LOGO_BASE_SIZE * logoScale;
+			const halfSize = size / 2;
+			return mx >= logoScreenX - halfSize && mx <= logoScreenX + halfSize &&
+			       my >= logoScreenY - halfSize && my <= logoScreenY + halfSize;
+		}
+		
+		function getLogoWorldPos() {
+			// Convert current screen position to world coordinates
+			return ez.screenToWorld({ x: logoScreenX, y: logoScreenY });
+		}
+		
+		function activateLogo() {
+			if (logoActivated) return;
+			
+			// If already hovered (scaled up), start at full scale; otherwise animate to it
+			if (logoHovered) {
+				logoScale = logoScaleTarget;
+			}
+			
+			logoActivated = true;
+			
+			// Get logo position in world coordinates
+			const worldPos = getLogoWorldPos();
+			
+			// Create a physics circle at logo position
+			// SVG viewBox is 90 units tall, circle radius is 39.43 units
+			// Logo is 40px base height, scaled to 1.5x = 60px at final size
+			const svgViewBoxHeight = 90;
+			const svgCircleRadius = 39.43;
+			const logoHeightPx = LOGO_BASE_SIZE * logoScaleTarget;
+			const circleRadiusPx = logoHeightPx * (svgCircleRadius / svgViewBoxHeight);
+			const canvasH = ez.canvas.height;
+			const viewH = VIEW_HEIGHT_ABOVE_GROUND;
+			const logoRadius = (circleRadiusPx / canvasH) * viewH;
+			
+			logoBody = world.addCircle(worldPos.x, worldPos.y, logoRadius, 1, false);
+			logoBody.restitution = 0.3;
+			logoBody.friction = 0.5;
+			logoBody._renderHidden = true; // Hide circle, we draw our own logo on top
+			
+			// Initial velocity: push to the right
+			logoBody.velocity = new Vec2(3, 0);
+			
+			// Clockwise spin (negative angular velocity in standard physics)
+			logoBody.angularVelocity = -5;
+		}
+		
+		// Handle canvas clicks for logo
+		ez.canvas.addEventListener('click', function(e) {
+			if (logoActivated) return;
+			if (isMouseOverLogo()) {
+				activateLogo();
+			}
+		});
+		
+		function isLogoOffScreen() {
+			if (!logoBody) return false;
+			
+			const pos = logoBody.position;
+			// Get visible bounds from camera
+			const camScaleX = Math.abs(ez.camera.matrix.col1.x);
+			const camScaleY = Math.abs(ez.camera.matrix.col2.y);
+			const camPosX = ez.camera.matrix.col4.x;
+			const camPosY = ez.camera.matrix.col4.y;
+			const halfW = ez.canvas.width * 0.5 * camScaleX;
+			const halfH = ez.canvas.height * 0.5 * camScaleY;
+			
+			const margin = 2;
+			const left = camPosX - halfW - margin;
+			const right = camPosX + halfW + margin;
+			const bottom = camPosY - halfH - margin;
+			const top = camPosY + halfH + margin;
+			
+			return pos.x < left || pos.x > right || pos.y < bottom || pos.y > top;
+		}
+		
+		function resetLogo() {
+			// Remove physics body from world
+			if (logoBody) {
+				const idx = world.objects.indexOf(logoBody);
+				if (idx !== -1) {
+					world.objects.splice(idx, 1);
+				}
+				logoBody = null;
+			}
+			
+			// Reset state
+			logoActivated = false;
+			logoScale = 1;
+			logoHovered = false;
+			logoOffScreenTime = 0;
+			logoRotation = 0;
+			
+			// Reset to initial screen position
+			logoScreenX = LOGO_INITIAL_SCREEN_X;
+			logoScreenY = LOGO_INITIAL_SCREEN_Y;
+		}
+		
+		function updateLogoPhysics(dt) {
+			// Handle hover effect when not activated
+			if (!logoActivated) {
+				logoHovered = isMouseOverLogo();
+				
+				// Set cursor style only when hovering logo
+				if (logoHovered) {
+					ez.canvas.style.cursor = 'pointer';
+				} else if (ez.canvas.style.cursor === 'pointer') {
+					ez.canvas.style.cursor = '';
+				}
+				
+				// Animate scale for hover effect
+				const targetScale = logoHovered ? logoScaleTarget : 1;
+				if (logoScale < targetScale) {
+					logoScale = Math.min(logoScale + logoScaleSpeed * dt, targetScale);
+				} else if (logoScale > targetScale) {
+					logoScale = Math.max(logoScale - logoScaleSpeed * dt, targetScale);
+				}
+				return;
+			}
+			
+			// Physics mode - reset cursor if it was set by us
+			if (ez.canvas.style.cursor === 'pointer') {
+				ez.canvas.style.cursor = '';
+			}
+			
+			if (!logoBody) return;
+			
+			// Check if logo is off-screen
+			if (isLogoOffScreen()) {
+				logoOffScreenTime += dt;
+				if (logoOffScreenTime >= LOGO_OFFSCREEN_RESET_DELAY) {
+					resetLogo();
+					return;
+				}
+			} else {
+				logoOffScreenTime = 0;
+			}
+			
+			// Animate scale towards target
+			if (logoScale < logoScaleTarget) {
+				logoScale = Math.min(logoScale + logoScaleSpeed * dt, logoScaleTarget);
+			}
+			
+			// Update screen position from physics body
+			const screenPos = ez.worldToScreen2D(logoBody.position.x, logoBody.position.y);
+			logoScreenX = screenPos.x;
+			logoScreenY = screenPos.y;
+			logoRotation = logoBody.rotation;
+		}
+		
+		function drawLogoOnCanvas() {
+			if (!logoImageLoaded) return;
+			
+			// Calculate logo size in screen pixels
+			const logoSizeScreen = LOGO_BASE_SIZE * logoScale;
+			
+			const ctx = ez.ctx;
+			ctx.save();
+			ctx.translate(logoScreenX, logoScreenY);
+			// Negate rotation because screen Y is down, world Y is up
+			ctx.rotate(-logoRotation);
+			ctx.drawImage(
+				logoImage,
+				-logoSizeScreen / 2,
+				-logoSizeScreen / 2,
+				logoSizeScreen,
+				logoSizeScreen
+			);
+			ctx.restore();
+		}
+
+		// Override resetSimulation to preserve the logo body
+		const originalResetSimulation = resetSimulation;
+		resetSimulation = function() {
+			// Save logo body reference before reset
+			const savedLogoBody = logoBody;
+			
+			// Call original reset (clears world.objects)
+			originalResetSimulation();
+			
+			// Re-add logo body if it existed
+			if (savedLogoBody) {
+				world.objects.push(savedLogoBody);
+				logoBody = savedLogoBody;
+			}
+		};
 
 		world.constraintIterations = 25;
 		PhysRenderer.initMouseControls(world);

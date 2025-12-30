@@ -2463,35 +2463,31 @@
         isSlimeVisible() {
             if (!this.slimeNodes.center) return false;
             
-            // In page bottom mode, check if viewport is near the bottom of the page
-            if (this.pageBottomMode) {
-                const contentHeight = this._contentHeight || 0;
-                if (contentHeight <= 0) return true; // If we don't know height, assume visible
-                
-                const scrollY = window.scrollY;
-                const viewportBottom = scrollY + window.innerHeight;
-                
-                // The slime is near the bottom of the page
-                // Check if we're scrolled close enough to see it
-                const slimeAreaTop = contentHeight - 400; // Slime area starts ~400px from bottom
-                const marginAbove = 600; // Start simulating 600px before visible
-                
-                const inView = viewportBottom > slimeAreaTop - marginAbove;
-                
-                // Even if not in view, keep physics running if slime is moving
-                if (!inView) {
-                    const center = this.slimeNodes.center;
-                    const dx = center.position.x - center.prevPosition.x;
-                    const dy = center.position.y - center.prevPosition.y;
-                    const speed = Math.sqrt(dx * dx + dy * dy);
-                    if (speed > 0.02) return true; // Keep running if moving
-                }
-                
-                return inView;
-            }
+            // Get the slime's actual screen position and check against viewport
+            // This is simpler and more robust than assuming where the slime should be
+            const centerWorld = this.slimeNodes.center.position;
+            const centerScreen = this.worldToScreen(centerWorld);
             
-            // In fixed mode, always visible
-            return true;
+            // If worldToScreen returned invalid coordinates, assume visible
+            if (isNaN(centerScreen.x) || isNaN(centerScreen.y)) return true;
+            
+            // Get the slime's approximate screen bounds
+            // Slime radius is about 1 world unit, plus some margin for wobble
+            const slimeScreenRadius = this.pixelsPerUnit * 1.5;
+            const margin = 300; // Extra margin to start rendering before slime is visible
+            
+            const slimeTop = centerScreen.y - slimeScreenRadius - margin;
+            const slimeBottom = centerScreen.y + slimeScreenRadius + margin;
+            
+            // Get viewport bounds (in page coordinates for pageBottomMode)
+            const scrollY = window.scrollY;
+            const viewportTop = scrollY;
+            const viewportBottom = scrollY + window.innerHeight;
+            
+            // Check if slime's vertical bounds intersect viewport
+            const visible = slimeBottom >= viewportTop && slimeTop <= viewportBottom;
+            
+            return visible;
         }
         
         // --- Core Loop ---

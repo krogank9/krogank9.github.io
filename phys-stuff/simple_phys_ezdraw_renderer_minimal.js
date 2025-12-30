@@ -207,8 +207,9 @@ const PhysRenderer = {
 	_findHoveredObject() {
 		if (!this._mousePos || !this.world) return null;
 		// Iterate through sorted objects (highest z-index first)
+		// Allow interaction with _renderHidden objects (they may have custom rendering)
 		return this.getSortedObjects(this.world).toReversed().find(obj =>
-			!obj._renderHidden && !obj.isStatic && obj.containsPoint(this._mousePos)
+			!obj.isStatic && obj.containsPoint(this._mousePos)
 		);
 	},
 
