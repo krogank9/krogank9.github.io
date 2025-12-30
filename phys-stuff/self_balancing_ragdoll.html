@@ -1224,7 +1224,7 @@
 			logoBody = world.addCircle(worldPos.x, worldPos.y, logoRadius, 1, false);
 			logoBody.restitution = 0.3;
 			logoBody.friction = 0.5;
-			logoBody._renderHidden = true; // Hide circle, we draw our own logo on top
+			logoBody._renderHidden = true;
 			
 			// Initial velocity: push to the right
 			logoBody.velocity = new Vec2(3, 0);
@@ -1233,13 +1233,35 @@
 			logoBody.angularVelocity = -5;
 		}
 		
-		// Handle canvas clicks for logo
+		// Handle canvas clicks for logo (desktop)
 		ez.canvas.addEventListener('click', function(e) {
 			if (logoActivated) return;
 			if (isMouseOverLogo()) {
 				activateLogo();
 			}
 		});
+		
+		// Handle touch for logo activation (mobile)
+		ez.canvas.addEventListener('touchstart', function(e) {
+			if (logoActivated) return;
+			if (e.touches.length !== 1) return;
+			
+			const touch = e.touches[0];
+			const rect = ez.canvas.getBoundingClientRect();
+			const scaleX = ez.canvas.width / rect.width;
+			const scaleY = ez.canvas.height / rect.height;
+			const touchX = (touch.clientX - rect.left) * scaleX;
+			const touchY = (touch.clientY - rect.top) * scaleY;
+			
+			// Check if touch is over logo
+			const size = LOGO_BASE_SIZE * logoScale;
+			const halfSize = size / 2;
+			if (touchX >= logoScreenX - halfSize && touchX <= logoScreenX + halfSize &&
+			    touchY >= logoScreenY - halfSize && touchY <= logoScreenY + halfSize) {
+				activateLogo();
+				e.preventDefault();
+			}
+		}, { passive: false });
 		
 		function isLogoOffScreen() {
 			if (!logoBody) return false;
