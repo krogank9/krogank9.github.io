@@ -1122,16 +1122,34 @@
 		const LOGO_OFFSCREEN_RESET_DELAY = 3.0; // seconds
 		
 		// Logo initial position in screen pixels
-		// X: 2rem (32px) + half logo size (20px) = 52px
-		// Y: Aligned with nav text vertical center (nav padding 1.5rem + half text height)
-		const LOGO_INITIAL_SCREEN_X = 32 + 20;
-		const LOGO_INITIAL_SCREEN_Y = 36; // Moved up to align with nav text midpoint
 		const LOGO_BASE_SIZE = 40; // Base size in pixels
+		const MOBILE_BREAKPOINT = 640; // Match Nav.svelte mobile breakpoint
+		
+		function getLogoInitialPosition() {
+			const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
+			if (isMobile) {
+				// Mobile: equal padding on top and left (1.5rem = 24px) + half logo size
+				return { x: 24 + 20, y: 24 + 20 };
+			} else {
+				// Desktop: 2rem left padding, aligned with nav text vertically
+				return { x: 32 + 20, y: 36 };
+			}
+		}
 		
 		// Current logo screen position (for non-physics mode)
-		let logoScreenX = LOGO_INITIAL_SCREEN_X;
-		let logoScreenY = LOGO_INITIAL_SCREEN_Y;
+		let logoInitialPos = getLogoInitialPosition();
+		let logoScreenX = logoInitialPos.x;
+		let logoScreenY = logoInitialPos.y;
 		let logoRotation = 0;
+		
+		// Update position on resize
+		window.addEventListener('resize', function() {
+			if (!logoActivated) {
+				const newPos = getLogoInitialPosition();
+				logoScreenX = newPos.x;
+				logoScreenY = newPos.y;
+			}
+		});
 		
 		// Pre-load SVG as an image for canvas rendering
 		const logoImage = new Image();
@@ -1150,9 +1168,22 @@
 			logoImageLoaded = true;
 		};
 		
+		// Track if mouse is actually over canvas (for touch devices)
+		let mouseOverCanvas = false;
+		let lastMouseMoveTime = 0;
+		ez.canvas.addEventListener('mouseenter', () => { mouseOverCanvas = true; });
+		ez.canvas.addEventListener('mouseleave', () => { mouseOverCanvas = false; });
+		ez.canvas.addEventListener('mousemove', () => { lastMouseMoveTime = Date.now(); });
+		
 		// Check if mouse is over logo (for hover effect)
 		function isMouseOverLogo() {
-			if (!ez.mousePos) return false;
+			// Don't show hover if:
+			// - Mouse not over canvas
+			// - No mouse position
+			// - No recent mouse movement (likely touch device with stale position)
+			if (!mouseOverCanvas || !ez.mousePos) return false;
+			if (Date.now() - lastMouseMoveTime > 500) return false; // No recent mouse activity
+			
 			const mx = ez.mousePos.x;
 			const my = ez.mousePos.y;
 			const size = LOGO_BASE_SIZE * logoScale;
@@ -1248,9 +1279,10 @@
 			logoOffScreenTime = 0;
 			logoRotation = 0;
 			
-			// Reset to initial screen position
-			logoScreenX = LOGO_INITIAL_SCREEN_X;
-			logoScreenY = LOGO_INITIAL_SCREEN_Y;
+			// Reset to initial screen position (recalculate for current screen size)
+			const initialPos = getLogoInitialPosition();
+			logoScreenX = initialPos.x;
+			logoScreenY = initialPos.y;
 		}
 		
 		function updateLogoPhysics(dt) {
