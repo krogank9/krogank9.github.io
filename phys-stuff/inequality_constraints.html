@@ -26,9 +26,15 @@
 
         // Setup canvas with proper scaling (y is up, 100px = 1 unit)
         let canvas = ez.createCanvasAndAddToPage()
+        let currentScene = "Boxes";
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+        
         function updateCamera() {
             ez.centerOrigin = true;
-            ez.letterBoxCamera(vec2(0, 1), vec2(11.5995, 5.55), true)
+            // For first 4 scenes: mobile uses (0, 0), desktop uses (0, 1)
+            const first4Scenes = ["Boxes", "Dominoes", "Stack", "Composite shapes"];
+            const cameraY = first4Scenes.includes(currentScene) ? (isMobile ? 0 : 1) : 1;
+            ez.letterBoxCamera(vec2(0, cameraY), vec2(11.5995, 5.55), true)
         }
         updateCamera();
 
@@ -126,7 +132,7 @@
             // Add ceiling
             world.addBox(0, 8, 20, 1, 1, true)
             // Add floor
-            world.addBox(0, -2.5, 20, 2, 1, true)
+            world.addBox(0, -3.5, 20, 4, 1, true)
             let box = world.addBox(0, 1, 2, 2)
             let box2 = world.addBox(0, 3, 1, 1)
             let box3 = world.addBox(0, 4, 0.5, 0.5)
@@ -142,7 +148,7 @@
         function setupDominoesScene() {
             clearScene();
             // Add floor
-            world.addBox(0, -2.5, 20, 2, 1, true);
+            world.addBox(0, -3.5, 20, 4, 1, true);
 
             // Create a line of dominoes
             const dominoWidth = 0.15;   // Increased width for better stability
@@ -170,7 +176,7 @@
         function setupStackScene() {
             clearScene();
             // Add floor
-            world.addBox(0, -2.5, 20, 2, 1, true);
+            world.addBox(0, -3.5, 20, 4, 1, true);
 
             // Create a three-level Stonehenge-like structure
             const pillarWidth = 0.4;
@@ -217,7 +223,7 @@
         function setupStarScene() {
             clearScene();
             // Add floor
-            world.addBox(0, -2.5, 20, 2, 1, true);
+            world.addBox(0, -3.5, 20, 4, 1, true);
 
             // Add a star using the addStar function
             addStar(world, 0, 2, 5, 1.5, 0.7, 0, { restitution: 0.5, friction: 0.5 });
@@ -323,6 +329,7 @@
         // Create GUI
         ez.gui(controls, {
             "Scene": (val) => {
+                currentScene = val;
                 switch (val) {
                     case "Boxes":
                         setupBoxesScene();
