@@ -60,7 +60,7 @@
             this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             this.svg.setAttribute('width', '0');
             this.svg.setAttribute('height', '0');
-            this.svg.style.cssText = 'position: fixed; top: 0; left: 0; pointer-events: none;';
+            this.svg.style.cssText = 'position: fixed; top: 0; left: 0; width: 0; height: 0; overflow: hidden; pointer-events: none;';
 
             const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
 
@@ -418,14 +418,21 @@
 
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.id = 'slime-main-svg';
-            svg.style.position = 'fixed';
-            svg.style.top = '0';
-            svg.style.left = '0';
-            svg.style.width = '100vw';
-            svg.style.height = '100vh';
-            svg.style.pointerEvents = 'none';
-            svg.style.zIndex = '10002';
-            svg.style.shapeRendering = 'geometricPrecision';
+            svg.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                pointer-events: none;
+                z-index: 10002;
+                shape-rendering: geometricPrecision;
+                margin: 0;
+                padding: 0;
+                border: none;
+                box-sizing: border-box;
+            `;
 
             // Set viewBox to match window size
             svg.setAttribute('viewBox', `0 0 ${window.innerWidth} ${window.innerHeight}`);
@@ -2260,7 +2267,8 @@
             
             this.renderer.mainSVG.style.top = '0';
             this.renderer.mainSVG.style.left = '0';
-            this.renderer.mainSVG.style.width = pageWidth + 'px';
+            this.renderer.mainSVG.style.width = '100%';
+            this.renderer.mainSVG.style.maxWidth = '100%';
             this.renderer.mainSVG.style.height = contentHeight + 'px';
             this.renderer.mainSVG.style.overflow = 'hidden';
             this.renderer.mainSVG.style.pointerEvents = 'none';

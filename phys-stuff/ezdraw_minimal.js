@@ -82,14 +82,10 @@ ez.createCanvasAndAddToPage = function() {
     document.body.appendChild(ez.canvas);
 
     const canvas = ez.canvas;
-    canvas.style.cssText = 'display:block;position:absolute;left:0;top:0;width:100%;height:100%;outline:none;touch-action:none';
+    canvas.style.cssText = 'display:block;position:absolute;left:0;top:0;width:100%;height:100%;outline:none;touch-action:pan-y';
     document.body.style.cssText = 'margin:0;overflow:hidden;width:100%;height:100%';
-    document.documentElement.style.cssText = 'width:100%;height:100%';
+    document.documentElement.style.cssText = 'width:100%;height:100%;overflow:hidden';
 
-    // Get the actual DPI for sharp rendering
-    const dpr = window.devicePixelRatio || 1;
-    canvas._dpr = dpr;
-    
     // Store references to original property descriptors BEFORE overriding
     const origWidthDesc = Object.getOwnPropertyDescriptor(HTMLCanvasElement.prototype, 'width');
     const origHeightDesc = Object.getOwnPropertyDescriptor(HTMLCanvasElement.prototype, 'height');
@@ -99,7 +95,9 @@ ez.createCanvasAndAddToPage = function() {
         get() { return this._logicalWidth || 0; },
         set(v) { 
             this._logicalWidth = v;
-            const d = this._dpr || 1;
+            // Always use fresh DPR
+            const d = window.devicePixelRatio || 1;
+            this._dpr = d;
             origWidthDesc.set.call(this, Math.round(v * d));
         }
     });
@@ -107,7 +105,9 @@ ez.createCanvasAndAddToPage = function() {
         get() { return this._logicalHeight || 0; },
         set(v) { 
             this._logicalHeight = v;
-            const d = this._dpr || 1;
+            // Always use fresh DPR
+            const d = window.devicePixelRatio || 1;
+            this._dpr = d;
             origHeightDesc.set.call(this, Math.round(v * d));
         }
     });
@@ -117,11 +117,15 @@ ez.createCanvasAndAddToPage = function() {
         const w = document.documentElement.clientWidth || window.innerWidth;
         const h = document.documentElement.clientHeight || window.innerHeight;
         
+        // Get fresh DPR on every resize
+        const dpr = window.devicePixelRatio || 1;
+        canvas._dpr = dpr;
+        
         // Set dimensions (this also sets _logicalWidth/_logicalHeight via our setter)
         canvas.width = Math.max(w, 1);
         canvas.height = Math.max(h, 1);
         
-        // Scale context to match DPI
+        // Scale context to match DPI (setting canvas dimensions clears transform)
         if (ez.ctx) {
             ez.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         }

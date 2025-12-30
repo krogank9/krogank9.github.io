@@ -40,10 +40,7 @@ const PhysRenderer = {
 
 	_renderConstraints: true,
 
-	// Pinch zoom properties
-	_pinchState: null,
 	_activeTouchId: null, // Track which touch is being used for dragging
-	_isMouseDown: false, // Track if mouse is currently down
 	_isTouchDown: false, // Track if touch is currently down
 
 	_getCanvasPosFromTouch(touch) {
@@ -54,59 +51,6 @@ const PhysRenderer = {
 			(touch.clientX - rect.left) * scaleX,
 			(touch.clientY - rect.top) * scaleY
 		);
-	},
-
-	_screenToCameraSpace(screenPos) {
-		let x = screenPos.x;
-		let y = screenPos.y;
-		if (ez.centerOrigin || ez.centerOriginX) {
-			x -= ez.canvas.width / 2;
-		}
-		if (ez.centerOrigin || ez.centerOriginY) {
-			y -= ez.canvas.height / 2;
-		}
-		return vec2(x, y);
-	},
-
-	_initPinchFromTouches(touches) {
-		if (!touches || touches.length < 2) {
-			this._pinchState = null;
-			return false;
-		}
-
-		const trackedTouches = Array.from(touches)
-			.slice(0, 2)
-			.map((touch) => {
-				const screenPos = this._getCanvasPosFromTouch(touch);
-				const worldPos = ez.screenToWorld(screenPos);
-				return {
-					id: touch.identifier,
-					screenStart: screenPos,
-					world: new Vec2(worldPos.x, worldPos.y),
-				};
-			});
-
-		if (trackedTouches.length < 2) {
-			this._pinchState = null;
-			return false;
-		}
-
-		const dx = trackedTouches[1].screenStart.x - trackedTouches[0].screenStart.x;
-		const dy = trackedTouches[1].screenStart.y - trackedTouches[0].screenStart.y;
-		const startDistance = Math.hypot(dx, dy) || 1;
-
-		this._pinchState = {
-			startCamera: {
-				scaleX: ez.camera.matrix.col1.x,
-				scaleY: ez.camera.matrix.col2.y,
-				posX: ez.camera.matrix.col4.x,
-				posY: ez.camera.matrix.col4.y,
-			},
-			touches: trackedTouches,
-			startDistance,
-		};
-
-		return true;
 	},
 
 	// Function to detect if polygon vertices are wound clockwise
@@ -186,20 +130,7 @@ const PhysRenderer = {
 
 		// Touch event support for mobile
 		ez.canvas.addEventListener("touchstart", (e) => {
-			e.preventDefault();
-
-			// If second finger added, release any grabbed object and start pinch zoom
-			if (e.touches.length >= 2) {
-				this._isTouchDown = false;
-				this._releaseObject(); // Release any grabbed object
-				this._activeTouchId = null; // Clear active touch
-				this._initPinchFromTouches(e.touches);
-				return;
-			}
-
-			// Handle single touch for dragging objects (only if no active touch)
 			if (e.touches.length === 1 && this._activeTouchId === null) {
-				this._pinchState = null;
 				const touch = e.touches[0];
 				const canvasPos = this._getCanvasPosFromTouch(touch);
 				const worldPos = ez.screenToWorld(canvasPos);
@@ -209,76 +140,26 @@ const PhysRenderer = {
 				if (!hoveredObject) {
 					this._isTouchDown = false;
 					this._releaseObject();
+					// Don't preventDefault - allow scrolling
 					return;
 				}
 
+				// Only prevent scrolling when grabbing an object
+				e.preventDefault();
 				this._isTouchDown = true;
-				this._activeTouchId = touch.identifier; // Track this touch
+				this._activeTouchId = touch.identifier;
 				this._grabObject(hoveredObject);
 			}
 		}, { passive: false });
 
 		ez.canvas.addEventListener("touchmove", (e) => {
-			e.preventDefault();
-
-			// Handle pinch zoom (two fingers)
-			if (this._pinchState) {
-				const pinch = this._pinchState;
-				const touchMap = new Map(Array.from(e.touches, (t) => [t.identifier, t]));
-				const tracked = pinch.touches
-					.map((info) => {
-						const touch = touchMap.get(info.id);
-						return touch ? { info, touch } : null;
-					})
-					.filter(Boolean);
-
-				if (tracked.length === pinch.touches.length) {
-					const firstPos = this._getCanvasPosFromTouch(tracked[0].touch);
-					const secondPos = this._getCanvasPosFromTouch(tracked[1].touch);
-					const dx = secondPos.x - firstPos.x;
-					const dy = secondPos.y - firstPos.y;
-					const currentDistance = Math.hypot(dx, dy) || 1;
-					const scaleFactor = Math.max(currentDistance / pinch.startDistance, 1e-4);
-
-					const newScaleX = pinch.startCamera.scaleX / scaleFactor;
-					const newScaleY = pinch.startCamera.scaleY / scaleFactor;
-
-					const screen0 = this._screenToCameraSpace(firstPos);
-					const screen1 = this._screenToCameraSpace(secondPos);
-					const world0 = tracked[0].info.world;
-					const world1 = tracked[1].info.world;
-
-					const camPosCandidate0 = {
-						x: world0.x - screen0.x * newScaleX,
-						y: world0.y - screen0.y * newScaleY,
-					};
-					const camPosCandidate1 = {
-						x: world1.x - screen1.x * newScaleX,
-						y: world1.y - screen1.y * newScaleY,
-					};
-
-					const newPosX = (camPosCandidate0.x + camPosCandidate1.x) / 2;
-					const newPosY = (camPosCandidate0.y + camPosCandidate1.y) / 2;
-
-					// Update camera matrix
-					ez.camera.matrix.col1.x = newScaleX;
-					ez.camera.matrix.col2.y = newScaleY;
-					ez.camera.matrix.col4.x = newPosX;
-					ez.camera.matrix.col4.y = newPosY;
-					return;
-				} else if (e.touches.length >= 2) {
-					if (this._initPinchFromTouches(e.touches)) {
-						return;
-					}
-				} else {
-					this._pinchState = null;
-				}
+			// Only prevent default if we're actively dragging
+			if (this._mouseConstraint) {
+				e.preventDefault();
 			}
 
-			// Handle single touch for dragging objects
-			// Only update if the active touch is moving
+			// Update position if dragging
 			if (this._mouseConstraint && this._activeTouchId !== null) {
-				// Find the touch that matches our active touch ID
 				const activeTouch = Array.from(e.touches).find(t => t.identifier === this._activeTouchId);
 				if (activeTouch) {
 					const canvasPos = this._getCanvasPosFromTouch(activeTouch);
@@ -289,9 +170,10 @@ const PhysRenderer = {
 		}, { passive: false });
 
 		ez.canvas.addEventListener("touchend", (e) => {
-			e.preventDefault();
+			if (this._mouseConstraint) {
+				e.preventDefault();
+			}
 
-			// Check if our active touch ended
 			if (this._activeTouchId !== null) {
 				const activeTouchStillPresent = Array.from(e.touches).some(t => t.identifier === this._activeTouchId);
 				if (!activeTouchStillPresent) {
@@ -301,32 +183,21 @@ const PhysRenderer = {
 				}
 			}
 
-			// If no touches remain, ensure everything is released
 			if (e.touches.length === 0) {
 				this._isTouchDown = false;
 				this._releaseObject();
 				this._activeTouchId = null;
 			}
-
-			// Reset pinch zoom state if less than 2 touches remain
-			if (e.touches.length < 2) {
-				this._pinchState = null;
-			}
 		}, { passive: false });
 
 		ez.canvas.addEventListener("touchcancel", (e) => {
-			e.preventDefault();
 			this._isTouchDown = false;
-			this._pinchState = null;
 			this._activeTouchId = null;
 			this._releaseObject();
 		}, { passive: false });
 
-		// Add this event listener for window blur
 		window.addEventListener("blur", () => {
-			this._isMouseDown = false;
 			this._isTouchDown = false;
-			this._pinchState = null;
 			this._activeTouchId = null;
 			this._releaseObject();
 		});
