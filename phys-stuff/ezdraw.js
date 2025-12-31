@@ -3790,8 +3790,7 @@ ez.callAnimate = function(callback, pauseOnHidden = true) {
             });
         }, {
             root: null,
-            threshold: 0,       // Trigger as soon as any pixel is visible/hidden
-            rootMargin: "100px" // Buffer zone to prevent early pausing on mobile
+            threshold: 0.1  // Start running when at least 10% visible
         });
 
         // Start observing the canvas
