@@ -272,6 +272,17 @@ class PhysicsObject {
 		const svgDrawW = sizeW * this.svgScale.w;
 		const svgDrawH = sizeH * this.svgScale.h;
 		
+		// Off-screen culling: skip drawing if object is outside canvas bounds
+		// Use the larger dimension (accounting for rotation) as a conservative radius
+		const cullRadius = Math.max(svgDrawW, svgDrawH) * 0.75;
+		const canvasW = this.ez.canvas.width;
+		const canvasH = this.ez.canvas.height;
+		
+		if (this.screenX + cullRadius < 0 || this.screenX - cullRadius > canvasW ||
+		    this.screenY + cullRadius < 0 || this.screenY - cullRadius > canvasH) {
+			return; // Object is off-screen, skip drawing
+		}
+		
 		// Offset to center the visible content on the physics body
 		const offsetX = this.svgOffset.x * svgDrawW;
 		const offsetY = this.svgOffset.y * svgDrawH;
