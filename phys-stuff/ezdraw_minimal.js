@@ -792,7 +792,7 @@ ez.callAnimate = function(callback, pauseOnHidden) {
         if (ez._animState.observer) ez._animState.observer.disconnect();
         ez._animState.observer = new IntersectionObserver(entries => {
             entries[0].isIntersecting ? ez.resumeAnimation() : ez.pauseAnimation();
-        }, {threshold: 0.1});
+        }, {threshold: 0, rootMargin: "100px"});
         ez._animState.observer.observe(ez.canvas);
     }
     return {pause: ez.pauseAnimation, resume: ez.resumeAnimation, stop: ez.stopAnimation};
