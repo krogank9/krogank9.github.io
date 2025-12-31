@@ -2334,6 +2334,9 @@
         
         handleTouchEnd() {
             this.selectedNode = null;
+            // Reset mouse position to off-screen so hover effect doesn't show
+            this.mouseScreenPos = new Vec2(-1000, -1000);
+            this.mouseWorldPos = new Vec2(-1000, -1000);
         }
         
         handleTouchMove(e) {
