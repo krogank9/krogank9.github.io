@@ -2475,9 +2475,12 @@
             if (isNaN(centerScreen.x) || isNaN(centerScreen.y)) return true;
             
             // Get the slime's approximate screen bounds
-            // Slime radius is about 1 world unit, plus some margin for wobble
+            // Slime radius is about 1 world unit, plus some margin for wobble.
+            // Margin must exceed the largest per-frame scroll delta (fast flings can
+            // move ~1000px between rAF ticks), otherwise the slime can enter the
+            // viewport before the next frame renders/unhides him.
             const slimeScreenRadius = this.pixelsPerUnit * 1.5;
-            const margin = 300; // Extra margin to start rendering before slime is visible
+            const margin = Math.max(300, window.innerHeight);
             
             const slimeTop = centerScreen.y - slimeScreenRadius - margin;
             const slimeBottom = centerScreen.y + slimeScreenRadius + margin;
@@ -2518,11 +2521,22 @@
             this.updateClosestNode();
             this.world.step(dtReal, this.selectedNode, this.mouseWorldPos, this.slimeNodes.center);
 
-            // Only render if visible
+            // Only render if visible. While culled the SVG is hidden rather than
+            // left showing its last-drawn frame: scrolling is composited off the
+            // main thread, so a stale frame would otherwise be scrolled into view
+            // before the next rAF re-renders, making the slime appear to teleport.
+            // Render BEFORE unhiding so the first visible frame is always current.
             if (visible) {
                 this.render();
+                if (this._culled) {
+                    this.renderer.mainSVG.style.visibility = 'visible';
+                    this._culled = false;
+                }
+            } else if (!this._culled) {
+                this.renderer.mainSVG.style.visibility = 'hidden';
+                this._culled = true;
             }
-            
+
             this.animationFrameId = requestAnimationFrame(() => this.animate());
         }
 

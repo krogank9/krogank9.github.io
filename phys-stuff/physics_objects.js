@@ -52,6 +52,10 @@ class PhysicsObject {
 		// Image
 		this.image = null;
 		this.imageLoaded = false;
+
+		// Packed WebGL mesh name (from svg-meshes.json); when available the
+		// object draws as a vector mesh on the GL layer instead of drawImage
+		this.meshName = config.meshName || null;
 		
 		// Callbacks
 		this.getInitialPosition = config.getInitialPosition || (() => ({ x: 100, y: 100 }));
@@ -286,7 +290,16 @@ class PhysicsObject {
 		// Offset to center the visible content on the physics body
 		const offsetX = this.svgOffset.x * svgDrawW;
 		const offsetY = this.svgOffset.y * svgDrawH;
-		
+
+		// Prefer the WebGL vector mesh (sharp at any scale); falls back to
+		// Canvas2D drawImage when GL or the mesh data is unavailable
+		if (this.meshName && typeof PhysRendererGL !== 'undefined' &&
+			PhysRendererGL.available && PhysRendererGL.hasMesh(this.meshName)) {
+			PhysRendererGL.drawMesh(this.meshName, this.screenX, this.screenY,
+				this.rotation, svgDrawW, svgDrawH, offsetX, offsetY);
+			return;
+		}
+
 		const ctx = this.ez.ctx;
 		ctx.save();
 		ctx.translate(this.screenX, this.screenY);
@@ -472,6 +485,7 @@ function createLogoConfig() {
 	
 	return {
 		svgString: svgString,
+		meshName: 'logo',
 		baseSize: 40,
 		scaleTarget: 1.5,
 		scaleSpeed: 3,
@@ -525,6 +539,7 @@ function createCardboardBoxConfig(sizeMultiplier, getInitialPosition) {
 	
 	return {
 		imageSrc: '../images/cardboard%20box.svg',
+		meshName: 'cardboard-box',
 		baseSize: 100 * sizeMultiplier, // Base height in pixels (bigger!)
 		scaleTarget: 1,
 		scaleSpeed: 3,
@@ -681,6 +696,7 @@ function createComputerScreenConfig() {
 	
 	return {
 		imageSrc: '../images/computer%20screen.svg',
+		meshName: 'computer-screen',
 		svgWidth: svgWidth,
 		svgHeight: svgHeight,
 		comOffset: { x: comX, y: comY },
@@ -765,6 +781,7 @@ function createComputerTableConfig() {
 	
 	return {
 		imageSrc: '../images/computer%20table.svg',
+		meshName: 'computer-table',
 		svgWidth: svgWidth,
 		svgHeight: svgHeight,
 		comOffset: { x: comX, y: comY },

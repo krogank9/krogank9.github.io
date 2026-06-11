@@ -22,6 +22,7 @@
 	<script src="ezdraw_minimal.js"></script>
 	<script src="simple_phys.js"></script>
 	<script src="simple_phys_ezdraw_renderer_minimal.js"></script>
+	<script src="webgl_phys_renderer.js"></script>
 	<script src="ragdoll_builder_utils.js"></script>
 	<script src="physics_objects.js"></script>
 	<script>
@@ -68,7 +69,10 @@
 
 		const world = new PhysWorld();
 		world.gravity = new Vec2(0, -9.81);
-		const fixedDt = 1 / 240; // smaller substep for accuracy
+		// Physics budget — overridable for A/B tuning: ?subhz=120&iters=10
+		const _physParams = new URLSearchParams(location.search);
+		const fixedDt = 1 / (parseFloat(_physParams.get('subhz')) || 240); // smaller substep for accuracy
+		const constraintIterations = parseInt(_physParams.get('iters')) || 25;
 		const maxSubstepsPerFrame = 32; // allow larger catch-up to avoid time dilation
 
 		// ──────────────────────────────────────────────────────────────
@@ -998,18 +1002,43 @@
 		// ──────────────────────────────────────────────────────────────
 		// Main loop
 		// ──────────────────────────────────────────────────────────────
+
+		// ?profile=1 logs per-stage frame timings every ~2s
+		const PROFILE = new URLSearchParams(location.search).has('profile');
+		const _prof = { acc: {}, frames: 0 };
+		function profTime(key, fn) {
+			if (!PROFILE) return fn();
+			const t0 = performance.now();
+			fn();
+			_prof.acc[key] = (_prof.acc[key] || 0) + (performance.now() - t0);
+		}
+		function profReport(frameMs) {
+			_prof.acc['frame total'] = (_prof.acc['frame total'] || 0) + frameMs;
+			if (++_prof.frames < 120) return;
+			const lines = Object.entries(_prof.acc)
+				.map(([k, v]) => `${k}: ${(v / _prof.frames).toFixed(3)}ms`)
+				.join(' | ');
+			console.log(`[profile] avg over ${_prof.frames} frames — ${lines}`);
+			_prof.acc = {};
+			_prof.frames = 0;
+		}
+
 		function update(dt) {
+			const frameT0 = PROFILE ? performance.now() : 0;
+
 			// Update camera each frame to handle resize
 			updateCamera();
-			
+
 			ez.clear();
 			ez.ctx.lineWidth = 1.5;
 
-			PhysRenderer.render(world);
+			// WebGL renderer for ragdoll bodies/shadows/joints; falls back to
+			// the Canvas2D PhysRenderer internally if WebGL is unavailable.
+			profTime('render', () => PhysRendererGL.render(world));
 			//ikArm.solve(ez.getMousePosWorld());
 			//ikArm.drawDebug();
 
-			stepper.update(dt * guiControls["Time scale"]);
+			profTime('ik/stepper', () => stepper.update(dt * guiControls["Time scale"]));
 
 			// Apply a small horizontal impulse at the chest to encourage leaning
 			const simDt = dt * guiControls["Time scale"];
@@ -1025,12 +1054,14 @@
 				}
 			}
 			if (!physPaused) {
-				world.step(dt * guiControls["Time scale"], fixedDt, maxSubstepsPerFrame);
+				profTime('physics step', () => world.step(dt * guiControls["Time scale"], fixedDt, maxSubstepsPerFrame));
 			}
-			
+
 			// Update and draw physics objects (logo, boxes, etc.)
-			physicsObjectsManager.update(dt);
-			physicsObjectsManager.draw();
+			profTime('props', () => {
+				physicsObjectsManager.update(dt);
+				physicsObjectsManager.draw();
+			});
 
 			// Check if ragdoll has fallen too far and reset if needed
 			const com = rig.getCenterOfMass();
@@ -1070,6 +1101,8 @@
 				//PhysRenderer._renderConstraints = false;
 				_currentlyShowingDebug = false;
 			}
+
+			if (PROFILE) profReport(performance.now() - frameT0);
 		}
 
 		// Force-clear any saved ragdoll state on load (temporary recovery for hard-locked state)
@@ -1137,8 +1170,16 @@
 			physicsObjectsManager.restoreBodies(savedBodies);
 		};
 
-		world.constraintIterations = 25;
+		world.constraintIterations = constraintIterations;
 		PhysRenderer.initMouseControls(world);
+		// ?renderer=canvas forces the old Canvas2D path (for A/B comparison)
+		const useCanvasRenderer = new URLSearchParams(location.search).get('renderer') === 'canvas';
+		if (useCanvasRenderer) {
+			console.log('[PhysRendererGL] ?renderer=canvas — forcing Canvas2D renderer');
+		}
+		if (!useCanvasRenderer && PhysRendererGL.init()) {
+			PhysRendererGL.loadMeshes('svg-meshes.json');
+		}
 		ez.callAnimate(update, true);
 	</script>
 </body>
