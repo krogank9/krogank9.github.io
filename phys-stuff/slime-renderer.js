@@ -2343,9 +2343,13 @@
             
             this.rendererRoot.style.top = '0';
             this.rendererRoot.style.left = '0';
-            this.rendererRoot.style.width = '100%';
-            this.rendererRoot.style.maxWidth = '100%';
-            this.rendererRoot.style.height = this._usesGLRenderer ? '100%' : contentHeight + 'px';
+            this.rendererRoot.style.width = this._usesGLRenderer ? '100vw' : '100%';
+            this.rendererRoot.style.maxWidth = this._usesGLRenderer ? 'none' : '100%';
+            this.rendererRoot.style.height = this._usesGLRenderer ? '100vh' : contentHeight + 'px';
+            if (this._usesGLRenderer) {
+                this.rendererRoot.style.right = '0';
+                this.rendererRoot.style.bottom = '0';
+            }
             this.rendererRoot.style.overflow = 'hidden';
             this.rendererRoot.style.pointerEvents = 'none';
             if (this.rendererRoot.setAttribute && !this._usesGLRenderer) {

@@ -63,7 +63,7 @@
             this.onDirty = null;        // controller hook: force a re-render
 
             const canvas = document.createElement('canvas');
-            canvas.style.cssText = 'position:fixed;top:0;left:0;pointer-events:none;margin:0;padding:0;border:none;';
+            canvas.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;margin:0;padding:0;border:none;max-width:none;max-height:none;';
             this.root = canvas;
             this._ok = false;
 
@@ -775,14 +775,27 @@
             if (!gl || !this._glReady || gl.isContextLost()) return;
 
             const dpr = window.devicePixelRatio || 1;
+            const canvas = this.root;
+            canvas.style.width = '100vw';
+            canvas.style.height = '100vh';
+            canvas.style.left = '0';
+            canvas.style.top = '0';
+            canvas.style.right = '0';
+            canvas.style.bottom = '0';
+
+            const rect = canvas.getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0) {
+                offsetX += rect.left;
+                offsetY += rect.top;
+                cssW = rect.width;
+                cssH = rect.height;
+            }
+
             const devW = Math.max(1, Math.round(cssW * dpr));
             const devH = Math.max(1, Math.round(cssH * dpr));
-            const canvas = this.root;
             if (canvas.width !== devW || canvas.height !== devH) {
                 canvas.width = devW;
                 canvas.height = devH;
-                canvas.style.width = cssW + 'px';
-                canvas.style.height = cssH + 'px';
             }
             this._dpr = dpr;
             this._devW = devW;
