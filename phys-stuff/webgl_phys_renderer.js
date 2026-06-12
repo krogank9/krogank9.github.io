@@ -194,6 +194,9 @@ const PhysRendererGL = {
 	_meshAttribs: null,
 	_meshUniforms: null,
 	_meshes: {},
+	_meshesLoaded: false,
+
+	_animState: { running: false, frameId: null, callback: null, lastTime: 0, observer: null },
 
 	_initMeshProgram(gl) {
 		const vs = [
@@ -239,6 +242,7 @@ const PhysRendererGL = {
 	// resolves, hasMesh() is false and callers fall back to Canvas2D.
 	loadMeshes(url) {
 		if (!this.available) return Promise.resolve(false);
+		this._meshesLoaded = false;
 		return fetch(url)
 			.then(r => {
 				if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -265,11 +269,13 @@ const PhysRendererGL = {
 						viewBox: mesh.viewBox
 					};
 				}
+				this._meshesLoaded = true;
 				console.log('[PhysRendererGL] packed SVG meshes loaded:', Object.keys(this._meshes).join(', '),
 					'— props now render as WebGL vector meshes');
 				return true;
 			})
 			.catch(err => {
+				this._meshesLoaded = false;
 				console.warn('PhysRendererGL.loadMeshes failed, props fall back to Canvas2D:', err);
 				return false;
 			});
@@ -277,6 +283,77 @@ const PhysRendererGL = {
 
 	hasMesh(name) {
 		return !!this._meshes[name];
+	},
+
+	_requestNextFrame() {
+		const glAnimate = (time) => {
+			if (!this._animState.running) return;
+			const dt = (time - this._animState.lastTime) * 0.001;
+			this._animState.lastTime = time;
+			if (typeof ez !== 'undefined' && ez._updateCameraCache) ez._updateCameraCache();
+			this._animState.callback(typeof ez !== 'undefined' && ez.debugPause ? 0 : dt);
+			if (this._animState.running) this._animState.frameId = requestAnimationFrame(glAnimate);
+		};
+		this._animState.frameId = requestAnimationFrame(glAnimate);
+	},
+
+	meshesReady() {
+		return this._meshesLoaded;
+	},
+
+	callAnimate(callback, pauseOnHidden = true, visibilityElement = null) {
+		if (this._animState.frameId) cancelAnimationFrame(this._animState.frameId);
+		if (this._animState.observer) {
+			this._animState.observer.disconnect();
+			this._animState.observer = null;
+		}
+
+		this._animState.callback = callback;
+		this._animState.running = true;
+		this._animState.lastTime = performance.now();
+		this._requestNextFrame();
+
+		const target = visibilityElement || (typeof ez !== 'undefined' ? ez.canvas : null);
+		if (pauseOnHidden !== false && target) {
+			this._animState.observer = new IntersectionObserver(entries => {
+				if (entries[0].isIntersecting) {
+					this.resumeAnimation();
+				} else {
+					this.pauseAnimation();
+				}
+			}, { threshold: 0, rootMargin: '100px' });
+			this._animState.observer.observe(target);
+		}
+
+		return {
+			pause: () => this.pauseAnimation(),
+			resume: () => this.resumeAnimation(),
+			stop: () => this.stopAnimation()
+		};
+	},
+
+	pauseAnimation() {
+		this._animState.running = false;
+		if (this._animState.frameId) {
+			cancelAnimationFrame(this._animState.frameId);
+			this._animState.frameId = null;
+		}
+	},
+
+	resumeAnimation() {
+		if (this._animState.running || !this._animState.callback) return;
+		this._animState.running = true;
+		this._animState.lastTime = performance.now();
+		this._requestNextFrame();
+	},
+
+	stopAnimation() {
+		this.pauseAnimation();
+		this._animState.callback = null;
+		if (this._animState.observer) {
+			this._animState.observer.disconnect();
+			this._animState.observer = null;
+		}
 	},
 
 	// Draws a packed mesh with the same semantics as the Canvas2D path:

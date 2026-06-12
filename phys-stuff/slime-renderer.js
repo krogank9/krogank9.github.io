@@ -926,6 +926,8 @@
                 id: slimeId,
                 element: group,
                 shader: shader,
+                bodyPath,
+                highlightPath,
                 verts: [...verts],
                 eyeLeftMain,
                 eyeLeftShineGroup,
@@ -1009,22 +1011,25 @@
                 return; // Still can't handle less than 2 vertices
             }
 
-            // Recompute geometry helpers for eyes and shader/bounding
-            const bbox = this.calculateBBox(processedVerts);
-            const centroid = this.calculateCentroid(processedVerts);
-
-            // Update paths directly with new vertices
-            const paths = slime.element.querySelectorAll('path');
-            if (paths.length >= 2) {
-                const bodyPath = this.createSmoothPath(processedVerts);
-                const highlightPath = this.createSmoothPath(processedVerts, 0.8);
-
-                paths[0].setAttribute('d', bodyPath.getAttribute('d'));
-                paths[1].setAttribute('d', highlightPath.getAttribute('d'));
+            // Update paths directly with new vertices (cached refs; building the
+            // data strings directly avoids creating throwaway DOM elements)
+            let bodyEl = slime.bodyPath;
+            let highlightEl = slime.highlightPath;
+            if (!bodyEl || !highlightEl) {
+                const paths = slime.element.querySelectorAll('path');
+                if (paths.length >= 2) {
+                    bodyEl = slime.bodyPath = paths[0];
+                    highlightEl = slime.highlightPath = paths[1];
+                }
+            }
+            if (bodyEl && highlightEl) {
+                bodyEl.setAttribute('d', this.createSmoothPathData(processedVerts));
+                highlightEl.setAttribute('d', this.createSmoothPathData(processedVerts, 0.8));
             }
 
             // Update shader polygon and position
             if (slime.shader) {
+                const bbox = this.calculateBBox(processedVerts);
                 // Use the same padding logic as in createSlime
                 const padding = Math.max(50, Math.min(bbox.width, bbox.height) * 0.2);
                 const shaderX = bbox.x - padding;
@@ -1073,6 +1078,17 @@
 
             if (verts.length < 3) {
                 return path;
+            }
+
+            path.setAttribute('d', this.createSmoothPathData(verts, scale));
+
+            return path;
+        }
+
+        // Build the smooth path data string without touching the DOM
+        createSmoothPathData(verts, scale = 1) {
+            if (verts.length < 3) {
+                return '';
             }
 
             // If scaling, scale around the centroid
@@ -1125,9 +1141,8 @@
             }
 
             pathData += ' Z';
-            path.setAttribute('d', pathData);
 
-            return path;
+            return pathData;
         }
 
         calculateCentroid(verts) {
@@ -1430,8 +1445,6 @@
         updateNormalEyePositions(slime, leftEyeCX, leftEyeCY, rightEyeCX, rightEyeCY) {
             const eyeWidth = slime.initialEyeWidth;
             const eyeHeight = slime.initialEyeHeight;
-            const shineWidth = slime.initialShineWidth;
-            const shineHeight = slime.initialShineHeight;
 
             // Shine positions (offset from eye centers)
             const leftShineCX = leftEyeCX - eyeWidth * 0.4;
@@ -1439,37 +1452,20 @@
             const rightShineCX = rightEyeCX - eyeWidth * 0.4;
             const rightShineCY = rightEyeCY - eyeHeight * 0.3;
 
+            // Eye/shine sizes are constant (set at creation); only positions change
             // Left eye
             slime.eyeLeftMain.setAttribute('cx', leftEyeCX);
             slime.eyeLeftMain.setAttribute('cy', leftEyeCY);
-            slime.eyeLeftMain.setAttribute('rx', eyeWidth);
-            slime.eyeLeftMain.setAttribute('ry', eyeHeight);
 
             // Left eye shine
             slime.eyeLeftShineGroup.setAttribute('transform', `translate(${leftShineCX}, ${leftShineCY}) rotate(16)`);
-            const eyeLeftShine = slime.eyeLeftShineGroup.childNodes[0];
-            if (eyeLeftShine) {
-                eyeLeftShine.setAttribute('cx', 0);
-                eyeLeftShine.setAttribute('cy', 0);
-                eyeLeftShine.setAttribute('rx', shineWidth);
-                eyeLeftShine.setAttribute('ry', shineHeight);
-            }
 
             // Right eye
             slime.eyeRightMain.setAttribute('cx', rightEyeCX);
             slime.eyeRightMain.setAttribute('cy', rightEyeCY);
-            slime.eyeRightMain.setAttribute('rx', eyeWidth);
-            slime.eyeRightMain.setAttribute('ry', eyeHeight);
 
             // Right eye shine
             slime.eyeRightShineGroup.setAttribute('transform', `translate(${rightShineCX}, ${rightShineCY}) rotate(16)`);
-            const eyeRightShine = slime.eyeRightShineGroup.childNodes[0];
-            if (eyeRightShine) {
-                eyeRightShine.setAttribute('cx', 0);
-                eyeRightShine.setAttribute('cy', 0);
-                eyeRightShine.setAttribute('rx', shineWidth);
-                eyeRightShine.setAttribute('ry', shineHeight);
-            }
         }
 
         // Update sleepy eye positions
@@ -1507,9 +1503,6 @@
             // Ensure constraints layer exists
             this.ensureConstraintsLayer();
 
-            // Clear existing constraints
-            safeSetInnerHTML(this.constraintsLayer, '');
-
             const {
                 pointRadius = 1.5,
                 pointColor = 'rgba(60, 60, 60, 1.0)', // Full opacity - mask will control visibility
@@ -1525,35 +1518,56 @@
             // Update the radial opacity mask
             this.updateOpacityMask(mousePos, baseOpacity, hoverRadius, maxOpacity);
 
-            // Draw constraints first (so they appear behind points)
-            if (showConstraints && constraints) {
-                for (const constraint of constraints) {
+            const lineCount = (showConstraints && constraints) ? constraints.length : 0;
+            const circleCount = (showPoints && points) ? points.length : 0;
+
+            // The element counts and styles are constant frame-to-frame, so reuse
+            // pooled line/circle elements and only rewrite the coordinates that
+            // actually change. Rebuilding the whole layer every frame forced the
+            // browser to re-create/layout ~36 SVG nodes per tick.
+            const poolKey = `${lineCount}|${circleCount}|${pointRadius}|${pointColor}|${constraintColor}|${constraintWidth}`;
+            if (this._constraintPoolKey !== poolKey) {
+                safeSetInnerHTML(this.constraintsLayer, '');
+                this._constraintLines = [];
+                this._pointCircles = [];
+
+                // Constraints first (so they appear behind points)
+                for (let i = 0; i < lineCount; i++) {
                     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    line.setAttribute('x1', constraint.pointA.x);
-                    line.setAttribute('y1', constraint.pointA.y);
-                    line.setAttribute('x2', constraint.pointB.x);
-                    line.setAttribute('y2', constraint.pointB.y);
                     line.setAttribute('stroke', constraintColor);
                     line.setAttribute('stroke-width', constraintWidth);
                     line.setAttribute('stroke-linecap', 'round');
                     line.style.pointerEvents = 'none';
                     this.constraintsLayer.appendChild(line);
+                    this._constraintLines.push(line);
                 }
-            }
-
-            // Draw points on top of constraints
-            if (showPoints && points) {
-                for (const point of points) {
+                for (let i = 0; i < circleCount; i++) {
                     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    circle.setAttribute('cx', point.x);
-                    circle.setAttribute('cy', point.y);
                     circle.setAttribute('r', pointRadius);
                     circle.setAttribute('fill', pointColor);
                     circle.setAttribute('stroke', 'rgba(40, 40, 40, 1.0)'); // Full opacity
                     circle.setAttribute('stroke-width', '0.3');
                     circle.style.pointerEvents = 'none';
                     this.constraintsLayer.appendChild(circle);
+                    this._pointCircles.push(circle);
                 }
+                this._constraintPoolKey = poolKey;
+            }
+
+            for (let i = 0; i < lineCount; i++) {
+                const constraint = constraints[i];
+                const line = this._constraintLines[i];
+                line.setAttribute('x1', constraint.pointA.x);
+                line.setAttribute('y1', constraint.pointA.y);
+                line.setAttribute('x2', constraint.pointB.x);
+                line.setAttribute('y2', constraint.pointB.y);
+            }
+
+            for (let i = 0; i < circleCount; i++) {
+                const point = points[i];
+                const circle = this._pointCircles[i];
+                circle.setAttribute('cx', point.x);
+                circle.setAttribute('cy', point.y);
             }
         }
 
@@ -1564,6 +1578,7 @@
                 this.constraintsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                 this.constraintsLayer.id = 'constraints-layer';
                 this.constraintsLayer.style.pointerEvents = 'none';
+                this._constraintPoolKey = null; // Pooled elements belong to the old layer
 
                 // Create the opacity mask if it doesn't exist
                 this.createOpacityMask();
@@ -1595,11 +1610,9 @@
                 this.selectionLayer.style.pointerEvents = 'none';
             }
 
-            // Always ensure it's the last child (on top)
-            if (this.selectionLayer.parentNode !== this.mainSVG) {
-                this.mainSVG.appendChild(this.selectionLayer);
-            } else {
-                // Move to end if it's not already there
+            // Always ensure it's the last child (on top); appendChild on an
+            // already-last node would still trigger a remove+reinsert mutation
+            if (this.mainSVG.lastChild !== this.selectionLayer) {
                 this.mainSVG.appendChild(this.selectionLayer);
             }
         }
@@ -1685,38 +1698,64 @@
 
         // Update the opacity mask based on mouse position
         updateOpacityMask(mousePos, baseOpacity = 0.4, hoverRadius = 150, maxOpacity = 1.0) {
-            const defs = this.mainSVG.querySelector('#slime-defs');
-            if (!defs) return;
+            // Cache mask element refs; re-query only if the mask was rebuilt
+            let baseRect = this._maskBaseRect;
+            if (!baseRect || !baseRect.isConnected) {
+                const defs = this.mainSVG.querySelector('#slime-defs');
+                if (!defs) return;
 
-            const baseRect = defs.querySelector('#mask-base');
-            const hoverCircle = defs.querySelector('#mask-hover-circle');
-            const radialGradient = defs.querySelector('#constraints-hover-gradient');
+                baseRect = this._maskBaseRect = defs.querySelector('#mask-base');
+                this._maskHoverCircle = defs.querySelector('#mask-hover-circle');
+                this._maskHoverGradient = defs.querySelector('#constraints-hover-gradient');
+                this._maskFirstStop = this._maskHoverGradient ?
+                    this._maskHoverGradient.querySelector('stop') : null;
+                // Force constant attributes to be rewritten against the new elements
+                this._maskBaseOpacity = undefined;
+                this._maskHoverShown = undefined;
+                this._maskHoverRadius = undefined;
+                this._maskMaxOpacity = undefined;
+            }
+            const hoverCircle = this._maskHoverCircle;
+            const radialGradient = this._maskHoverGradient;
 
             if (!baseRect || !hoverCircle || !radialGradient) return;
 
-            // Update base opacity
-            baseRect.setAttribute('fill', `rgba(255, 255, 255, ${baseOpacity})`);
+            // Update base opacity (constant frame-to-frame; skip redundant writes)
+            if (this._maskBaseOpacity !== baseOpacity) {
+                baseRect.setAttribute('fill', `rgba(255, 255, 255, ${baseOpacity})`);
+                this._maskBaseOpacity = baseOpacity;
+            }
 
             if (mousePos && mousePos.x !== -1000 && mousePos.y !== -1000) {
                 // Show hover effect
-                hoverCircle.style.display = 'block';
+                if (this._maskHoverShown !== true) {
+                    hoverCircle.style.display = 'block';
+                    this._maskHoverShown = true;
+                }
                 hoverCircle.setAttribute('cx', mousePos.x);
                 hoverCircle.setAttribute('cy', mousePos.y);
-                hoverCircle.setAttribute('r', hoverRadius);
 
-                // Update gradient center and radius
+                // Update gradient center
                 radialGradient.setAttribute('cx', mousePos.x);
                 radialGradient.setAttribute('cy', mousePos.y);
-                radialGradient.setAttribute('r', hoverRadius);
+
+                if (this._maskHoverRadius !== hoverRadius) {
+                    hoverCircle.setAttribute('r', hoverRadius);
+                    radialGradient.setAttribute('r', hoverRadius);
+                    this._maskHoverRadius = hoverRadius;
+                }
 
                 // Update gradient stops for max opacity
-                const stops = radialGradient.querySelectorAll('stop');
-                if (stops.length >= 1) {
-                    stops[0].setAttribute('stop-opacity', maxOpacity.toString());
+                if (this._maskFirstStop && this._maskMaxOpacity !== maxOpacity) {
+                    this._maskFirstStop.setAttribute('stop-opacity', maxOpacity.toString());
+                    this._maskMaxOpacity = maxOpacity;
                 }
             } else {
                 // Hide hover effect when mouse is not present
-                hoverCircle.style.display = 'none';
+                if (this._maskHoverShown !== false) {
+                    hoverCircle.style.display = 'none';
+                    this._maskHoverShown = false;
+                }
             }
         }
 
@@ -1724,6 +1763,7 @@
         clearConstraints() {
             if (this.constraintsLayer) {
                 safeSetInnerHTML(this.constraintsLayer, '');
+                this._constraintPoolKey = null;
             }
             // Also hide the hover effect when clearing
             this.updateOpacityMask(null);
@@ -1734,13 +1774,10 @@
             // Ensure selection layer exists
             this.ensureSelectionLayer();
 
-            // Remove existing selection marker
-            const existingMarker = this.selectionLayer.querySelector('#selection-marker');
-            if (existingMarker) {
-                existingMarker.remove();
+            if (!point) { // No point to mark
+                this.clearSelectionMarker();
+                return;
             }
-
-            if (!point) return; // No point to mark
 
             const {
                 outerRadius = 8,
@@ -1750,10 +1787,29 @@
                 strokeWidth = 1
             } = options;
 
-            // Create marker group
-            const markerGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-            markerGroup.id = 'selection-marker';
-            markerGroup.style.pointerEvents = 'none';
+            // Reuse the marker group/hexagon across frames instead of recreating
+            let hexagon = this._selectionHexagon;
+            if (!hexagon || !this._selectionMarker ||
+                this._selectionMarker.parentNode !== this.selectionLayer) {
+                const existingMarker = this.selectionLayer.querySelector('#selection-marker');
+                if (existingMarker) {
+                    existingMarker.remove();
+                }
+
+                const markerGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                markerGroup.id = 'selection-marker';
+                markerGroup.style.pointerEvents = 'none';
+
+                hexagon = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                hexagon.setAttribute('fill', 'none');
+                hexagon.setAttribute('stroke-linejoin', 'round');
+
+                markerGroup.appendChild(hexagon);
+                this.selectionLayer.appendChild(markerGroup);
+
+                this._selectionMarker = markerGroup;
+                this._selectionHexagon = hexagon;
+            }
 
             // Helper function to create hexagon path
             const createHexagonPath = (centerX, centerY, radius) => {
@@ -1768,20 +1824,21 @@
             };
 
             // Hexagon outline only
-            const hexagon = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             hexagon.setAttribute('d', createHexagonPath(point.x, point.y, outerRadius));
-            hexagon.setAttribute('fill', 'none');
             hexagon.setAttribute('stroke', outerColor);
             hexagon.setAttribute('stroke-width', strokeWidth);
-            hexagon.setAttribute('stroke-linejoin', 'round');
-
-            markerGroup.appendChild(hexagon);
-            this.selectionLayer.appendChild(markerGroup);
+            this._selectionMarker.style.display = '';
         }
 
         // Clear selection marker
         clearSelectionMarker() {
             if (!this.selectionLayer) return;
+
+            // Hide rather than destroy so the next frame can reuse it
+            if (this._selectionMarker && this._selectionMarker.parentNode === this.selectionLayer) {
+                this._selectionMarker.style.display = 'none';
+                return;
+            }
 
             const existingMarker = this.selectionLayer.querySelector('#selection-marker');
             if (existingMarker) {
@@ -2185,6 +2242,12 @@
             this.isShown = false;
             this.animationFrameId = null;
             this.lastScrollY = 0;
+
+            // Viewport metrics only change on resize, but reading them (especially
+            // document.documentElement.clientWidth) forces a layout flush. Cache
+            // them and refresh once per frame / on resize instead of reading them
+            // for every worldToScreen call.
+            this.refreshViewportMetrics();
             
             // Page bottom mode: slime is positioned at bottom of page, not viewport
             this.pageBottomMode = options.pageBottomMode || false;
@@ -2193,15 +2256,28 @@
             // Disable backdrop filter shader for better performance
             this.disableShader = options.disableShader !== false; // Default to disabled
 
-            // This is the renderer from slime-renderer.js
-            this.renderer = new SlimeRenderer();
-            document.body.appendChild(this.renderer.mainSVG);
-            this.renderer.mainSVG.style.zIndex = SLIME_Z_INDEX;
-            this.renderer.mainSVG.style.display = 'none'; // Start hidden
+            const params = new URLSearchParams(window.location.search);
+            const forceSVG = params.get('slime') === 'svg';
+            this.renderer = !forceSVG && window.SlimeRendererGL ? window.SlimeRendererGL.create() : null;
+            this._usesGLRenderer = !!this.renderer;
+            if (!this.renderer) {
+                this.renderer = new SlimeRenderer();
+            }
+
+            this.rendererRoot = this.renderer.root || this.renderer.mainSVG;
+            document.body.appendChild(this.rendererRoot);
+            this.rendererRoot.style.zIndex = SLIME_Z_INDEX;
+            this.rendererRoot.style.display = 'none'; // Start hidden
             
             // If page bottom mode, use absolute positioning
-            if (this.pageBottomMode) {
-                this.renderer.mainSVG.style.position = 'absolute';
+            if (this.pageBottomMode && !this._usesGLRenderer) {
+                this.rendererRoot.style.position = 'absolute';
+            }
+
+            if (this._usesGLRenderer) {
+                this.renderer.onDirty = () => {
+                    this._forceRender = true;
+                };
             }
 
             this.bindEvents();
@@ -2211,7 +2287,7 @@
         show() {
             if (this.isShown) return;
             this.isShown = true;
-            this.renderer.mainSVG.style.display = 'block';
+            this.rendererRoot.style.display = 'block';
             this.lastScrollY = window.scrollY; // Set on show to prevent jump
             
             // In page bottom mode, set up SVG to cover the full page
@@ -2230,19 +2306,19 @@
         getContentHeight() {
             // Calculate page height excluding the slime SVG
             // Temporarily remove SVG from layout to get true content height
-            const svg = this.renderer.mainSVG;
-            const prevDisplay = svg.style.display;
-            const prevHeight = svg.style.height;
-            svg.style.display = 'none';
-            svg.style.height = '0';
+            const root = this.rendererRoot;
+            const prevDisplay = root.style.display;
+            const prevHeight = root.style.height;
+            root.style.display = 'none';
+            root.style.height = '0';
             
             let height = Math.max(
                 document.body.scrollHeight || 0,
                 document.documentElement.scrollHeight || 0
             );
             
-            svg.style.display = prevDisplay;
-            svg.style.height = prevHeight;
+            root.style.display = prevDisplay;
+            root.style.height = prevHeight;
             
             // Fallback to viewport height if page height is invalid
             if (!height || height <= 0 || isNaN(height)) {
@@ -2265,19 +2341,25 @@
             // Cache the content height for coordinate calculations
             this._contentHeight = contentHeight;
             
-            this.renderer.mainSVG.style.top = '0';
-            this.renderer.mainSVG.style.left = '0';
-            this.renderer.mainSVG.style.width = '100%';
-            this.renderer.mainSVG.style.maxWidth = '100%';
-            this.renderer.mainSVG.style.height = contentHeight + 'px';
-            this.renderer.mainSVG.style.overflow = 'hidden';
-            this.renderer.mainSVG.style.pointerEvents = 'none';
-            this.renderer.mainSVG.setAttribute('viewBox', `0 0 ${pageWidth} ${contentHeight}`);
+            this.rendererRoot.style.top = '0';
+            this.rendererRoot.style.left = '0';
+            this.rendererRoot.style.width = '100%';
+            this.rendererRoot.style.maxWidth = '100%';
+            this.rendererRoot.style.height = this._usesGLRenderer ? '100%' : contentHeight + 'px';
+            this.rendererRoot.style.overflow = 'hidden';
+            this.rendererRoot.style.pointerEvents = 'none';
+            if (this.rendererRoot.setAttribute && !this._usesGLRenderer) {
+                this.rendererRoot.setAttribute('viewBox', `0 0 ${pageWidth} ${contentHeight}`);
+            }
+
+            // World→screen mapping may have changed; the at-rest skip must not
+            // hold the old frame
+            this._forceRender = true;
         }
 
         hide() {
             this.isShown = false;
-            this.renderer.mainSVG.style.display = 'none';
+            this.rendererRoot.style.display = 'none';
 
             if (this.animationFrameId) {
                 cancelAnimationFrame(this.animationFrameId);
@@ -2397,8 +2479,16 @@
             }
         }
 
+        refreshViewportMetrics() {
+            this._vpW = window.innerWidth || 800;
+            this._vpH = window.innerHeight || 600;
+            this._pageW = document.documentElement.clientWidth || this._vpW;
+        }
+
         // --- Event Handlers ---
         handleResize() {
+            this.refreshViewportMetrics();
+            this._forceRender = true;
             if (this.world) {
                 this.world.bounds = this.screenToWorldBounds();
             }
@@ -2437,6 +2527,7 @@
             // In page bottom mode, don't move physics when scrolling - slime stays at page bottom
             if (this.pageBottomMode) {
                 this.lastScrollY = window.scrollY;
+                this._forceRender = true;
                 return;
             }
 
@@ -2480,15 +2571,15 @@
             // move ~1000px between rAF ticks), otherwise the slime can enter the
             // viewport before the next frame renders/unhides him.
             const slimeScreenRadius = this.pixelsPerUnit * 1.5;
-            const margin = Math.max(300, window.innerHeight);
-            
+            const margin = Math.max(300, this._vpH);
+
             const slimeTop = centerScreen.y - slimeScreenRadius - margin;
             const slimeBottom = centerScreen.y + slimeScreenRadius + margin;
-            
+
             // Get viewport bounds (in page coordinates for pageBottomMode)
             const scrollY = window.scrollY;
             const viewportTop = scrollY;
-            const viewportBottom = scrollY + window.innerHeight;
+            const viewportBottom = scrollY + this._vpH;
             
             // Check if slime's vertical bounds intersect viewport
             const visible = slimeBottom >= viewportTop && slimeTop <= viewportBottom;
@@ -2499,13 +2590,14 @@
         // --- Core Loop ---
         animate() {
             if (!this.isShown) return;
-            
+
+            this.refreshViewportMetrics();
+
             // Always ensure content height is valid in page bottom mode
             if (this.pageBottomMode && (!this._contentHeight || this._contentHeight <= 0)) {
                 this.updatePageBottomSVG();
             }
             
-            // Check visibility - skip rendering if off-screen (but still run physics)
             const visible = this.isSlimeVisible();
             
             if (this._lastTime === undefined) this._lastTime = performance.now();
@@ -2517,8 +2609,13 @@
             dtReal = Math.min(dtReal, 0.1);
             this._lastMeasuredDt = dtReal;
 
-            // Always run physics to keep slime alive
-            this.updateClosestNode();
+            // Keep physics running even while culled so the slime is current
+            // when it returns; skip hover picking when it cannot affect UI.
+            if (visible || this.selectedNode) {
+                this.updateClosestNode();
+            } else {
+                this.closestNode = null;
+            }
             this.world.step(dtReal, this.selectedNode, this.mouseWorldPos, this.slimeNodes.center);
 
             // Only render if visible. While culled the SVG is hidden rather than
@@ -2529,12 +2626,18 @@
             if (visible) {
                 this.render();
                 if (this._culled) {
-                    this.renderer.mainSVG.style.visibility = 'visible';
+                    this.rendererRoot.style.visibility = 'visible';
                     this._culled = false;
                 }
-            } else if (!this._culled) {
-                this.renderer.mainSVG.style.visibility = 'hidden';
-                this._culled = true;
+            } else {
+                if (this._usesGLRenderer && !this._culled) {
+                    const offsetY = this.pageBottomMode ? window.scrollY : 0;
+                    this.renderer.flush(0, offsetY, this._vpW, this._vpH);
+                }
+                if (!this._culled) {
+                    this.rendererRoot.style.visibility = 'hidden';
+                    this._culled = true;
+                }
             }
 
             this.animationFrameId = requestAnimationFrame(() => this.animate());
@@ -2624,13 +2727,27 @@
                 this.updatePageBottomSVG();
                 if (!this._contentHeight || this._contentHeight <= 0) return;
             }
-            
+
+            const allNodes = [this.slimeNodes.center, ...this.slimeNodes.perimeter, ...this.slimeNodes.mid].filter(n => n);
+            const targetNode = this.selectedNode || this.closestNode;
+
+            // Skip all SVG work when nothing visible would change: every node at
+            // rest (sub-pixel epsilon vs. the last rendered frame), no hover or
+            // selection in play, and the eye interpolation settled. With no dirty
+            // DOM the browser skips style/paint — including re-rasterizing the
+            // glow/drop-shadow filters — which is what keeps idle CPU flat while
+            // the slime sits on screen. Verlet positions jitter at the float
+            // level forever, so without the epsilon the filters re-raster at
+            // full frame rate for invisible sub-pixel movement.
+            if (this._canSkipRender(allNodes, targetNode)) {
+                return;
+            }
+
             // First, render the constraints with the radial fade effect
             this.renderConstraints();
 
             // Then render the slime body
-            const allNodes = [this.slimeNodes.center, ...this.slimeNodes.perimeter, ...this.slimeNodes.mid];
-            const allPositions = allNodes.filter(n => n).map(node => node.position);
+            const allPositions = allNodes.map(node => node.position);
 
             if (allPositions.length < 3) return;
 
@@ -2648,7 +2765,6 @@
             }
 
             // Update selection marker
-            const targetNode = this.selectedNode || this.closestNode;
             if (targetNode) {
                 const screenPos = this.worldToScreen(targetNode.position);
                 if (!isNaN(screenPos.x) && !isNaN(screenPos.y)) {
@@ -2660,6 +2776,68 @@
             } else {
                 this.renderer.clearSelectionMarker();
             }
+
+            if (this._usesGLRenderer) {
+                const offsetY = this.pageBottomMode ? window.scrollY : 0;
+                this.renderer.flush(0, offsetY, this._vpW, this._vpH);
+            }
+
+            this._recordRenderedState(allNodes, targetNode);
+        }
+
+        _canSkipRender(nodes, targetNode) {
+            if (!this.slimeInstance) return false;
+            if (this._forceRender) {
+                this._forceRender = false;
+                return false;
+            }
+            // Hover/selection effects track the mouse, so render while active —
+            // and once more after it ends to clear the marker and mask
+            if (targetNode || this._lastHadTarget) return false;
+
+            const last = this._lastRenderedPositions;
+            if (!last || last.length !== nodes.length * 2) return false;
+
+            // ≈0.12 px at 60 px/unit — far below anything visible
+            const EPS = 0.002;
+            for (let i = 0; i < nodes.length; i++) {
+                const p = nodes[i].position;
+                if (Math.abs(p.x - last[i * 2]) > EPS || Math.abs(p.y - last[i * 2 + 1]) > EPS) {
+                    return false;
+                }
+            }
+
+            // Let the eye interpolation finish settling before pausing updates
+            if (this._settleFrames > 0) {
+                this._settleFrames--;
+                return false;
+            }
+
+            return true;
+        }
+
+        _recordRenderedState(nodes, targetNode) {
+            let last = this._lastRenderedPositions;
+            if (!last || last.length !== nodes.length * 2) {
+                last = this._lastRenderedPositions = new Float64Array(nodes.length * 2);
+                this._settleFrames = 8;
+            }
+
+            const EPS = 0.002;
+            let moved = false;
+            for (let i = 0; i < nodes.length; i++) {
+                const p = nodes[i].position;
+                if (Math.abs(p.x - last[i * 2]) > EPS || Math.abs(p.y - last[i * 2 + 1]) > EPS) {
+                    moved = true;
+                }
+                last[i * 2] = p.x;
+                last[i * 2 + 1] = p.y;
+            }
+
+            if (moved || targetNode) {
+                this._settleFrames = 8;
+            }
+            this._lastHadTarget = !!targetNode;
         }
 
         renderConstraints() {
@@ -2741,11 +2919,11 @@
                 const contentHeight = this._contentHeight || this.getContentHeight();
                 const bounds = this.screenToWorldBounds();
                 const halfHeight = bounds.y / 2;
-                const pageWidth = document.documentElement.clientWidth || window.innerWidth || 800;
-                
+                const pageWidth = this._pageW || 800;
+
                 // Validate inputs to prevent NaN
                 if (!contentHeight || isNaN(contentHeight) || !halfHeight || isNaN(halfHeight)) {
-                    return new Vec2(pageWidth / 2, window.innerHeight / 2);
+                    return new Vec2(pageWidth / 2, this._vpH / 2);
                 }
                 
                 // The floor (y = -halfHeight) should map to screenY = contentHeight - pageBottomOffset
@@ -2756,8 +2934,8 @@
                 );
             }
             return new Vec2(
-                window.innerWidth / 2 + worldPos.x * this.pixelsPerUnit,
-                window.innerHeight / 2 - worldPos.y * this.pixelsPerUnit
+                this._vpW / 2 + worldPos.x * this.pixelsPerUnit,
+                this._vpH / 2 - worldPos.y * this.pixelsPerUnit
             );
         }
 
@@ -2771,22 +2949,20 @@
                 const pageY = screenPos.y + window.scrollY;
                 // Reverse of worldToScreen: worldY = (floorScreenY - pageY) / ppu - halfHeight
                 return new Vec2(
-                    (screenPos.x - document.documentElement.clientWidth / 2) / this.pixelsPerUnit,
+                    (screenPos.x - this._pageW / 2) / this.pixelsPerUnit,
                     (floorScreenY - pageY) / this.pixelsPerUnit - halfHeight
                 );
             }
             return new Vec2(
-                (screenPos.x - window.innerWidth / 2) / this.pixelsPerUnit,
-                (window.innerHeight / 2 - screenPos.y) / this.pixelsPerUnit
+                (screenPos.x - this._vpW / 2) / this.pixelsPerUnit,
+                (this._vpH / 2 - screenPos.y) / this.pixelsPerUnit
             );
         }
 
         screenToWorldBounds() {
-            const width = window.innerWidth || 800;
-            const height = window.innerHeight || 600;
             return {
-                x: width / this.pixelsPerUnit,
-                y: height / this.pixelsPerUnit
+                x: this._vpW / this.pixelsPerUnit,
+                y: this._vpH / this.pixelsPerUnit
             };
         }
 

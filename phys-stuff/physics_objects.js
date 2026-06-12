@@ -71,10 +71,14 @@ class PhysicsObject {
 		this.screenX = pos.x;
 		this.screenY = pos.y;
 		
-		// Load image if SVG string provided
-		if (config.svgString) {
+		const shouldLoadCanvasImage = !this.meshName ||
+			typeof PhysRendererGL === 'undefined' ||
+			!PhysRendererGL.available;
+
+		// Load fallback image only when Canvas2D may need to render this object.
+		if (shouldLoadCanvasImage && config.svgString) {
 			this.loadSvgImage(config.svgString);
-		} else if (config.imageSrc) {
+		} else if (shouldLoadCanvasImage && config.imageSrc) {
 			this.loadImage(config.imageSrc);
 		}
 	}
@@ -255,8 +259,6 @@ class PhysicsObject {
 	}
 	
 	draw() {
-		if (!this.imageLoaded) return;
-		
 		let sizeH, sizeW;
 		
 		if (this.worldHeight !== null) {
@@ -300,6 +302,8 @@ class PhysicsObject {
 			return;
 		}
 
+		if (!this.imageLoaded) return;
+
 		const ctx = this.ez.ctx;
 		ctx.save();
 		ctx.translate(this.screenX, this.screenY);
@@ -313,6 +317,11 @@ class PhysicsObject {
 			svgDrawH
 		);
 		ctx.restore();
+	}
+
+	usesCanvas2DRender() {
+		return !(this.meshName && typeof PhysRendererGL !== 'undefined' &&
+			PhysRendererGL.available && PhysRendererGL.hasMesh(this.meshName));
 	}
 	
 	// Get the physics body for preservation during simulation reset
@@ -435,6 +444,13 @@ class PhysicsObjectsManager {
 		for (const obj of this.objects) {
 			obj.draw();
 		}
+	}
+
+	needsCanvas2DRender() {
+		for (const obj of this.objects) {
+			if (obj.usesCanvas2DRender()) return true;
+		}
+		return false;
 	}
 	
 	// Get all active physics bodies (for preservation during simulation reset)
@@ -977,4 +993,3 @@ function createComputerDesk(manager, viewHeight) {
 	
 	return [tableObj, screenObj];
 }
-

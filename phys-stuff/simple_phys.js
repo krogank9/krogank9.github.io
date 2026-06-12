@@ -1,4 +1,5 @@
 /* simple_phys.js - Simple 2D Physics Engine. CC0 License */
+// Portfolio build: hot loops inline vector math and reuse scratch state to reduce per-frame allocations.
 
 const SLOP_LINEAR = 0.002; // Small slop like Box2D has, prevents jitter and improves contact persistence
 
@@ -45,6 +46,16 @@ class AABB {
 	constructor(min, max) { this.min = min; this.max = max; }
 	overlaps(other) { return this.min.x <= other.max.x && this.max.x >= other.min.x && this.min.y <= other.max.y && this.max.y >= other.min.y; }
 	expand(points) { for (const point of points) { this.min = this.min.min(point); this.max = this.max.max(point); } }
+	setEmpty() {
+		this.min.x = Infinity; this.min.y = Infinity;
+		this.max.x = -Infinity; this.max.y = -Infinity;
+	}
+	expandXY(x, y) {
+		if (x < this.min.x) this.min.x = x;
+		if (y < this.min.y) this.min.y = y;
+		if (x > this.max.x) this.max.x = x;
+		if (y > this.max.y) this.max.y = y;
+	}
 }
 
 class CircleShape {
@@ -82,15 +93,17 @@ class PhysObject {
 
 		this.collisionMask = 0xFFFFFF;
 		this.collisionMaskIgnore = 0x000000;
-		this.friction = 0.6;
-		this.restitution = 0.05;
-	}
+			this.friction = 0.6;
+			this.restitution = 0.05;
+			this._aabb = new AABB(new Vec2(0, 0), new Vec2(0, 0));
+		}
 
-	step(dt) {
-		if (this.isStatic) return;
-		this.rotation += this.angularVelocity * dt;
-		this.position = this.position.add(this.velocity.scale(dt));
-	}
+		step(dt) {
+			if (this.isStatic) return;
+			this.rotation += this.angularVelocity * dt;
+			this.position.x += this.velocity.x * dt;
+			this.position.y += this.velocity.y * dt;
+		}
 
 	localToWorld(localPoint) {
 		return this.position.add(localPoint.rotate(this.rotation));
@@ -100,32 +113,44 @@ class PhysObject {
 		return worldPoint.sub(this.position).rotate(-this.rotation);
 	}
 
-	getAABB() {
-		let aabb = new AABB(new Vec2(Infinity, Infinity), new Vec2(-Infinity, -Infinity));
-		for (let shape of this.shapes) {
-			if (shape instanceof CircleShape) {
-				const worldCenter = this.localToWorld(shape.offset);
-				aabb.expand([worldCenter.sub(new Vec2(shape.radius, shape.radius)), worldCenter.add(new Vec2(shape.radius, shape.radius))]);
-			} else {
-				shape.vertices.map(v => this.localToWorld(v)).forEach(v => aabb.expand([v]));
+		getAABB() {
+			const aabb = this._aabb;
+			aabb.setEmpty();
+			const px = this.position.x, py = this.position.y;
+			const rot = this.rotation;
+			const cos = Math.cos(rot), sin = Math.sin(rot);
+			for (let shape of this.shapes) {
+				if (shape instanceof CircleShape) {
+					const ox = shape.offset.x, oy = shape.offset.y;
+					const cx = px + ox * cos - oy * sin;
+					const cy = py + ox * sin + oy * cos;
+					const r = shape.radius;
+					aabb.expandXY(cx - r, cy - r);
+					aabb.expandXY(cx + r, cy + r);
+				} else {
+					for (const v of shape.vertices) {
+						aabb.expandXY(px + v.x * cos - v.y * sin, py + v.x * sin + v.y * cos);
+					}
+				}
 			}
+			return aabb;
 		}
-		return aabb;
-	}
 
 	containsPoint(worldPoint) {
 		const localPoint = this.worldToLocal(worldPoint);
 		return this.shapes.some(shape => shape.containsLocalPoint(localPoint));
 	}
 
-	applyImpulse(impulse, worldPoint) {
-		const r = worldPoint.sub(this.position);
-		const angularImpulse = r.cross(impulse);
-
-		this.velocity = this.velocity.add(impulse.scale(1 / this.mass));
-		this.angularVelocity += angularImpulse / this.momentOfInertia;
+		applyImpulse(impulse, worldPoint) {
+			const invMass = this.isStatic ? 0 : 1 / this.mass;
+			const invI = this.isStatic ? 0 : 1 / this.momentOfInertia;
+			const rx = worldPoint.x - this.position.x;
+			const ry = worldPoint.y - this.position.y;
+			this.velocity.x += impulse.x * invMass;
+			this.velocity.y += impulse.y * invMass;
+			this.angularVelocity += (rx * impulse.y - ry * impulse.x) * invI;
+		}
 	}
-}
 
 class Constraint {
 	constructor(bodyA, bodyB) { this.bodyA = bodyA; this.bodyB = bodyB; this.constraintSettings = null; }
@@ -187,12 +212,18 @@ class RevoluteConstraint extends Constraint {
 		this.invIA = this.bodyA.isStatic ? 0 : 1 / this.bodyA.momentOfInertia;
 		this.invIB = this.bodyB.isStatic ? 0 : 1 / this.bodyB.momentOfInertia;
 
-		// Warm starting: apply the accumulated point impulse from the previous frame
-		const cs = this.constraintSettings || constraintSettings;
-		if (cs?.warmStarting !== false) {
-			this.bodyA.applyImpulse(this.accumulatedPointImpulse.scale(-1), this.worldA);
-			this.bodyB.applyImpulse(this.accumulatedPointImpulse, this.worldB);
-		}
+			// Warm starting: apply the accumulated point impulse from the previous frame
+			const cs = this.constraintSettings || constraintSettings;
+			if (cs?.warmStarting !== false) {
+				const ix = this.accumulatedPointImpulse.x;
+				const iy = this.accumulatedPointImpulse.y;
+				this.bodyA.velocity.x -= ix * this.invMassA;
+				this.bodyA.velocity.y -= iy * this.invMassA;
+				this.bodyA.angularVelocity -= (this.rA.x * iy - this.rA.y * ix) * this.invIA;
+				this.bodyB.velocity.x += ix * this.invMassB;
+				this.bodyB.velocity.y += iy * this.invMassB;
+				this.bodyB.angularVelocity += (this.rB.x * iy - this.rB.y * ix) * this.invIB;
+			}
 
 		// angle-limit violation
 		if (this.lowerAngleLimit !== null && this.currentAngle < this.lowerAngleLimit) {
@@ -211,49 +242,66 @@ class RevoluteConstraint extends Constraint {
 		this.solveAngleLimits(dt, cs);
 	}
 
-	solvePointConstraint(dt, constraintSettings) {
-		const [mA, mB, iA, iB, rA, rB] = [this.invMassA, this.invMassB, this.invIA, this.invIB, this.rA, this.rB];
+		solvePointConstraint(dt, constraintSettings) {
+			const mA = this.invMassA, mB = this.invMassB, iA = this.invIA, iB = this.invIB;
+			const rAx = this.rA.x, rAy = this.rA.y;
+			const rBx = this.rB.x, rBy = this.rB.y;
 
-		// Matrix to predict how an impulse will affect Cdot. Derived from the equations in PhysObject.applyImpulse
-		this.K[0][0] = mA + mB + rA.y * rA.y * iA + rB.y * rB.y * iB;
-		this.K[0][1] = -rA.y * rA.x * iA - rB.y * rB.x * iB;
-		this.K[1][0] = this.K[0][1];
-		this.K[1][1] = mA + mB + rA.x * rA.x * iA + rB.x * rB.x * iB;
+			// Matrix to predict how an impulse will affect Cdot. Derived from the equations in PhysObject.applyImpulse
+			this.K[0][0] = mA + mB + rAy * rAy * iA + rBy * rBy * iB;
+			this.K[0][1] = -rAy * rAx * iA - rBy * rBx * iB;
+			this.K[1][0] = this.K[0][1];
+			this.K[1][1] = mA + mB + rAx * rAx * iA + rBx * rBx * iB;
 
-		const velA = this.bodyA.velocity.add(rA.crossSv(this.bodyA.angularVelocity));
-		const velB = this.bodyB.velocity.add(rB.crossSv(this.bodyB.angularVelocity));
-		const Cdot = velB.sub(velA); // velocity error
-		const C = this.worldB.sub(this.worldA); // positional error
+			const avA = this.bodyA.angularVelocity;
+			const avB = this.bodyB.angularVelocity;
+			const cdx = (this.bodyB.velocity.x - rBy * avB) - (this.bodyA.velocity.x - rAy * avA);
+			const cdy = (this.bodyB.velocity.y + rBx * avB) - (this.bodyA.velocity.y + rAx * avA);
+			const cx = this.worldB.x - this.worldA.x;
+			const cy = this.worldB.y - this.worldA.y;
 
-		let bias = new Vec2(0, 0);
-		let massScale = 1.0;
-		let impulseScale = 0.0;
-		if (constraintSettings.mode === 'baumgarte') {
-			bias = C.scale(constraintSettings.baumgarteFactor / dt);
-		} else if (constraintSettings.mode === 'soft') {
-			const maxHertz = 0.25 / dt;
-			const hz = Math.min(constraintSettings.jointSoft.hertz, maxHertz);
-			const soft = getSoftConstraintParams(hz, constraintSettings.jointSoft.dampingRatio, dt);
-			bias = C.scale(soft.biasRate);
-			massScale = soft.massScale;
-			impulseScale = soft.impulseScale;
+			let biasX = 0, biasY = 0;
+			let massScale = 1.0;
+			let impulseScale = 0.0;
+			if (constraintSettings.mode === 'baumgarte') {
+				const s = constraintSettings.baumgarteFactor / dt;
+				biasX = cx * s;
+				biasY = cy * s;
+			} else if (constraintSettings.mode === 'soft') {
+				const maxHertz = 0.25 / dt;
+				const hz = Math.min(constraintSettings.jointSoft.hertz, maxHertz);
+				const soft = getSoftConstraintParams(hz, constraintSettings.jointSoft.dampingRatio, dt);
+				biasX = cx * soft.biasRate;
+				biasY = cy * soft.biasRate;
+				massScale = soft.massScale;
+				impulseScale = soft.impulseScale;
+			}
+
+			const bx = -(cdx + biasX);
+			const by = -(cdy + biasY);
+			const det = this.K[0][0] * this.K[1][1] - this.K[0][1] * this.K[1][0];
+			const invDet = det !== 0 ? 1.0 / det : 0;
+			let impulseX = invDet * (this.K[1][1] * bx - this.K[0][1] * by);
+			let impulseY = invDet * (this.K[0][0] * by - this.K[1][0] * bx);
+
+			if (constraintSettings.mode === 'soft') {
+				impulseX = massScale * impulseX - impulseScale * this.accumulatedPointImpulse.x;
+				impulseY = massScale * impulseY - impulseScale * this.accumulatedPointImpulse.y;
+			}
+
+			// Apply impulse (either full lambda or delta impulse)
+			this.bodyA.velocity.x -= impulseX * mA;
+			this.bodyA.velocity.y -= impulseY * mA;
+			this.bodyA.angularVelocity -= (rAx * impulseY - rAy * impulseX) * iA;
+			this.bodyB.velocity.x += impulseX * mB;
+			this.bodyB.velocity.y += impulseY * mB;
+			this.bodyB.angularVelocity += (rBx * impulseY - rBy * impulseX) * iB;
+
+			if (constraintSettings?.warmStarting !== false) {
+				this.accumulatedPointImpulse.x += impulseX;
+				this.accumulatedPointImpulse.y += impulseY;
+			}
 		}
-
-		let impulse = mat2x2Solve(this.K, (Cdot.add(bias)).scale(-1));
-
-		if (constraintSettings.mode === 'soft') {
-			impulse.x = massScale * impulse.x - impulseScale * this.accumulatedPointImpulse.x;
-			impulse.y = massScale * impulse.y - impulseScale * this.accumulatedPointImpulse.y;
-		}
-
-		// Apply impulse (either full lambda or delta impulse)
-		this.bodyA.applyImpulse(impulse.scale(-1), this.worldA);
-		this.bodyB.applyImpulse(impulse, this.worldB);
-
-		if (constraintSettings?.warmStarting !== false) {
-			this.accumulatedPointImpulse = this.accumulatedPointImpulse.add(impulse);
-		}
-	}
 
 	solveAngleLimits(dt, constraintSettings) {
 		if ((this.lowerAngleLimit === null && this.upperAngleLimit === null) || this.angleViolation === 0) return;
@@ -396,21 +444,23 @@ class ContactConstraint extends Constraint {
 		this.invIA = this.bodyA.isStatic ? 0 : 1 / this.bodyA.momentOfInertia;
 		this.invIB = this.bodyB.isStatic ? 0 : 1 / this.bodyB.momentOfInertia;
 
-		// Store relative velocity BEFORE warm starting for restitution
-		const velA = this.bodyA.velocity.add(this.rA.crossSv(this.bodyA.angularVelocity));
-		const velB = this.bodyB.velocity.add(this.rB.crossSv(this.bodyB.angularVelocity));
-		const relVel = velB.sub(velA);
-		this.relativeVelocity = this.normal.dot(relVel);
+			// Store relative velocity BEFORE warm starting for restitution
+			const avA = this.bodyA.angularVelocity;
+			const avB = this.bodyB.angularVelocity;
+			const rvx = (this.bodyB.velocity.x - this.rB.y * avB) - (this.bodyA.velocity.x - this.rA.y * avA);
+			const rvy = (this.bodyB.velocity.y + this.rB.x * avB) - (this.bodyA.velocity.y + this.rA.x * avA);
+			this.relativeVelocity = this.normal.x * rvx + this.normal.y * rvy;
 
-		// Warm starting: apply the accumulated point impulse from the previous frame
-		const normalImpulse = this.normal.scale(this.accumulatedNormalLambda);
-		const frictionImpulse = this.tangent.scale(this.accumulatedFrictionLambda);
-		const totalImpulse = normalImpulse.add(frictionImpulse);
-		this.bodyA.velocity = this.bodyA.velocity.sub(totalImpulse.scale(this.invMassA));
-		this.bodyA.angularVelocity -= this.invIA * this.rA.cross(totalImpulse);
-		this.bodyB.velocity = this.bodyB.velocity.add(totalImpulse.scale(this.invMassB));
-		this.bodyB.angularVelocity += this.invIB * this.rB.cross(totalImpulse);
-	}
+			// Warm starting: apply the accumulated point impulse from the previous frame
+			const ix = this.normal.x * this.accumulatedNormalLambda + this.tangent.x * this.accumulatedFrictionLambda;
+			const iy = this.normal.y * this.accumulatedNormalLambda + this.tangent.y * this.accumulatedFrictionLambda;
+			this.bodyA.velocity.x -= ix * this.invMassA;
+			this.bodyA.velocity.y -= iy * this.invMassA;
+			this.bodyA.angularVelocity -= this.invIA * (this.rA.x * iy - this.rA.y * ix);
+			this.bodyB.velocity.x += ix * this.invMassB;
+			this.bodyB.velocity.y += iy * this.invMassB;
+			this.bodyB.angularVelocity += this.invIB * (this.rB.x * iy - this.rB.y * ix);
+		}
 
 	solve(dt, constraintSettings) {
 		const cs = this.constraintSettings || constraintSettings;
@@ -418,11 +468,12 @@ class ContactConstraint extends Constraint {
 		this.solveFriction();
 	}
 
-	solveContact(dt, constraintSettings) {
-		const velA = this.bodyA.velocity.add(this.rA.crossSv(this.bodyA.angularVelocity));
-		const velB = this.bodyB.velocity.add(this.rB.crossSv(this.bodyB.angularVelocity));
-		const relVel = velB.sub(velA);
-		const Cdot = this.normal.dot(relVel);
+		solveContact(dt, constraintSettings) {
+			const avA = this.bodyA.angularVelocity;
+			const avB = this.bodyB.angularVelocity;
+			const rvx = (this.bodyB.velocity.x - this.rB.y * avB) - (this.bodyA.velocity.x - this.rA.y * avA);
+			const rvy = (this.bodyB.velocity.y + this.rB.x * avB) - (this.bodyA.velocity.y + this.rA.x * avA);
+			const Cdot = this.normal.x * rvx + this.normal.y * rvy;
 
 		const rnA = this.rA.cross(this.normal);
 		const rnB = this.rB.cross(this.normal);
@@ -457,17 +508,23 @@ class ContactConstraint extends Constraint {
 
 		if (lambda === 0) return;
 		
-		const impulse = this.normal.scale(lambda);
-		this.bodyA.applyImpulse(impulse.scale(-1), this.worldA);
-		this.bodyB.applyImpulse(impulse, this.worldB);
-	}
+			const ix = this.normal.x * lambda;
+			const iy = this.normal.y * lambda;
+			this.bodyA.velocity.x -= ix * this.invMassA;
+			this.bodyA.velocity.y -= iy * this.invMassA;
+			this.bodyA.angularVelocity -= this.invIA * (this.rA.x * iy - this.rA.y * ix);
+			this.bodyB.velocity.x += ix * this.invMassB;
+			this.bodyB.velocity.y += iy * this.invMassB;
+			this.bodyB.angularVelocity += this.invIB * (this.rB.x * iy - this.rB.y * ix);
+		}
 
-	solveFriction() {
-		if (this.friction <= 0) return;
-		const velA = this.bodyA.velocity.add(this.rA.crossSv(this.bodyA.angularVelocity));
-		const velB = this.bodyB.velocity.add(this.rB.crossSv(this.bodyB.angularVelocity));
-		const relVel = velB.sub(velA);
-		const Cdot = this.tangent.dot(relVel);
+		solveFriction() {
+			if (this.friction <= 0) return;
+			const avA = this.bodyA.angularVelocity;
+			const avB = this.bodyB.angularVelocity;
+			const rvx = (this.bodyB.velocity.x - this.rB.y * avB) - (this.bodyA.velocity.x - this.rA.y * avA);
+			const rvy = (this.bodyB.velocity.y + this.rB.x * avB) - (this.bodyA.velocity.y + this.rA.x * avA);
+			const Cdot = this.tangent.x * rvx + this.tangent.y * rvy;
 
 		const rtA = this.rA.cross(this.tangent);
 		const rtB = this.rB.cross(this.tangent);
@@ -484,10 +541,15 @@ class ContactConstraint extends Constraint {
 		this.accumulatedFrictionLambda = Math.max(-maxFriction, Math.min(oldAccum + lambda, maxFriction));
 		lambda = this.accumulatedFrictionLambda - oldAccum;
 
-		const frictionImpulse = this.tangent.scale(lambda);
-		this.bodyA.applyImpulse(frictionImpulse.scale(-1), this.worldA);
-		this.bodyB.applyImpulse(frictionImpulse, this.worldB);
-	}
+			const ix = this.tangent.x * lambda;
+			const iy = this.tangent.y * lambda;
+			this.bodyA.velocity.x -= ix * this.invMassA;
+			this.bodyA.velocity.y -= iy * this.invMassA;
+			this.bodyA.angularVelocity -= this.invIA * (this.rA.x * iy - this.rA.y * ix);
+			this.bodyB.velocity.x += ix * this.invMassB;
+			this.bodyB.velocity.y += iy * this.invMassB;
+			this.bodyB.angularVelocity += this.invIB * (this.rB.x * iy - this.rB.y * ix);
+		}
 
 	applyRestitution() {
 		// Only apply restitution if:
@@ -546,9 +608,11 @@ class PhysWorld {
 			jointSoft: { hertz: 60.0, dampingRatio: 0.0 },
 			contactSpeed: 3.0,
 			warmStarting: true,
-		};
-		this._accumulator = 0; // accumulated real time for fixed-step simulation
-	}
+			};
+			this._accumulator = 0; // accumulated real time for fixed-step simulation
+			this._contactConstraintsForReuse = [];
+			this._newContacts = [];
+		}
 
 	addBox(x, y, w, h, density = 1, isStatic = false) {
 		const mass = isStatic ? Infinity : density * w * h;
@@ -602,7 +666,7 @@ class PhysWorld {
 		return circle;
 	}
 
-	step(timeElapsedSinceLastCalled = 0, dt = 1 / 240, maxSteps = 10) {
+		step(timeElapsedSinceLastCalled = 0, dt = 1 / 240, maxSteps = 10) {
 		// Accumulate real time from the render/update loop
 		this._accumulator += timeElapsedSinceLastCalled;
 
@@ -610,12 +674,15 @@ class PhysWorld {
 		const maxAccumulatedTime = maxSteps * dt;
 		if (this._accumulator > maxAccumulatedTime) this._accumulator = maxAccumulatedTime;
 
-		// Run a fixed number of physics substeps based on accumulated time
-		while (this._accumulator >= dt) {
-			for (const obj of this.objects) {
-				if (obj.isStatic) continue;
-				obj.velocity = obj.velocity.add(this.gravity.scale(dt));
-			}
+			// Run a fixed number of physics substeps based on accumulated time
+			while (this._accumulator >= dt) {
+				const gx = this.gravity.x * dt;
+				const gy = this.gravity.y * dt;
+				for (const obj of this.objects) {
+					if (obj.isStatic) continue;
+					obj.velocity.x += gx;
+					obj.velocity.y += gy;
+				}
 
 			this.detectCollisions();
 			this.solveConstraints(dt, this.constraintIterations);
@@ -653,13 +720,29 @@ class PhysWorld {
 		return constraint;
 	}
 
-	detectCollisions() {
-		const contactConstraintsForReuse = this.constraints.filter(c => c instanceof ContactConstraint);
-		this.constraints = this.constraints.filter(c => !(c instanceof ContactConstraint));
-		const newContacts = CollisionHelper.handleCollisions(this.objects, contactConstraintsForReuse);
-		this.constraints.push(...newContacts);
+		detectCollisions() {
+			const reusable = this._contactConstraintsForReuse;
+			reusable.length = 0;
+			let keepCount = 0;
+			for (let i = 0; i < this.constraints.length; i++) {
+				const c = this.constraints[i];
+				if (c instanceof ContactConstraint) {
+					c.isReused = false;
+					reusable.push(c);
+				} else {
+					this.constraints[keepCount++] = c;
+				}
+			}
+			this.constraints.length = keepCount;
+
+			const newContacts = this._newContacts;
+			newContacts.length = 0;
+			CollisionHelper.handleCollisions(this.objects, reusable, newContacts);
+			for (let i = 0; i < newContacts.length; i++) {
+				this.constraints.push(newContacts[i]);
+			}
+		}
 	}
-}
 
 class CollisionHelper {
 	static shouldCollide(objA, objB) {
@@ -697,33 +780,32 @@ class CollisionHelper {
 		return clippedPoints; // Returns 2 or 0 points
 	}
 
-	static handleCollisions(objects, contactConstraintsForReuse = []) {
-		const newContacts = [];
-
-		for (let i = 0; i < objects.length; i++) {
-			for (let j = i + 1; j < objects.length; j++) {
-				const bodyA = objects[i];
-				const bodyB = objects[j];
-				const results = CollisionHelper.checkCollision(bodyA, bodyB, contactConstraintsForReuse);
-				for (const cNew of results) {
-					newContacts.push(cNew);
+		static handleCollisions(objects, contactConstraintsForReuse = [], newContacts = []) {
+			for (let i = 0; i < objects.length; i++) {
+				objects[i].getAABB();
+			}
+			for (let i = 0; i < objects.length; i++) {
+				for (let j = i + 1; j < objects.length; j++) {
+					const bodyA = objects[i];
+					const bodyB = objects[j];
+					CollisionHelper.checkCollision(bodyA, bodyB, contactConstraintsForReuse, newContacts);
 				}
 			}
+
+			return newContacts;
 		}
 
-		return newContacts;
-	}
+		static checkCollision(objA, objB, contactConstraintsForReuse = [], contactConstraints = []) {
+			if (!this.shouldCollide(objA, objB)) return contactConstraints;
+			if (!objA._aabb.overlaps(objB._aabb)) return contactConstraints;
 
-	static checkCollision(objA, objB, contactConstraintsForReuse = []) {
-		if (!this.shouldCollide(objA, objB)) return [];
-		if (!objA.getAABB().overlaps(objB.getAABB())) return [];
+			const dxAB = objB.position.x - objA.position.x;
+			const dyAB = objB.position.y - objA.position.y;
 
-		const contactConstraints = [];
-
-		for (let idxA = 0; idxA < objA.shapes.length; idxA++) {
-			const shapeA = objA.shapes[idxA];
-			for (let idxB = 0; idxB < objB.shapes.length; idxB++) {
-				const shapeB = objB.shapes[idxB];
+			for (let idxA = 0; idxA < objA.shapes.length; idxA++) {
+				const shapeA = objA.shapes[idxA];
+				for (let idxB = 0; idxB < objB.shapes.length; idxB++) {
+					const shapeB = objB.shapes[idxB];
 
 				let collision = {};
 
@@ -737,13 +819,14 @@ class CollisionHelper {
 					collision = this.polyToPolySAT(objA, shapeA, objB, shapeB);
 				}
 
-				if (!collision.normal) continue;
-				// Ensure normal is always pointing A->B
-				// CollisionConstraint expects this because it applies impulse from A->B in normal direction
-				// If the normal does not point A->B, it will pull them towards each other instead of acting repulsive
-				if (collision.normal.dot(objB.position.sub(objA.position)) < 0) {
-					collision.normal = collision.normal.scale(-1);
-				}
+					if (!collision.normal) continue;
+					// Ensure normal is always pointing A->B
+					// CollisionConstraint expects this because it applies impulse from A->B in normal direction
+					// If the normal does not point A->B, it will pull them towards each other instead of acting repulsive
+					if (collision.normal.x * dxAB + collision.normal.y * dyAB < 0) {
+						collision.normal.x = -collision.normal.x;
+						collision.normal.y = -collision.normal.y;
+					}
 
 				// Determine clipped contact points
 				let clippedResult = { points: [], featureIds: [] };
@@ -790,8 +873,8 @@ class CollisionHelper {
 			}
 		}
 
-		return contactConstraints;
-	}
+			return contactConstraints;
+		}
 
 	static polyToPolySAT(objA, shapeA, objB, shapeB) {
 		// SAT poly-vs-poly: test all face normals, compute penetration depth, and pick reference face for clipping
