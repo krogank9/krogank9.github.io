@@ -1886,21 +1886,27 @@
             if (this.isStatic) return;
 
             // Calculate next position using Verlet formula
-            let movementOverDt = this.position.sub(this.prevPosition);
-            movementOverDt = movementOverDt.add(acceleration.scale(dt * dt));
-            const nextPos = this.position.add(movementOverDt);
+            const px = this.position.x;
+            const py = this.position.y;
+            const dtSq = dt * dt;
+            const nextX = px + (px - this.prevPosition.x) + acceleration.x * dtSq;
+            const nextY = py + (py - this.prevPosition.y) + acceleration.y * dtSq;
 
             // Roll positions forward
-            this.prevPosition = this.position;
-            this.position = nextPos;
+            this.prevPosition.x = px;
+            this.prevPosition.y = py;
+            this.position.x = nextX;
+            this.position.y = nextY;
         }
 
         stepEuler(dt, acceleration) {
             if (this.isStatic) return;
 
             // Euler integration: v = v + a*dt, p = p + v*dt
-            this.velocity = this.velocity.add(acceleration.scale(dt));
-            this.position = this.position.add(this.velocity.scale(dt));
+            this.velocity.x += acceleration.x * dt;
+            this.velocity.y += acceleration.y * dt;
+            this.position.x += this.velocity.x * dt;
+            this.position.y += this.velocity.y * dt;
         }
 
         // Convert from Verlet state (position, prevPosition) to Euler state (position, velocity)
@@ -1910,7 +1916,9 @@
                 return;
             }
             // Calculate velocity from position difference
-            this.velocity = this.position.sub(this.prevPosition).scale(1 / dt);
+            const invDt = 1 / dt;
+            this.velocity.x = (this.position.x - this.prevPosition.x) * invDt;
+            this.velocity.y = (this.position.y - this.prevPosition.y) * invDt;
         }
 
         // Convert from Euler state (position, velocity) to Verlet state (position, prevPosition)
@@ -1920,7 +1928,8 @@
                 return;
             }
             // Calculate previous position from current velocity
-            this.prevPosition = this.position.sub(this.velocity.scale(dt));
+            this.prevPosition.x = this.position.x - this.velocity.x * dt;
+            this.prevPosition.y = this.position.y - this.velocity.y * dt;
         }
     }
 
@@ -1928,34 +1937,51 @@
         constructor(objA, objB, restLength = null, stiffness = 1) {
             this.objA = objA;
             this.objB = objB;
-            this.restLength = restLength !== null ? restLength : objA.position.sub(objB.position).length();
+            if (restLength !== null) {
+                this.restLength = restLength;
+            } else {
+                const dx = objA.position.x - objB.position.x;
+                const dy = objA.position.y - objB.position.y;
+                this.restLength = Math.sqrt(dx * dx + dy * dy);
+            }
             this.stiffness = stiffness;
         }
 
         solve(invIterations) {
-            const delta = this.objB.position.sub(this.objA.position);
-            const dist = delta.length();
+            const ax = this.objA.position.x;
+            const ay = this.objA.position.y;
+            const bx = this.objB.position.x;
+            const by = this.objB.position.y;
+            const dx = bx - ax;
+            const dy = by - ay;
+            const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < 1e-6) return; // Prevent division by zero and NaN propagation
 
             const diff = (dist - this.restLength) / dist * this.stiffness * invIterations;
-            const correction = delta.scale(0.5 * diff);
+            const correctionX = dx * 0.5 * diff;
+            const correctionY = dy * 0.5 * diff;
 
             if (!this.objA.isStatic) {
-                this.objA.position = this.objA.position.add(correction);
+                this.objA.position.x += correctionX;
+                this.objA.position.y += correctionY;
             }
             if (!this.objB.isStatic) {
-                this.objB.position = this.objB.position.sub(correction);
+                this.objB.position.x -= correctionX;
+                this.objB.position.y -= correctionY;
             }
         }
 
         solveEuler(dt, invIterations) {
-            const delta = this.objB.position.sub(this.objA.position);
-            const dist = delta.length();
+            const dx = this.objB.position.x - this.objA.position.x;
+            const dy = this.objB.position.y - this.objA.position.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < 1e-6) return; // Prevent division by zero and NaN propagation
 
-            const n = delta.scale(1 / dist); // normalized direction
-            const relativeVel = this.objB.velocity.sub(this.objA.velocity);
-            const relVelAlongN = relativeVel.dot(n);
+            const nx = dx / dist; // normalized direction
+            const ny = dy / dist;
+            const relVelX = this.objB.velocity.x - this.objA.velocity.x;
+            const relVelY = this.objB.velocity.y - this.objA.velocity.y;
+            const relVelAlongN = relVelX * nx + relVelY * ny;
             const positionalError = dist - this.restLength;
 
             // Baumgarte stabilization term to correct positional drift
@@ -1972,13 +1998,16 @@
             if (invMassSum === 0) return;
 
             const impulseMag = lambda / invMassSum;
-            const impulse = n.scale(impulseMag);
+            const impulseX = nx * impulseMag;
+            const impulseY = ny * impulseMag;
 
             if (!this.objA.isStatic) {
-                this.objA.velocity = this.objA.velocity.sub(impulse.scale(invMassA));
+                this.objA.velocity.x -= impulseX * invMassA;
+                this.objA.velocity.y -= impulseY * invMassA;
             }
             if (!this.objB.isStatic) {
-                this.objB.velocity = this.objB.velocity.add(impulse.scale(invMassB));
+                this.objB.velocity.x += impulseX * invMassB;
+                this.objB.velocity.y += impulseY * invMassB;
             }
         }
     }
@@ -2031,7 +2060,8 @@
 
             // Handle mouse constraint like VerletJS - set position directly
             if (selectedNode && mouseWorldPos) {
-                selectedNode.position = mouseWorldPos;
+                selectedNode.position.x = mouseWorldPos.x;
+                selectedNode.position.y = mouseWorldPos.y;
             }
 
             // Apply screen boundary constraints
@@ -2053,16 +2083,17 @@
             // 1. Apply acceleration (gravity) to velocities
             for (const obj of this.objects) {
                 if (!obj.isStatic) {
-                    obj.velocity = obj.velocity.add(this.gravity.scale(dt));
+                    obj.velocity.x += this.gravity.x * dt;
+                    obj.velocity.y += this.gravity.y * dt;
                 }
             }
 
             // 2. Handle mouse drag as velocity correction before constraints
             if (selectedNode && mouseWorldPos) {
-                const targetPos = mouseWorldPos;
-                const posErr = targetPos.sub(selectedNode.position);
                 // teleport static behavior: treat as kinematic target
-                selectedNode.velocity = posErr.scale(1 / dt); // drive directly to mouse each frame
+                const invDt = 1 / dt;
+                selectedNode.velocity.x = (mouseWorldPos.x - selectedNode.position.x) * invDt;
+                selectedNode.velocity.y = (mouseWorldPos.y - selectedNode.position.y) * invDt;
             }
 
             // 3. Satisfy constraints via velocity impulses (sequential impulses)
@@ -2079,7 +2110,8 @@
             // 5. Integrate positions using updated velocities (semi-implicit Euler)
             for (const obj of this.objects) {
                 if (!obj.isStatic) {
-                    obj.position = obj.position.add(obj.velocity.scale(dt));
+                    obj.position.x += obj.velocity.x * dt;
+                    obj.position.y += obj.velocity.y * dt;
                 }
             }
 
@@ -2108,15 +2140,15 @@
             // Only clamp the center node's velocity
             if (centerNode && !centerNode.isStatic) {
                 // Calculate implied velocity from position difference
-                const impliedVelocity = centerNode.position.sub(centerNode.prevPosition).scale(1 / dt);
+                const invDt = 1 / dt;
+                const impliedVelocityX = (centerNode.position.x - centerNode.prevPosition.x) * invDt;
+                const impliedVelocityY = (centerNode.position.y - centerNode.prevPosition.y) * invDt;
                 
                 // Only clamp upward velocity (positive Y)
-                if (impliedVelocity.y > maxUpwardVelocity) {
-                    const clampedVelocityY = maxUpwardVelocity;
-                    const clampedVelocity = new Vec2(impliedVelocity.x, clampedVelocityY);
-                    
+                if (impliedVelocityY > maxUpwardVelocity) {
                     // Update prevPosition to reflect the clamped velocity
-                    centerNode.prevPosition = centerNode.position.sub(clampedVelocity.scale(dt));
+                    centerNode.prevPosition.x = centerNode.position.x - impliedVelocityX * dt;
+                    centerNode.prevPosition.y = centerNode.position.y - maxUpwardVelocity * dt;
                 }
                 // Allow unlimited downward velocity (negative Y) and unlimited horizontal velocity
             }
@@ -2162,10 +2194,11 @@
                     hitBoundary = true;
                     if (allSameX && obj === centerNode) {
                         if (this.useEuler) {
-                            obj.velocity = obj.velocity.add(new Vec2(centerPushVelocity, 0));
+                            obj.velocity.x += centerPushVelocity;
                         } else {
                             // For Verlet, set prevPosition to create velocity away from boundary
-                            obj.prevPosition = obj.position.sub(new Vec2(centerPushVelocity, 0));
+                            obj.prevPosition.x = obj.position.x - centerPushVelocity;
+                            obj.prevPosition.y = obj.position.y;
                         }
                     }
                 }
@@ -2175,9 +2208,10 @@
                     hitBoundary = true;
                     if (allSameX && obj === centerNode) {
                         if (this.useEuler) {
-                            obj.velocity = obj.velocity.add(new Vec2(-centerPushVelocity, 0));
+                            obj.velocity.x -= centerPushVelocity;
                         } else {
-                            obj.prevPosition = obj.position.sub(new Vec2(-centerPushVelocity, 0));
+                            obj.prevPosition.x = obj.position.x + centerPushVelocity;
+                            obj.prevPosition.y = obj.position.y;
                         }
                     }
                 }
@@ -2199,9 +2233,10 @@
                     hitBoundary = true;
                     if (allSameY && obj === centerNode) {
                         if (this.useEuler) {
-                            obj.velocity = obj.velocity.add(new Vec2(0, centerPushVelocity));
+                            obj.velocity.y += centerPushVelocity;
                         } else {
-                            obj.prevPosition = obj.position.sub(new Vec2(0, centerPushVelocity));
+                            obj.prevPosition.x = obj.position.x;
+                            obj.prevPosition.y = obj.position.y - centerPushVelocity;
                         }
                     }
                 }
@@ -2210,14 +2245,14 @@
                 if (hitBoundary) {
                     if (this.useEuler) {
                         // For Euler integration, directly dampen velocity
-                        obj.velocity = obj.velocity.scale(frictionFactor);
+                        obj.velocity.x *= frictionFactor;
+                        obj.velocity.y *= frictionFactor;
                     } else {
                         // For Verlet integration, adjust previous position to reduce implied velocity
                         // Current velocity is implied by: (position - prevPosition)
                         // To reduce velocity, move prevPosition closer to current position
-                        const impliedVelocity = obj.position.sub(obj.prevPosition);
-                        const dampedVelocity = impliedVelocity.scale(frictionFactor);
-                        obj.prevPosition = obj.position.sub(dampedVelocity);
+                        obj.prevPosition.x = obj.position.x - (obj.position.x - obj.prevPosition.x) * frictionFactor;
+                        obj.prevPosition.y = obj.position.y - (obj.position.y - obj.prevPosition.y) * frictionFactor;
                     }
                 }
             }
@@ -2741,8 +2776,9 @@
                     const allNodes = [this.slimeNodes.center, ...this.slimeNodes.perimeter, ...this.slimeNodes.mid];
                     for (const node of allNodes) {
                         if (!node || node.isStatic) continue;
-                        const d = node.position.sub(this.mouseWorldPos);
-                        const distSq = d.x * d.x + d.y * d.y;
+                        const dx = node.position.x - this.mouseWorldPos.x;
+                        const dy = node.position.y - this.mouseWorldPos.y;
+                        const distSq = dx * dx + dy * dy;
                         if (distSq < closestDistSq) {
                             closest = node;
                             closestDistSq = distSq;
@@ -2752,8 +2788,9 @@
                     // Mouse is outside slime - use normal radius-based selection on perimeter only
                     for (const node of this.slimeNodes.perimeter) {
                         if (!node || node.isStatic) continue;
-                        const d = node.position.sub(this.mouseWorldPos);
-                        const distSq = d.x * d.x + d.y * d.y;
+                        const dx = node.position.x - this.mouseWorldPos.x;
+                        const dy = node.position.y - this.mouseWorldPos.y;
+                        const distSq = dx * dx + dy * dy;
                         if (distSq < pickRadiusSq && distSq < closestDistSq) {
                             closest = node;
                             closestDistSq = distSq;
@@ -2766,8 +2803,9 @@
             if (!closest) {
                 for (const node of this.world.objects) {
                     if (node.isStatic) continue;
-                    const d = node.position.sub(this.mouseWorldPos);
-                    const distSq = d.x * d.x + d.y * d.y;
+                    const dx = node.position.x - this.mouseWorldPos.x;
+                    const dy = node.position.y - this.mouseWorldPos.y;
+                    const distSq = dx * dx + dy * dy;
                     if (distSq < pickRadiusSq && distSq < closestDistSq) {
                         closest = node;
                         closestDistSq = distSq;
@@ -2916,7 +2954,9 @@
                 const posA = this.worldToScreen(constraint.objA.position);
                 const posB = this.worldToScreen(constraint.objB.position);
                 // Calculate stretch/compression ratio for weighting
-                const currentLen = constraint.objA.position.sub(constraint.objB.position).length();
+                const dx = constraint.objA.position.x - constraint.objB.position.x;
+                const dy = constraint.objA.position.y - constraint.objB.position.y;
+                const currentLen = Math.sqrt(dx * dx + dy * dy);
                 const stretch = (currentLen - constraint.restLength) / constraint.restLength;
                 // Amplify weight for more pronounced effect
                 const weightAmplified = stretch * constraint.stiffness * 3.0; // empirical factor
