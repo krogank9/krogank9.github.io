@@ -2283,6 +2283,8 @@
             // them and refresh once per frame / on resize instead of reading them
             // for every worldToScreen call.
             this.refreshViewportMetrics();
+            this._physicsVpW = this._vpW;
+            this._physicsVpH = this._vpH;
             
             // Page bottom mode: slime is positioned at bottom of page, not viewport
             this.pageBottomMode = options.pageBottomMode || false;
@@ -2443,7 +2445,7 @@
             window.addEventListener('pageshow', () => this.handlePageRestore());
             document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
             if (window.visualViewport) {
-                window.visualViewport.addEventListener('resize', () => this.handleResize());
+                window.visualViewport.addEventListener('resize', () => this.handleViewportChromeResize());
                 window.visualViewport.addEventListener('scroll', () => this.handleScroll());
             }
             
@@ -2545,16 +2547,44 @@
             this._pageW = document.documentElement.clientWidth || this._vpW;
         }
 
+        refreshPhysicsViewportMetrics(force = false) {
+            if (!this.pageBottomMode || force || !this._physicsVpW || !this._physicsVpH) {
+                this._physicsVpW = this._vpW;
+                this._physicsVpH = this._vpH;
+                return true;
+            }
+
+            // Mobile browser chrome show/hide can resize the visual/layout
+            // viewport by hundreds of pixels while the page orientation and
+            // width are unchanged. Treat that as a render-only resize so the
+            // page-bottom floor does not jump under the slime.
+            const widthChanged = Math.abs(this._vpW - this._physicsVpW) > 4;
+            if (widthChanged) {
+                this._physicsVpW = this._vpW;
+                this._physicsVpH = this._vpH;
+                return true;
+            }
+
+            return false;
+        }
+
         // --- Event Handlers ---
         handleResize() {
             this.refreshViewportMetrics();
             this.resetRenderCache();
-            if (this.world) {
+            const physicsBoundsChanged = this.refreshPhysicsViewportMetrics();
+            if (this.world && physicsBoundsChanged) {
                 this.world.bounds = this.screenToWorldBounds();
             }
             if (this.pageBottomMode && this.isShown) {
                 this.updatePageBottomSVG();
             }
+        }
+
+        handleViewportChromeResize() {
+            if (!this.isShown) return;
+            this.refreshViewportMetrics();
+            this.requestRender();
         }
 
         handleMouseDown(e) {
@@ -3057,9 +3087,11 @@
         }
 
         screenToWorldBounds() {
+            const w = this.pageBottomMode ? (this._physicsVpW || this._vpW) : this._vpW;
+            const h = this.pageBottomMode ? (this._physicsVpH || this._vpH) : this._vpH;
             return {
-                x: this._vpW / this.pixelsPerUnit,
-                y: this._vpH / this.pixelsPerUnit
+                x: w / this.pixelsPerUnit,
+                y: h / this.pixelsPerUnit
             };
         }
 

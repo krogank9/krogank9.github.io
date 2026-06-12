@@ -516,7 +516,8 @@
 				this.stepClearance = 0;
 				this.steppingLeg = null;
 				this.supportLeg = null;
-				this.lastLegSwitchTime = 0;
+				this.time = 0;
+				this.lastLegSwitchTime = -Infinity;
 				this.isSteppingForward = false;
 
 				//this.armR.chain._drawTargetDebug = true;
@@ -559,6 +560,7 @@
 
 			/* --------------------------------------------------------- */
 			update(dt) {
+				this.time += dt;
 				const com = this.rig.getCenterOfMass();
 				const onGroundR = this.isGrounded(this.legR);
 				const onGroundL = this.isGrounded(this.legL);
@@ -577,7 +579,7 @@
 				}
 
 				// Prevent rapidly switching legs
-				if (Date.now() - this.lastLegSwitchTime < 200) {
+				if (this.time - this.lastLegSwitchTime < 0.2) {
 					stepping_leg = this.steppingLeg;
 				}
 
@@ -594,8 +596,8 @@
 					this.supportLeg = support_leg;
 					this.stepLegStartX = stepping_leg.getAnklePos().x;
 					this.stepClearance = ez.lerpClamp(0.1, 1.0, Math.abs(step_target.x - this.stepLegStartX) / 2.0);
-					this.stepStartTime = Date.now();
-					this.lastLegSwitchTime = Date.now();
+					this.stepStartTime = this.time;
+					this.lastLegSwitchTime = this.time;
 					this.isSteppingForward = step_target.x > this.stepLegStartX;
 				}
 
@@ -1006,6 +1008,7 @@
 		// Main loop
 		// ──────────────────────────────────────────────────────────────
 		let canvas2DWasUsedLastFrame = true;
+		let ragdollFixedAccumulator = 0;
 
 		function update(dt) {
 			// Update camera each frame to handle resize
@@ -1027,23 +1030,34 @@
 			//ikArm.solve(ez.getMousePosWorld());
 			//ikArm.drawDebug();
 
-			stepper.update(dt * guiControls["Time scale"]);
-
-			// Apply a small horizontal impulse at the chest to encourage leaning
-			const simDt = dt * guiControls["Time scale"];
-			const autoPushing = updateAutoPush(dt);
-			const horiz = ((input.right || autoPushing) ? 1 : 0) - (input.left ? 1 : 0);
-			if (horiz !== 0) {
-				const chestLimb = rig.limbs["chest"];
-				if (chestLimb) {
-					const pushN = 65; // tuning value for walking urge
-					const impulse = new Vec2(horiz * pushN * simDt, 0);
-					const applyAt = chestLimb.getWorldAnchor("end");
-					chestLimb.body.applyImpulse(impulse, applyAt);
-				}
-			}
 			if (!physPaused) {
-				world.step(dt * guiControls["Time scale"], fixedDt, maxSubstepsPerFrame);
+				const timeScale = guiControls["Time scale"];
+				const scaledDt = dt * timeScale;
+				const maxAccumulatedTime = maxSubstepsPerFrame * fixedDt;
+				ragdollFixedAccumulator += scaledDt;
+				if (ragdollFixedAccumulator > maxAccumulatedTime) {
+					ragdollFixedAccumulator = maxAccumulatedTime;
+				}
+
+				while (ragdollFixedAccumulator >= fixedDt) {
+					stepper.update(fixedDt);
+
+					// Apply a small horizontal impulse at the chest to encourage leaning
+					const autoPushing = updateAutoPush(fixedDt);
+					const horiz = ((input.right || autoPushing) ? 1 : 0) - (input.left ? 1 : 0);
+					if (horiz !== 0) {
+						const chestLimb = rig.limbs["chest"];
+						if (chestLimb) {
+							const pushN = 65; // tuning value for walking urge
+							const impulse = new Vec2(horiz * pushN * fixedDt, 0);
+							const applyAt = chestLimb.getWorldAnchor("end");
+							chestLimb.body.applyImpulse(impulse, applyAt);
+						}
+					}
+
+					world.step(fixedDt, fixedDt, 1);
+					ragdollFixedAccumulator -= fixedDt;
+				}
 			}
 			
 			// Update and draw physics objects (logo, boxes, etc.)
@@ -1145,6 +1159,8 @@
 		// Override resetSimulation to preserve physics object bodies
 		const originalResetSimulation = resetSimulation;
 		resetSimulation = function() {
+			ragdollFixedAccumulator = 0;
+			world._accumulator = 0;
 			// Save all active physics object bodies before reset
 			const savedBodies = physicsObjectsManager.getActiveBodies();
 			
