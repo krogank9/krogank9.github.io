@@ -843,8 +843,9 @@
                 return;
             }
 
-            const rdw = Math.min(this._maxTex, Math.ceil(regW * dpr));
-            const rdh = Math.min(this._maxTex, Math.ceil(regH * dpr));
+            const regionScale = Math.min(dpr, this._maxTex / Math.max(1, regW), this._maxTex / Math.max(1, regH));
+            const rdw = Math.max(1, Math.ceil(regW * regionScale));
+            const rdh = Math.max(1, Math.ceil(regH * regionScale));
             this._ensureFBOs(rdw, rdh);
             this._regX = regX;
             this._regY = regY;
@@ -852,6 +853,7 @@
             this._regH = regH;
             this._rdw = rdw;
             this._rdh = rdh;
+            this._regionScale = regionScale;
 
             this._bindScreen();
             gl.clear(gl.COLOR_BUFFER_BIT);
@@ -1019,6 +1021,7 @@
             const gl = this.gl;
             const prog = this._blob;
             const dpr = this._dpr;
+            const regionScale = this._regionScale || dpr;
             const count = pts.length / 2;
 
             const data = this._ptsData;
@@ -1026,8 +1029,8 @@
             for (let i = 0; i < count; i++) {
                 let x = pts[i * 2], y = pts[i * 2 + 1];
                 if (toRegion) {
-                    x = (x - this._regX) * dpr;
-                    y = (y - this._regY) * dpr;
+                    x = (x - this._regX) * regionScale;
+                    y = (y - this._regY) * regionScale;
                 }
                 data[i * 2] = x;
                 data[i * 2 + 1] = y;
@@ -1043,15 +1046,15 @@
             if (bboxOverride) {
                 bx = bboxOverride[0]; by = bboxOverride[1]; bw = bboxOverride[2]; bh = bboxOverride[3];
                 if (toRegion) {
-                    bx = (bx - this._regX) * dpr;
-                    by = (by - this._regY) * dpr;
-                    bw *= dpr;
-                    bh *= dpr;
+                    bx = (bx - this._regX) * regionScale;
+                    by = (by - this._regY) * regionScale;
+                    bw *= regionScale;
+                    bh *= regionScale;
                 }
             }
 
             const aa = toRegion ? 1 : 1 / dpr;
-            const hw = toRegion ? strokeHW * dpr : strokeHW;
+            const hw = toRegion ? strokeHW * regionScale : strokeHW;
             const resW = toRegion ? this._rdw : this._cssW;
             const resH = toRegion ? this._rdh : this._cssH;
             const pad = hw + aa * 2 + 1;
@@ -1093,7 +1096,7 @@
 
         _drawBody(bodyPts, slime) {
             const gl = this.gl;
-            const dpr = this._dpr;
+            const dpr = this._regionScale || this._dpr;
             const stroke = this._parseColor(slime.baseColor, 0.2);
 
             // SourceGraphic → FBO 0
@@ -1133,7 +1136,7 @@
 
         _drawConstraintLayer(cons, offsetX, offsetY) {
             const gl = this.gl;
-            const dpr = this._dpr;
+            const dpr = this._regionScale || this._dpr;
             const toRX = (x) => (x - offsetX - this._regX) * dpr;
             const toRY = (y) => (y - offsetY - this._regY) * dpr;
 

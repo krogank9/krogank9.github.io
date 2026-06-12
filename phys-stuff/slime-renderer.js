@@ -2501,9 +2501,8 @@
         }
 
         refreshViewportMetrics() {
-            const vv = window.visualViewport;
-            this._vpW = Math.ceil((vv && vv.width) || window.innerWidth || 800);
-            this._vpH = Math.ceil((vv && vv.height) || window.innerHeight || 600);
+            this._vpW = window.innerWidth || 800;
+            this._vpH = window.innerHeight || 600;
             this._pageW = document.documentElement.clientWidth || this._vpW;
         }
 
@@ -2624,9 +2623,12 @@
 
             // Get viewport bounds (in page coordinates for pageBottomMode)
             const vv = window.visualViewport;
-            const scrollY = window.scrollY + (vv ? vv.offsetTop || 0 : 0);
+            const visualTop = window.scrollY + (vv ? vv.offsetTop || 0 : 0);
+            const visualHeight = vv ? vv.height || this._vpH : this._vpH;
+            const layoutTop = window.scrollY;
+            const scrollY = Math.min(layoutTop, visualTop);
             const viewportTop = scrollY;
-            const viewportBottom = scrollY + this._vpH;
+            const viewportBottom = Math.max(layoutTop + this._vpH, visualTop + visualHeight);
             
             // Check if slime's vertical bounds intersect viewport
             const visible = slimeBottom >= viewportTop && slimeTop <= viewportBottom;
