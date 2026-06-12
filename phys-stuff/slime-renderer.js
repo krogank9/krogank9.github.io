@@ -2383,12 +2383,30 @@
         }
 
         // --- Setup ---
+        requestRender() {
+            this._forceRender = true;
+            this._settleFrames = Math.max(this._settleFrames || 0, 2);
+        }
+
+        resetRenderCache() {
+            this._forceRender = true;
+            this._lastRenderedPositions = null;
+            this._lastHadTarget = false;
+            this._settleFrames = 8;
+        }
+
         bindEvents() {
             window.addEventListener('resize', () => this.handleResize());
             window.addEventListener('mousedown', (e) => this.handleMouseDown(e));
             window.addEventListener('mouseup', () => this.handleMouseUp());
             window.addEventListener('mousemove', (e) => this.handleMouseMove(e));
             window.addEventListener('scroll', () => this.handleScroll());
+            window.addEventListener('pageshow', () => this.handlePageRestore());
+            document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', () => this.handleResize());
+                window.visualViewport.addEventListener('scroll', () => this.handleScroll());
+            }
             
             // Touch events for mobile
             window.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
@@ -2403,6 +2421,7 @@
             // Update mouse position from touch
             this.mouseScreenPos = new Vec2(touch.clientX, touch.clientY);
             this.mouseWorldPos = this.screenToWorld(this.mouseScreenPos);
+            this.requestRender();
             
             // Check if touching near the slime
             this.updateClosestNode();
@@ -2419,6 +2438,7 @@
             // Reset mouse position to off-screen so hover effect doesn't show
             this.mouseScreenPos = new Vec2(-1000, -1000);
             this.mouseWorldPos = new Vec2(-1000, -1000);
+            this.requestRender();
         }
         
         handleTouchMove(e) {
@@ -2426,6 +2446,7 @@
             const touch = e.touches[0];
             this.mouseScreenPos = new Vec2(touch.clientX, touch.clientY);
             this.mouseWorldPos = this.screenToWorld(this.mouseScreenPos);
+            this.requestRender();
             
             // If dragging the slime, prevent scrolling
             if (this.selectedNode) {
@@ -2480,15 +2501,16 @@
         }
 
         refreshViewportMetrics() {
-            this._vpW = window.innerWidth || 800;
-            this._vpH = window.innerHeight || 600;
+            const vv = window.visualViewport;
+            this._vpW = Math.ceil(Math.max(window.innerWidth || 0, vv ? vv.width : 0, 800));
+            this._vpH = Math.ceil(Math.max(window.innerHeight || 0, vv ? vv.height : 0, 600));
             this._pageW = document.documentElement.clientWidth || this._vpW;
         }
 
         // --- Event Handlers ---
         handleResize() {
             this.refreshViewportMetrics();
-            this._forceRender = true;
+            this.resetRenderCache();
             if (this.world) {
                 this.world.bounds = this.screenToWorldBounds();
             }
@@ -2503,6 +2525,7 @@
             // Ensure closest node is up-to-date at the moment of the click
             this.updateClosestNode();
             this.selectedNode = this.closestNode;
+            this.requestRender();
 
             // If we grabbed a node, consume the event so underlying UI doesn't receive the click
             if (this.selectedNode) {
@@ -2514,11 +2537,15 @@
 
         handleMouseUp() {
             this.selectedNode = null;
+            this.requestRender();
         }
 
         handleMouseMove(e) {
             this.mouseScreenPos = new Vec2(e.clientX, e.clientY);
             this.mouseWorldPos = this.screenToWorld(this.mouseScreenPos);
+            if (this.selectedNode || this.closestNode) {
+                this.requestRender();
+            }
         }
 
         handleScroll() {
@@ -2527,7 +2554,7 @@
             // In page bottom mode, don't move physics when scrolling - slime stays at page bottom
             if (this.pageBottomMode) {
                 this.lastScrollY = window.scrollY;
-                this._forceRender = true;
+                this.requestRender();
                 return;
             }
 
@@ -2536,6 +2563,7 @@
             this.lastScrollY = currentScrollY;
 
             if (deltaY === 0) return;
+            this.requestRender();
 
             // Convert pixel scroll delta to world units.
             // Scrolling down (positive deltaY) makes page content move UP.
@@ -2550,6 +2578,24 @@
                 if (!this.world.useEuler) {
                     obj.prevPosition.y += worldDeltaY;
                 }
+            }
+        }
+
+        handlePageRestore() {
+            if (!this.isShown) return;
+            this.refreshViewportMetrics();
+            this.resetRenderCache();
+            if (!this.animationFrameId) {
+                this.animationFrameId = requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        handleVisibilityChange() {
+            if (document.visibilityState !== 'visible' || !this.isShown) return;
+            this._lastTime = performance.now();
+            this.resetRenderCache();
+            if (!this.animationFrameId) {
+                this.animationFrameId = requestAnimationFrame(() => this.animate());
             }
         }
 
@@ -2571,15 +2617,16 @@
             // move ~1000px between rAF ticks), otherwise the slime can enter the
             // viewport before the next frame renders/unhides him.
             const slimeScreenRadius = this.pixelsPerUnit * 1.5;
-            const margin = Math.max(300, this._vpH);
+            const margin = Math.max(600, this._vpH * 1.5);
 
             const slimeTop = centerScreen.y - slimeScreenRadius - margin;
             const slimeBottom = centerScreen.y + slimeScreenRadius + margin;
 
             // Get viewport bounds (in page coordinates for pageBottomMode)
-            const scrollY = window.scrollY;
+            const vv = window.visualViewport;
+            const scrollY = window.scrollY + (vv ? vv.offsetTop || 0 : 0);
             const viewportTop = scrollY;
-            const viewportBottom = scrollY + this._vpH;
+            const viewportBottom = scrollY + Math.max(this._vpH, vv ? vv.height || 0 : 0);
             
             // Check if slime's vertical bounds intersect viewport
             const visible = slimeBottom >= viewportTop && slimeTop <= viewportBottom;
@@ -2624,6 +2671,9 @@
             // before the next rAF re-renders, making the slime appear to teleport.
             // Render BEFORE unhiding so the first visible frame is always current.
             if (visible) {
+                if (this._culled) {
+                    this._forceRender = true;
+                }
                 this.render();
                 if (this._culled) {
                     this.rendererRoot.style.visibility = 'visible';
@@ -2633,6 +2683,7 @@
                 if (this._usesGLRenderer && !this._culled) {
                     const offsetY = this.pageBottomMode ? window.scrollY : 0;
                     this.renderer.flush(0, offsetY, this._vpW, this._vpH);
+                    this.resetRenderCache();
                 }
                 if (!this._culled) {
                     this.rendererRoot.style.visibility = 'hidden';
