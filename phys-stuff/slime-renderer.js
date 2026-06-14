@@ -2522,11 +2522,9 @@
 
             const numSides = 7;
             const radius = 1.5; // World units
-            // Base stiffness all four constraint families scale from. Lowered
-            // from 0.05 to soften him: the fixed 240Hz timestep runs more
-            // substeps per frame than the old variable step, so each constraint
-            // is satisfied harder and the effective stiffness rose.
-            const stiffness = 0.038;
+            // Base stiffness all four constraint families scale from. Tuned by
+            // feel against the fixed 240Hz timestep.
+            const stiffness = 0.15;
 
             // Spawn position - bottom-left corner, high enough to bounce
             const bounds = this.screenToWorldBounds();
