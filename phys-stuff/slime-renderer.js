@@ -2669,17 +2669,18 @@
             this.resetRenderCache();
             if (!this.animationFrameId) {
                 this._fixedAccumulator = 0;
-                this.animationFrameId = requestAnimationFrame(() => this.animate());
+                this._lastTime = undefined; // resync dt to the next rAF timestamp
+                this.animationFrameId = requestAnimationFrame((ts) => this.animate(ts));
             }
         }
 
         handleVisibilityChange() {
             if (document.visibilityState !== 'visible' || !this.isShown) return;
-            this._lastTime = performance.now();
+            this._lastTime = undefined; // resync dt to the next rAF timestamp
             this._fixedAccumulator = 0;
             this.resetRenderCache();
             if (!this.animationFrameId) {
-                this.animationFrameId = requestAnimationFrame(() => this.animate());
+                this.animationFrameId = requestAnimationFrame((ts) => this.animate(ts));
             }
         }
 
@@ -2722,7 +2723,13 @@
         }
         
         // --- Core Loop ---
-        animate() {
+        // ts is the requestAnimationFrame timestamp: it is vsync-aligned and
+        // steady frame-to-frame, unlike performance.now() read here, which
+        // floats with where in the frame this callback happens to run. With
+        // the fixed-step accumulator below, that jitter would turn into a
+        // varying substep count per frame (3/4/5 at 60Hz instead of a clean 4)
+        // and show up as the slime lagging then lurching. Matches the ragdoll.
+        animate(ts) {
             if (!this.isShown) return;
 
             this.refreshViewportMetrics();
@@ -2731,11 +2738,11 @@
             if (this.pageBottomMode && (!this._contentHeight || this._contentHeight <= 0)) {
                 this.updatePageBottomSVG();
             }
-            
+
             const visible = this.isSlimeVisible();
-            
-            if (this._lastTime === undefined) this._lastTime = performance.now();
-            const now = performance.now();
+
+            const now = ts !== undefined ? ts : performance.now();
+            if (this._lastTime === undefined) this._lastTime = now;
             let dtReal = (now - this._lastTime) / 1000; // seconds
             this._lastTime = now;
 
@@ -2784,7 +2791,7 @@
                 }
             }
 
-            this.animationFrameId = requestAnimationFrame(() => this.animate());
+            this.animationFrameId = requestAnimationFrame((ts) => this.animate(ts));
         }
 
         // Method to switch integration method (called from external GUI)
