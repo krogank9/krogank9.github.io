@@ -2522,9 +2522,10 @@
 
             const numSides = 7;
             const radius = 1.5; // World units
-            // Base stiffness all four constraint families scale from. Tuned by
-            // feel against the fixed 240Hz timestep.
-            const stiffness = 0.15;
+            // Base stiffness all four constraint families scale from. Higher =
+            // firmer/holds shape, lower = softer/jigglier. Tuned by feel
+            // against the fixed 240Hz timestep.
+            const stiffness = 0.03;
 
             // Spawn position - bottom-left corner, high enough to bounce
             const bounds = this.screenToWorldBounds();
