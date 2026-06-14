@@ -1857,8 +1857,8 @@
     // --- Configuration ---
     const PIXELS_PER_UNIT = 60; // 1 world unit = 120 pixels
     const SLIME_Z_INDEX = 10002;
-    const SLIME_FIXED_DT = 1 / 120;
-    const SLIME_MAX_FIXED_STEPS = 12;
+    const SLIME_FIXED_DT = 1 / 240;
+    const SLIME_MAX_FIXED_STEPS = 32;
 
     // --- Physics Engine ---
 
