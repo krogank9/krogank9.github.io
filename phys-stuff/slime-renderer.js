@@ -1857,6 +1857,8 @@
     // --- Configuration ---
     const PIXELS_PER_UNIT = 60; // 1 world unit = 120 pixels
     const SLIME_Z_INDEX = 10002;
+    const SLIME_FIXED_DT = 1 / 120;
+    const SLIME_MAX_FIXED_STEPS = 12;
 
     // --- Physics Engine ---
 
@@ -2377,20 +2379,28 @@
             
             // Cache the content height for coordinate calculations
             this._contentHeight = contentHeight;
-            
-            this.rendererRoot.style.top = '0';
-            this.rendererRoot.style.left = '0';
-            this.rendererRoot.style.width = this._usesGLRenderer ? '100vw' : '100%';
-            this.rendererRoot.style.maxWidth = this._usesGLRenderer ? 'none' : '100%';
-            this.rendererRoot.style.height = this._usesGLRenderer ? '100vh' : contentHeight + 'px';
+
             if (this._usesGLRenderer) {
-                this.rendererRoot.style.right = '0';
-                this.rendererRoot.style.bottom = '0';
-            }
-            this.rendererRoot.style.overflow = 'hidden';
-            this.rendererRoot.style.pointerEvents = 'none';
-            if (this.rendererRoot.setAttribute && !this._usesGLRenderer) {
-                this.rendererRoot.setAttribute('viewBox', `0 0 ${pageWidth} ${contentHeight}`);
+                // Anchor the canvas into the page over the bottom strip the
+                // slime can actually reach (world bounds clamp him within one
+                // physics-viewport-height of the floor, plus padding for the
+                // glow/shadow spread). Page-anchored, the compositor scrolls
+                // him with the content — no per-frame scrollY compensation,
+                // which is what teleported during mobile chrome show/hide.
+                const physVpH = this._physicsVpH || this._vpH;
+                const canvasH = Math.min(contentHeight, physVpH + this.pageBottomOffset + 160);
+                this.renderer.setPageAnchor(contentHeight - canvasH, pageWidth, canvasH);
+            } else {
+                this.rendererRoot.style.top = '0';
+                this.rendererRoot.style.left = '0';
+                this.rendererRoot.style.width = '100%';
+                this.rendererRoot.style.maxWidth = '100%';
+                this.rendererRoot.style.height = contentHeight + 'px';
+                this.rendererRoot.style.overflow = 'hidden';
+                this.rendererRoot.style.pointerEvents = 'none';
+                if (this.rendererRoot.setAttribute) {
+                    this.rendererRoot.setAttribute('viewBox', `0 0 ${pageWidth} ${contentHeight}`);
+                }
             }
 
             // World→screen mapping may have changed; the at-rest skip must not
@@ -2401,6 +2411,7 @@
         hide() {
             this.isShown = false;
             this.rendererRoot.style.display = 'none';
+            this._fixedAccumulator = 0;
 
             if (this.animationFrameId) {
                 cancelAnimationFrame(this.animationFrameId);
@@ -2501,6 +2512,7 @@
             // Reduce gravity for more floaty behavior
             this.world.gravity = new Vec2(0, -6); // Reduced from -9.81
             this.world.constraintIterations = 8; // Increased from 5 for better stability
+            this._fixedAccumulator = 0;
         }
 
         spawnSlime() {
@@ -2622,7 +2634,9 @@
             // In page bottom mode, don't move physics when scrolling - slime stays at page bottom
             if (this.pageBottomMode) {
                 this.lastScrollY = window.scrollY;
-                this.requestRender();
+                // The page-anchored GL canvas scrolls with the content; only
+                // the SVG path needs a refresh here
+                if (!this._usesGLRenderer) this.requestRender();
                 return;
             }
 
@@ -2654,6 +2668,7 @@
             this.refreshViewportMetrics();
             this.resetRenderCache();
             if (!this.animationFrameId) {
+                this._fixedAccumulator = 0;
                 this.animationFrameId = requestAnimationFrame(() => this.animate());
             }
         }
@@ -2661,6 +2676,7 @@
         handleVisibilityChange() {
             if (document.visibilityState !== 'visible' || !this.isShown) return;
             this._lastTime = performance.now();
+            this._fixedAccumulator = 0;
             this.resetRenderCache();
             if (!this.animationFrameId) {
                 this.animationFrameId = requestAnimationFrame(() => this.animate());
@@ -2734,7 +2750,14 @@
             } else {
                 this.closestNode = null;
             }
-            this.world.step(dtReal, this.selectedNode, this.mouseWorldPos, this.slimeNodes.center);
+            this._fixedAccumulator = Math.min(
+                (this._fixedAccumulator || 0) + dtReal,
+                SLIME_FIXED_DT * SLIME_MAX_FIXED_STEPS
+            );
+            while (this._fixedAccumulator >= SLIME_FIXED_DT) {
+                this.world.step(SLIME_FIXED_DT, this.selectedNode, this.mouseWorldPos, this.slimeNodes.center);
+                this._fixedAccumulator -= SLIME_FIXED_DT;
+            }
 
             // Only render if visible. While culled the SVG is hidden rather than
             // left showing its last-drawn frame: scrolling is composited off the
@@ -2752,8 +2775,7 @@
                 }
             } else {
                 if (this._usesGLRenderer && !this._culled) {
-                    const offsetY = this.pageBottomMode ? window.scrollY : 0;
-                    this.renderer.flush(0, offsetY, this._vpW, this._vpH);
+                    this.renderer.flush(0, 0, this._vpW, this._vpH);
                     this.resetRenderCache();
                 }
                 if (!this._culled) {
@@ -2768,7 +2790,7 @@
         // Method to switch integration method (called from external GUI)
         setIntegrationMethod(useEuler) {
             if (this.world) {
-                const convertDt = this._lastMeasuredDt || 1 / 60;
+                const convertDt = SLIME_FIXED_DT;
                 this.world.setIntegrationMethod(useEuler, convertDt);
             }
         }
@@ -2903,8 +2925,7 @@
             }
 
             if (this._usesGLRenderer) {
-                const offsetY = this.pageBottomMode ? window.scrollY : 0;
-                this.renderer.flush(0, offsetY, this._vpW, this._vpH);
+                this.renderer.flush(0, 0, this._vpW, this._vpH);
             }
 
             this._recordRenderedState(allNodes, targetNode);

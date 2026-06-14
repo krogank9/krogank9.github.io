@@ -1,9 +1,14 @@
 // ══════════════════════════════════════════════════════════════════════════
 // WebGL Slime Renderer
 // Drop-in replacement for the SVG SlimeRenderer (slime-renderer.js) with the
-// same public API, drawing instead to a single fixed full-viewport canvas
-// overlay. The controller picks this renderer when available; append
-// ?slime=svg to the URL to force the original SVG renderer for A/B.
+// same public API, drawing instead to a single canvas overlay — fixed and
+// full-viewport by default, or page-anchored (position:absolute) when the
+// controller calls setPageAnchor() in pageBottomMode so the slime scrolls
+// with the content instead of being re-synced from window.scrollY every
+// frame (which teleports during mobile browser-chrome show/hide, where
+// scrollY is re-anchored in a step while content moves smoothly). The
+// controller picks this renderer when available; append ?slime=svg to the
+// URL to force the original SVG renderer for A/B.
 //
 // Visual parity targets (from the SVG renderer):
 //   - Constraint layer: lines stroke rgba(120,120,120,1) width 0.5 round
@@ -101,6 +106,8 @@
             this._constraintScene = null;
             this._marker = null;
             this._screenCleared = false;
+            this._pageAnchor = null;
+            this._anchorStylesDirty = false;
 
             this.updateGradientColors('#4A90E2');
             console.log('[SlimeRendererGL] WebGL slime renderer active (?slime=svg for the SVG renderer)');
@@ -766,29 +773,59 @@
 
         // ── Frame assembly ──────────────────────────────────────────────────
 
+        // Anchors the canvas into the document (position:absolute, covering
+        // the page strip [top, top + height]) so the compositor scrolls it
+        // with the content. Used by the controller in pageBottomMode; without
+        // it the canvas stays fixed and full-viewport.
+        setPageAnchor(top, width, height) {
+            const a = this._pageAnchor;
+            if (a && a.top === top && a.width === width && a.height === height) return;
+            this._pageAnchor = { top, width, height };
+            this._anchorStylesDirty = true;
+        }
+
         // Draws the retained scene. offsetX/offsetY convert the controller's
-        // page coordinates into viewport coordinates (scroll position in
-        // pageBottomMode, 0 otherwise); cssW/cssH are the controller's cached
-        // viewport metrics so no layout-forcing reads happen here.
+        // page coordinates into canvas-local coordinates: the page anchor's
+        // origin when set, otherwise the canvas rect (controller passes 0 and
+        // the slime verts are already viewport coordinates); cssW/cssH are
+        // the controller's cached viewport metrics so no layout-forcing reads
+        // happen in the anchored path.
         flush(offsetX, offsetY, cssW, cssH) {
             const gl = this.gl;
             if (!gl || !this._glReady || gl.isContextLost()) return;
 
             const dpr = window.devicePixelRatio || 1;
             const canvas = this.root;
-            canvas.style.width = '100vw';
-            canvas.style.height = '100vh';
-            canvas.style.left = '0';
-            canvas.style.top = '0';
-            canvas.style.right = '0';
-            canvas.style.bottom = '0';
+            const anchor = this._pageAnchor;
+            if (anchor) {
+                if (this._anchorStylesDirty) {
+                    canvas.style.position = 'absolute';
+                    canvas.style.left = '0';
+                    canvas.style.top = anchor.top + 'px';
+                    canvas.style.right = 'auto';
+                    canvas.style.bottom = 'auto';
+                    canvas.style.width = anchor.width + 'px';
+                    canvas.style.height = anchor.height + 'px';
+                    this._anchorStylesDirty = false;
+                }
+                offsetY += anchor.top;
+                cssW = anchor.width;
+                cssH = anchor.height;
+            } else {
+                canvas.style.width = '100vw';
+                canvas.style.height = '100vh';
+                canvas.style.left = '0';
+                canvas.style.top = '0';
+                canvas.style.right = '0';
+                canvas.style.bottom = '0';
 
-            const rect = canvas.getBoundingClientRect();
-            if (rect.width > 0 && rect.height > 0) {
-                offsetX += rect.left;
-                offsetY += rect.top;
-                cssW = rect.width;
-                cssH = rect.height;
+                const rect = canvas.getBoundingClientRect();
+                if (rect.width > 0 && rect.height > 0) {
+                    offsetX += rect.left;
+                    offsetY += rect.top;
+                    cssW = rect.width;
+                    cssH = rect.height;
+                }
             }
 
             const devW = Math.max(1, Math.round(cssW * dpr));
